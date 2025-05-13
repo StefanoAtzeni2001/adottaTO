@@ -1,0 +1,56 @@
+services:
+  postgres-db_adottato:
+    image: postgres:latest
+    container_name: postgres_db_adottato
+    restart: always
+    environment:
+      POSTGRES_DB: postgres_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - app_network
+
+  service_session_manager:
+    build:
+      context: ./sessionManager
+    container_name: sessionManager
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+    ports:
+      - "8083:8080"
+    environment:
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - app_network
+
+  pgadmin_adottato:
+    image: dpage/pgadmin4
+    container_name: pgadmin_adottato
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "5051:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin-config/servers.json:/pgadmin4/servers.json:ro
+      - ./pgadmin-config/.pgpass:/pgpass:ro
+    networks:
+      - app_network
+
+volumes:
+  db_data:
+  pgadmin_data:
+
+networks:
+  app_network:
+

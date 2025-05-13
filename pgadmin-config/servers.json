@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "PostgreSQL App DB",
+      "Group": "Docker",
+      "Host": "postgres-db_adottato",
+      "Port": 5432,
+      "MaintenanceDB": "postgres_db",
+      "Username": "app_user",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}
