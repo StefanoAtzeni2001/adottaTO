@@ -41,4 +41,9 @@ public class AppController {
         repo.save(auth);
         return "redirect:/login";
     }
+
+    @GetMapping("/homepage")
+    public String homepage() {
+        return "homepage"; // caricherà homepage.html
+    }
 }

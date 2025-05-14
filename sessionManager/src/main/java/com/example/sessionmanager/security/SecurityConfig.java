@@ -2,9 +2,12 @@ package com.example.sessionmanager.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -12,14 +15,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        System.out.println("→ SecurityConfig ATTIVA (Spring Security 6)");
-
         http
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // Permetti tutto per ora
+                        .requestMatchers("/register", "/login").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login") // la tua pagina HTML personalizzata
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/homepage", true) // → reindirizza a /homepage dopo login
+                        .failureUrl("/login?error=true")      // → aggiunge parametro se login fallisce
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -29,5 +33,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()); // solo per sviluppo
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }
