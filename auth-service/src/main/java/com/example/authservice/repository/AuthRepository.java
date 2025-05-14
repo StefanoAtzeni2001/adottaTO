@@ -1,12 +1,12 @@
-package com.example.sessionmanager.repository;
+package com.example.authservice.repository;
 
 
-import com.example.sessionmanager.model.Auth;
+import com.example.authservice.model.Auth;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
 //Permette di gestire la memorizzazione in DB attraverso Jpa
-public interface DataRepository extends JpaRepository<Auth, Long> {
+public interface AuthRepository extends JpaRepository<Auth, Long> {
     Optional<Auth> findByEmail(String email);
 }

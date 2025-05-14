@@ -1,4 +1,4 @@
-package com.example.sessionmanager.dto;
+package com.example.authservice.dto;
 
 import lombok.Builder;
 import lombok.Data;

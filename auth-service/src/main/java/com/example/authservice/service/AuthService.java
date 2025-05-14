@@ -1,7 +1,7 @@
-package com.example.sessionmanager.service;
+package com.example.authservice.service;
 
-import com.example.sessionmanager.model.Auth;
-import com.example.sessionmanager.repository.DataRepository;
+import com.example.authservice.model.Auth;
+import com.example.authservice.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class AuthService implements UserDetailsService {
 
     @Autowired
-    private DataRepository repo;
+    private AuthRepository repo;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

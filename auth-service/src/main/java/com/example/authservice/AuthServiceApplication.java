@@ -1,13 +1,13 @@
-package com.example.sessionmanager;
+package com.example.authservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SessionManagerApplication {
+public class AuthServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SessionManagerApplication.class, args);
+        SpringApplication.run(AuthServiceApplication.class, args);
     }
 
 }

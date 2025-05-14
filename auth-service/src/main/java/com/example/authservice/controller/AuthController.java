@@ -1,8 +1,8 @@
-package com.example.sessionmanager.controller;
+package com.example.authservice.controller;
 
 
-import com.example.sessionmanager.model.Auth;
-import com.example.sessionmanager.repository.DataRepository;
+import com.example.authservice.model.Auth;
+import com.example.authservice.repository.AuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -11,14 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-public class AppController {
+public class AuthController {
 
     @Autowired
-    private DataRepository repo;
+    private AuthRepository repo;
 
     @GetMapping("/login")
     public String login() {
-
         System.out.println("→ Login personalizzato chiamato");
         return "custom_login";
     }

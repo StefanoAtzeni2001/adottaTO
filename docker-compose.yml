@@ -13,10 +13,10 @@ services:
     networks:
       - app_network
 
-  service_session_manager:
+  auth-service:
     build:
-      context: ./sessionManager
-    container_name: sessionManager
+      context: ./auth-service
+    container_name: authService
     restart: always
     depends_on:
       - postgres-db_adottato

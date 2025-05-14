@@ -1,4 +1,4 @@
-package com.example.sessionmanager.model;
+package com.example.authservice.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
