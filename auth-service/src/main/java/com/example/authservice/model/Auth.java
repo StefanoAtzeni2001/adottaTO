@@ -6,7 +6,7 @@ import lombok.Setter;
 import jakarta.validation.constraints.Email;
 
 @Entity
-@Table(name = "schema_a")
+@Table(name = "auth")
 @Getter
 @Setter
 public class Auth {
