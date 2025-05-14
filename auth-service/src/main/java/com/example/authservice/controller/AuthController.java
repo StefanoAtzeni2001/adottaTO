@@ -15,7 +15,7 @@ public class AuthController {
     @GetMapping("/login")
     public String login() {
         System.out.println("→ Login personalizzato chiamato");
-        return "custom_login";
+        return "login";
     }
 
     @GetMapping("/register")
