@@ -1,8 +1,8 @@
 package com.example.sessionmanager.repository;
 
 
-import com.example.sessionmanager.model.Data;
+import com.example.sessionmanager.model.Auth;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 //Permette di gestire la memorizzazione in DB attraverso Jpa
-public interface DataRepository extends JpaRepository<Data, Long> {}
+public interface DataRepository extends JpaRepository<Auth, Long> {}

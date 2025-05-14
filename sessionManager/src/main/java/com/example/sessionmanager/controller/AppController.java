@@ -1,8 +1,7 @@
 package com.example.sessionmanager.controller;
 
 
-import com.example.sessionmanager.dto.AuthDTO;
-import com.example.sessionmanager.model.Data;
+import com.example.sessionmanager.model.Auth;
 import com.example.sessionmanager.repository.DataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.RestTemplate;
 
 @Controller
 public class AppController {
@@ -36,11 +34,11 @@ public class AppController {
         System.out.println("Registrazione utente: " + email + ", " + password);
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-        Data data = new Data();
-        data.setEmail(email);
-        data.setPassword(encoder.encode(password));
+        Auth auth = new Auth();
+        auth.setEmail(email);
+        auth.setPassword(encoder.encode(password));
 
-        repo.save(data);
+        repo.save(auth);
         return "redirect:/login";
     }
 }

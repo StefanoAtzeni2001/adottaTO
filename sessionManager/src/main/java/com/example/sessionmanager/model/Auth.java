@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Email;
 @Table(name = "schema_a")
 @Getter
 @Setter
-public class Data {
+public class Auth {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
