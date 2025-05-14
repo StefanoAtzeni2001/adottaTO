@@ -21,11 +21,26 @@ public class AuthService implements UserDetailsService {
     private AuthRepository repo;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtService jwtService;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Auth auth = repo.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato: " + email));
+
+        // Crea un oggetto UserDetails da passare al token generator
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                auth.getEmail(),
+                auth.getPassword(),
+                Collections.emptyList()
+        );
+
+        // Genera il token
+        String token = jwtService.generateToken(userDetails.getUsername());
+
+        // Stampa il token nel log
+        System.out.println("Token generato: " + token);
 
         return new org.springframework.security.core.userdetails.User(
                 auth.getEmail(),
