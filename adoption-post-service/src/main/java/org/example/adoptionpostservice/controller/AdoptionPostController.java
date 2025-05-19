@@ -1,18 +1,18 @@
 package org.example.adoptionpostservice.controller;
 
 
+import jakarta.validation.Valid;
 import org.example.adoptionpostservice.dto.AdoptionPostDetailDto;
-import org.example.adoptionpostservice.dto.AdoptionPostListDto;
+import org.example.adoptionpostservice.dto.AdoptionPostFilterRequestDto;
+import org.example.adoptionpostservice.dto.AdoptionPostSummaryDto;
 import org.example.adoptionpostservice.service.AdoptionPostService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.nio.file.AccessDeniedException;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -26,17 +26,44 @@ public class AdoptionPostController {
     }
 
     @GetMapping("/get-list")
-    public Page<AdoptionPostListDto> getAllAdoptionPosts(Pageable pageable) {
+    public Page<AdoptionPostSummaryDto> getAllAdoptionPosts(Pageable pageable) {
         return adoptionPostService.getAllPosts(pageable);
     }
 
-    @GetMapping("get-by-id/{id}")
-    public ResponseEntity<AdoptionPostDetailDto> getAdoptionPostById(@PathVariable Long id) {
+    @GetMapping("/get-list-filtered")
+    public Page<AdoptionPostSummaryDto> getAllAdoptionPostsFilteredBy(@Valid AdoptionPostFilterRequestDto filterDto, Pageable pageable) {
+        return adoptionPostService.getFilteredPosts(filterDto,pageable);
+
+    }
+    @GetMapping("get-by-id/{postId}")
+    public ResponseEntity<AdoptionPostDetailDto> getAdoptionPostById(@PathVariable Long postId) {
         try {
-            AdoptionPostDetailDto dto = adoptionPostService.getPostById(id);
+            AdoptionPostDetailDto dto = adoptionPostService.getPostById(postId);
             return ResponseEntity.ok(dto);
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();
         }
     }
+
+
+    //NOTA BENE: bisogna decidere come passare l'id dell'utente dal gateway, per ora lo inserisco come parametro
+
+    @PostMapping("create-adoption-post")
+    public ResponseEntity<AdoptionPostDetailDto> create(@Valid @RequestBody AdoptionPostDetailDto postDto,@RequestParam Long userId) {
+        AdoptionPostDetailDto created = adoptionPostService.createPost(postDto,userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @DeleteMapping("delete-by-id/{postId}")
+    public ResponseEntity<Void> delete(@PathVariable Long postId, @RequestParam Long userId) throws AccessDeniedException {
+        adoptionPostService.deletePost(postId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("update-by-id/{postId}")
+    public ResponseEntity<AdoptionPostDetailDto> update(@RequestBody AdoptionPostDetailDto postDto,@PathVariable Long postId, @RequestParam Long userId) throws AccessDeniedException {
+        AdoptionPostDetailDto updated = adoptionPostService.updatePost(postDto,postId,userId);
+        return ResponseEntity.ok(updated);
+    }
 }
+
