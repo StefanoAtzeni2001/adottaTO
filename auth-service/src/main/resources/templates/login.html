@@ -54,6 +54,33 @@
         button:hover {
             background-color: #45a049;
         }
+
+
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            color: #444;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            padding: 10px;
+            width: 100%;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+
+        .google-btn img {
+            height: 20px;
+            margin-right: 10px;
+        }
+
+        .separator {
+            text-align: center;
+            margin: 20px 0;
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
@@ -69,6 +96,14 @@
         <button type="submit">Login</button>
         <a href="/register">Non hai un account? Registrati</a>
     </form>
+
+
+    <div class="separator">oppure</div>
+
+    <a class="google-btn" href="/oauth2/authorization/google">
+        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+        Accedi con Google
+    </a>
 </div>
 </body>
 </html>

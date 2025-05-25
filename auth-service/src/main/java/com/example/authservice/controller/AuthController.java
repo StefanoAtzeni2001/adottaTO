@@ -3,11 +3,17 @@ package com.example.authservice.controller;
 
 import com.example.authservice.dto.AuthRegisterRequest;
 import com.example.authservice.service.AuthService;
+import com.example.authservice.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
 
 @Controller
 public class AuthController {
@@ -40,8 +46,24 @@ public class AuthController {
             return "redirect:/register?error=exists";
         }
     }
+    @RequestMapping("/")
+    public String home() {
+        return "Welcome";
+    }
 
+    @GetMapping("/profile")
+    public String profile(OAuth2AuthenticationToken token, Model model) {
+        model.addAttribute("name", token.getPrincipal().getAttribute("name"));
+        //model.addAttribute("email", jwtService.extractEmail(String.valueOf(token)));
+        model.addAttribute("email", token.getPrincipal().getAttribute("email"));
+        model.addAttribute("picture", token.getPrincipal().getAttribute("picture"));
+        return "user-profile";
+    }
 
+    @RequestMapping("/user")
+    public Principal user(Principal user) {
+        return user;
+    }
     @GetMapping("/homepage")
     public String homepage() {
         return "homepage"; // caricherà homepage.html

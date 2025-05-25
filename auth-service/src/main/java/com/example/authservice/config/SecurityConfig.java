@@ -20,6 +20,10 @@ public class SecurityConfig {
                         .requestMatchers("/register", "/login").permitAll()
                         .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/profile", true) // → reindirizza a /homepage dopo login
+                )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/homepage", true) // → reindirizza a /homepage dopo login
