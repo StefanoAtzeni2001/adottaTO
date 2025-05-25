@@ -49,24 +49,6 @@ services:
     networks:
       - app_network
 
-  auth-google-service:
-    build:
-      context: ./auth-google-service
-    container_name: authGoogleService
-    restart: always
-    depends_on:
-      - postgres-db_adottato
-    ports:
-      - "8084:8080"
-    env_file:
-      - .env
-    environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
-    networks:
-      - app_network
-
 volumes:
   db_data:
   pgadmin_data:
