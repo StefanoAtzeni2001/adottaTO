@@ -22,11 +22,11 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .defaultSuccessUrl("/profile", true) // → reindirizza a /homepage dopo login
+                        .defaultSuccessUrl("/profile", true)
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/homepage", true) // → reindirizza a /homepage dopo login
+                        .defaultSuccessUrl("/homepage", true)
                         .failureUrl("/login?error=true")      // → aggiunge parametro se login fallisce
                         .permitAll()
                 )

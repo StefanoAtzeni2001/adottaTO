@@ -1,10 +1,9 @@
 package com.example.authservice.service;
 
-import com.example.authservice.dto.AuthDTO;
-import com.example.authservice.dto.AuthRegisterRequest;
+import com.example.authservice.dto.AuthRegisterResponseDTO;
+import com.example.authservice.dto.AuthRegisterRequestDTO;
 import com.example.authservice.model.Auth;
 import com.example.authservice.repository.AuthRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,12 +16,17 @@ import java.util.Collections;
 @Service
 public class AuthService implements UserDetailsService {
 
-    @Autowired
-    private AuthRepository repo;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private JwtService jwtService;
+    private final AuthRepository repo;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+
+    public AuthService(AuthRepository repo,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
+        this.repo = repo;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -50,21 +54,20 @@ public class AuthService implements UserDetailsService {
     }
 
     @Transactional
-    public AuthDTO register(AuthRegisterRequest request) {
+    public AuthRegisterResponseDTO register(AuthRegisterRequestDTO request) {
         if (repo.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("L'email è già registrata.");
         }
 
+        // salva in auth (email e password)
         Auth user = new Auth();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        Auth savedAuth = repo.save(user);
 
-        Auth saved = repo.save(user);
-
-        return AuthDTO.builder()
-                .id(saved.getId())
-                .email(saved.getEmail())
-                .password(saved.getPassword()) // di solito si omette nel DTO per sicurezza
+        return AuthRegisterResponseDTO.builder()
+                .id(savedAuth.getId())
+                .email(savedAuth.getEmail())
                 .build();
     }
 }

@@ -1,7 +1,7 @@
 package com.example.authservice.controller;
 
 
-import com.example.authservice.dto.AuthRegisterRequest;
+import com.example.authservice.dto.AuthRegisterRequestDTO;
 import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,9 @@ import java.security.Principal;
 
 @Controller
 public class AuthController {
+
+    @Autowired
+    private JwtService jwtService;
 
     @GetMapping("/login")
     public String login() {
@@ -36,7 +39,7 @@ public class AuthController {
     @PostMapping("/register")
     public String register(@RequestParam String email, @RequestParam String password) {
         try {
-            AuthRegisterRequest request = new AuthRegisterRequest();
+            AuthRegisterRequestDTO request = new AuthRegisterRequestDTO();
             request.setEmail(email);
             request.setPassword(password);
 
@@ -46,15 +49,10 @@ public class AuthController {
             return "redirect:/register?error=exists";
         }
     }
-    @RequestMapping("/")
-    public String home() {
-        return "Welcome";
-    }
 
     @GetMapping("/profile")
     public String profile(OAuth2AuthenticationToken token, Model model) {
         model.addAttribute("name", token.getPrincipal().getAttribute("name"));
-        //model.addAttribute("email", jwtService.extractEmail(String.valueOf(token)));
         model.addAttribute("email", token.getPrincipal().getAttribute("email"));
         model.addAttribute("picture", token.getPrincipal().getAttribute("picture"));
         return "user-profile";
