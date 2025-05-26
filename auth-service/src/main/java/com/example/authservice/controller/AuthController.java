@@ -78,9 +78,9 @@ public class AuthController {
             profile = new UserProfile();
             profile.setAuth(auth);
             profile.setEmail(email);
+            profile.setName(name);
+            profile.setSurname(surname);
         }
-        profile.setName(name);
-        profile.setSurname(surname);
         userProfileRepository.save(profile);
 
         return "redirect:/userpage";
@@ -114,4 +114,40 @@ public class AuthController {
 
         return "userpage";
     }
+
+    @GetMapping("/edit-profile")
+    public String editProfile(Model model, Principal principal) {
+        String email;
+
+        if (principal instanceof OAuth2AuthenticationToken oauthToken) {
+            email = oauthToken.getPrincipal().getAttribute("email");
+        } else {
+            email = principal.getName();
+        }
+
+        Auth auth = authService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+
+        UserProfile profile = userProfileRepository.findById(auth.getId())
+                .orElseThrow(() -> new RuntimeException("Profilo non trovato"));
+
+        model.addAttribute("user", profile);
+        return "edit-profile";
+    }
+
+    @PostMapping("/update-profile")
+    @Transactional
+    public String updateProfile(@RequestParam Long id,
+                                @RequestParam String name,
+                                @RequestParam String surname) {
+        UserProfile profile = userProfileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Profilo non trovato"));
+
+        profile.setName(name);
+        profile.setSurname(surname);
+        userProfileRepository.save(profile);
+
+        return "redirect:/userpage";
+    }
+
 }
