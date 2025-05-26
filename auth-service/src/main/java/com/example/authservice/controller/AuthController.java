@@ -83,7 +83,7 @@ public class AuthController {
         profile.setSurname(surname);
         userProfileRepository.save(profile);
 
-        return "redirect:/homepage";
+        return "redirect:/userpage";
     }
 
     @GetMapping("/profile")
@@ -93,6 +93,36 @@ public class AuthController {
         model.addAttribute("picture", token.getPrincipal().getAttribute("picture"));
         return "user-profile";
     }
+
+    @GetMapping("/userpage")
+    public String userPage(Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        String email;
+
+        if (principal instanceof OAuth2AuthenticationToken oauth2Token) {
+            email = oauth2Token.getPrincipal().getAttribute("email");
+        } else {
+            email = principal.getName(); // preso da form login
+        }
+
+        // Trova l'entità Auth per ottenere l'id
+        Auth auth = authService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utente non trovato per email: " + email));
+
+        // Trova UserProfile usando l'id
+        UserProfile profile = userProfileRepository.findById(auth.getId())
+                .orElseThrow(() -> new RuntimeException("Profilo non trovato per id: " + auth.getId()));
+
+        model.addAttribute("name", profile.getName());
+        model.addAttribute("surname", profile.getSurname());
+        model.addAttribute("email", profile.getEmail());
+
+        return "userpage";
+    }
+
 
     @RequestMapping("/user")
     public Principal user(Principal user) {

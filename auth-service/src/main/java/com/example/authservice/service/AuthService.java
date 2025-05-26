@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Optional;
 
 @Service
 public class AuthService implements UserDetailsService {
@@ -98,5 +99,9 @@ public class AuthService implements UserDetailsService {
             auth.setProvider("google");
             return authRepository.save(auth);
         });
+    }
+
+    public Optional<Auth> findByEmail(String email) {
+        return authRepository.findByEmail(email);
     }
 }
