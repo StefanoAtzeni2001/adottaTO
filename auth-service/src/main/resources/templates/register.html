@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Registrazione</title>
     <style>
         body {
@@ -74,10 +74,16 @@
     <h2>Registrati</h2>
     <form action="/register" method="post">
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+        <input type="email" id="email" name="email" required />
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+        <input type="password" id="password" name="password" required />
+
+        <label for="name">Nome:</label>
+        <input type="text" id="name" name="name" required />
+
+        <label for="surname">Cognome:</label>
+        <input type="text" id="surname" name="surname" required />
 
         <button type="submit">Registrati</button>
     </form>

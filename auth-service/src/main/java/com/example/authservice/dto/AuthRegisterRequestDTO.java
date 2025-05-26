@@ -6,6 +6,6 @@ import lombok.Data;
 public class AuthRegisterRequestDTO {
     private String email;
     private String password;
-    private String nome;
-    private String cognome;
+    private String name;
+    private String surname;
 }

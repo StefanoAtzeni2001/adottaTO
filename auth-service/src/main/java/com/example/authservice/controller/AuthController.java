@@ -37,11 +37,17 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public String register(@RequestParam String email, @RequestParam String password) {
+    public String register(
+            @RequestParam String email,
+            @RequestParam String password,
+            @RequestParam String name,
+            @RequestParam String surname) {
         try {
             AuthRegisterRequestDTO request = new AuthRegisterRequestDTO();
             request.setEmail(email);
             request.setPassword(password);
+            request.setName(name);
+            request.setSurname(surname);
 
             authService.register(request);
             return "redirect:/login";

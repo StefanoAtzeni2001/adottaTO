@@ -3,7 +3,9 @@ package com.example.authservice.service;
 import com.example.authservice.dto.AuthRegisterResponseDTO;
 import com.example.authservice.dto.AuthRegisterRequestDTO;
 import com.example.authservice.model.Auth;
+import com.example.authservice.model.UserProfile;
 import com.example.authservice.repository.AuthRepository;
+import com.example.authservice.repository.UserProfileRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,21 +18,24 @@ import java.util.Collections;
 @Service
 public class AuthService implements UserDetailsService {
 
-    private final AuthRepository repo;
+    private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserProfileRepository userProfileRepository;
     private final JwtService jwtService;
 
-    public AuthService(AuthRepository repo,
+    public AuthService(AuthRepository authRepository,
                        PasswordEncoder passwordEncoder,
+                       UserProfileRepository userProfileRepository,
                        JwtService jwtService) {
-        this.repo = repo;
+        this.authRepository = authRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userProfileRepository = userProfileRepository;
         this.jwtService = jwtService;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Auth auth = repo.findByEmail(email)
+        Auth auth = authRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato: " + email));
 
         // Crea un oggetto UserDetails da passare al token generator
@@ -55,7 +60,7 @@ public class AuthService implements UserDetailsService {
 
     @Transactional
     public AuthRegisterResponseDTO register(AuthRegisterRequestDTO request) {
-        if (repo.findByEmail(request.getEmail()).isPresent()) {
+        if (authRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalArgumentException("L'email è già registrata.");
         }
 
@@ -63,7 +68,14 @@ public class AuthService implements UserDetailsService {
         Auth user = new Auth();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        Auth savedAuth = repo.save(user);
+        Auth savedAuth = authRepository.save(user);
+
+        UserProfile profile = new UserProfile();
+        profile.setAuth(savedAuth);
+        profile.setEmail(request.getEmail());
+        profile.setName(request.getName());
+        profile.setSurname(request.getSurname());
+        userProfileRepository.save(profile);
 
         return AuthRegisterResponseDTO.builder()
                 .id(savedAuth.getId())
