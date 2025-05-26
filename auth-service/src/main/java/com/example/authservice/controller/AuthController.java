@@ -86,14 +86,6 @@ public class AuthController {
         return "redirect:/userpage";
     }
 
-    @GetMapping("/profile")
-    public String profile(OAuth2AuthenticationToken token, Model model) {
-        model.addAttribute("name", token.getPrincipal().getAttribute("name"));
-        model.addAttribute("email", token.getPrincipal().getAttribute("email"));
-        model.addAttribute("picture", token.getPrincipal().getAttribute("picture"));
-        return "user-profile";
-    }
-
     @GetMapping("/userpage")
     public String userPage(Model model, Principal principal) {
         if (principal == null) {
@@ -121,15 +113,5 @@ public class AuthController {
         model.addAttribute("email", profile.getEmail());
 
         return "userpage";
-    }
-
-
-    @RequestMapping("/user")
-    public Principal user(Principal user) {
-        return user;
-    }
-    @GetMapping("/homepage")
-    public String homepage() {
-        return "homepage"; // caricherà homepage.html
     }
 }
