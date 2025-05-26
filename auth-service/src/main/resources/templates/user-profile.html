@@ -21,13 +21,19 @@
             border-radius: 50%;
             margin-bottom: 1em;
         }
+        .info {
+            margin-top: 1em;
+        }
     </style>
 </head>
 <body>
 <div class="profile">
     <img th:src="${picture}" alt="Profile Picture" width="120" height="120"/>
-    <h2 th:text="${name}">Name</h2>
-    <p th:text="${email}">Email</p>
+    <div class="info">
+        <h2 th:text="${name}">Nome</h2>
+        <h3 th:text="${surname}">Cognome</h3>
+        <p th:text="${email}">Email</p>
+    </div>
 </div>
 </body>
 </html>

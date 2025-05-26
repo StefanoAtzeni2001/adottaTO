@@ -38,6 +38,11 @@ public class AuthService implements UserDetailsService {
         Auth auth = authRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato: " + email));
 
+        if ("google".equals(auth.getProvider())) {
+            throw new UsernameNotFoundException(
+                    "Usa il login con Google per questo account");
+        }
+
         // Crea un oggetto UserDetails da passare al token generator
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
                 auth.getEmail(),
@@ -68,6 +73,7 @@ public class AuthService implements UserDetailsService {
         Auth user = new Auth();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setProvider("local");
         Auth savedAuth = authRepository.save(user);
 
         UserProfile profile = new UserProfile();
@@ -81,5 +87,16 @@ public class AuthService implements UserDetailsService {
                 .id(savedAuth.getId())
                 .email(savedAuth.getEmail())
                 .build();
+    }
+
+    @Transactional
+    public Auth findOrCreateAuthByEmail(String email) {
+        return authRepository.findByEmail(email).orElseGet(() -> {
+            Auth auth = new Auth();
+            auth.setEmail(email);
+            auth.setPassword("oauth2user"); // non usata
+            auth.setProvider("google");
+            return authRepository.save(auth);
+        });
     }
 }

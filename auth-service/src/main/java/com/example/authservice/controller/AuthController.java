@@ -2,11 +2,15 @@ package com.example.authservice.controller;
 
 
 import com.example.authservice.dto.AuthRegisterRequestDTO;
+import com.example.authservice.model.Auth;
+import com.example.authservice.model.UserProfile;
+import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +40,9 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private UserProfileRepository userProfileRepository;
+
     @PostMapping("/register")
     public String register(
             @RequestParam String email,
@@ -54,6 +61,29 @@ public class AuthController {
         } catch (IllegalArgumentException ex) {
             return "redirect:/register?error=exists";
         }
+    }
+
+    @Transactional
+    @GetMapping("/googleRegistration")
+    public String registerGoogleUser(OAuth2AuthenticationToken token) {
+        String name = token.getPrincipal().getAttribute("given_name");
+        String surname = token.getPrincipal().getAttribute("family_name");
+        String email = token.getPrincipal().getAttribute("email");
+
+        Auth auth = authService.findOrCreateAuthByEmail(email);
+
+        // crea profilo se non esiste
+        UserProfile profile = userProfileRepository.findById(auth.getId()).orElse(null);
+        if (profile == null) {
+            profile = new UserProfile();
+            profile.setAuth(auth);
+            profile.setEmail(email);
+        }
+        profile.setName(name);
+        profile.setSurname(surname);
+        userProfileRepository.save(profile);
+
+        return "redirect:/homepage";
     }
 
     @GetMapping("/profile")
