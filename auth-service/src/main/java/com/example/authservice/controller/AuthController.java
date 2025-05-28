@@ -65,10 +65,10 @@ public class AuthController {
 
     @Transactional
     @GetMapping("/googleRegistration")
-    public String registerGoogleUser(OAuth2AuthenticationToken token) {
-        String name = token.getPrincipal().getAttribute("given_name");
-        String surname = token.getPrincipal().getAttribute("family_name");
-        String email = token.getPrincipal().getAttribute("email");
+    public String registerGoogleUser(OAuth2AuthenticationToken tokenGoogle) {
+        String name = tokenGoogle.getPrincipal().getAttribute("given_name");
+        String surname = tokenGoogle.getPrincipal().getAttribute("family_name");
+        String email = tokenGoogle.getPrincipal().getAttribute("email");
 
         Auth auth = authService.findOrCreateAuthByEmail(email);
 
@@ -82,6 +82,10 @@ public class AuthController {
             profile.setSurname(surname);
         }
         userProfileRepository.save(profile);
+
+
+        // Genera il token
+        String token = jwtService.generateToken(email);
 
         return "redirect:/userpage";
     }
