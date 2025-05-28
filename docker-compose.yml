@@ -1,7 +1,7 @@
 services:
-  postgres-db_adottato:
+  postgres-db:
     image: postgres:latest
-    container_name: postgres_db_adottato
+    container_name: postgres_db
     restart: always
     environment:
       POSTGRES_DB: postgres_db
@@ -19,7 +19,7 @@ services:
     container_name: authService
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db
     ports:
       - "8083:8080"
     env_file:
@@ -31,12 +31,12 @@ services:
     networks:
       - app_network
 
-  pgadmin_adottato:
+  pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin_adottato
+    container_name: pgadmin
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: password

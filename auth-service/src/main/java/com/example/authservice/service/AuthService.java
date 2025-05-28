@@ -104,4 +104,27 @@ public class AuthService implements UserDetailsService {
     public Optional<Auth> findByEmail(String email) {
         return authRepository.findByEmail(email);
     }
+
+    @Transactional
+    public void registerGoogleUserIfNecessary(String email, String name, String surname) {
+        Auth auth = findOrCreateAuthByEmail(email);
+
+        userProfileRepository.findById(auth.getId()).orElseGet(() -> {
+            UserProfile profile = new UserProfile();
+            profile.setAuth(auth);
+            profile.setEmail(email);
+            profile.setName(name);
+            profile.setSurname(surname);
+            return userProfileRepository.save(profile);
+        });
+    }
+
+    public UserProfile getUserProfileByEmail(String email) {
+        Auth auth = authRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utente non trovato: " + email));
+
+        return userProfileRepository.findById(auth.getId())
+                .orElseThrow(() -> new RuntimeException("Profilo non trovato per utente con id: " + auth.getId()));
+    }
+
 }

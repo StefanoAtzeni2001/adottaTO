@@ -7,6 +7,7 @@ import com.example.authservice.model.UserProfile;
 import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
+import com.example.authservice.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
@@ -65,52 +66,23 @@ public class AuthController {
 
     @Transactional
     @GetMapping("/googleRegistration")
-    public String registerGoogleUser(OAuth2AuthenticationToken tokenGoogle) {
-        String name = tokenGoogle.getPrincipal().getAttribute("given_name");
-        String surname = tokenGoogle.getPrincipal().getAttribute("family_name");
-        String email = tokenGoogle.getPrincipal().getAttribute("email");
+    public String registerGoogleUser(OAuth2AuthenticationToken token) {
+        String email = token.getPrincipal().getAttribute("email");
+        String name = token.getPrincipal().getAttribute("given_name");
+        String surname = token.getPrincipal().getAttribute("family_name");
 
-        Auth auth = authService.findOrCreateAuthByEmail(email);
-
-        // crea profilo se non esiste
-        UserProfile profile = userProfileRepository.findById(auth.getId()).orElse(null);
-        if (profile == null) {
-            profile = new UserProfile();
-            profile.setAuth(auth);
-            profile.setEmail(email);
-            profile.setName(name);
-            profile.setSurname(surname);
-        }
-        userProfileRepository.save(profile);
-
-
-        // Genera il token
-        String token = jwtService.generateToken(email);
+        authService.registerGoogleUserIfNecessary(email, name, surname);
 
         return "redirect:/userpage";
     }
 
+
     @GetMapping("/userpage")
     public String userPage(Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/login";
-        }
+        if (principal == null) return "redirect:/login";
 
-        String email;
-
-        if (principal instanceof OAuth2AuthenticationToken oauth2Token) {
-            email = oauth2Token.getPrincipal().getAttribute("email");
-        } else {
-            email = principal.getName(); // preso da form login
-        }
-
-        // Trova l'entità Auth per ottenere l'id
-        Auth auth = authService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utente non trovato per email: " + email));
-
-        // Trova UserProfile usando l'id
-        UserProfile profile = userProfileRepository.findById(auth.getId())
-                .orElseThrow(() -> new RuntimeException("Profilo non trovato per id: " + auth.getId()));
+        String email = SecurityUtils.extractEmail(principal);
+        UserProfile profile = authService.getUserProfileByEmail(email);
 
         model.addAttribute("name", profile.getName());
         model.addAttribute("surname", profile.getSurname());
@@ -119,25 +91,23 @@ public class AuthController {
         return "userpage";
     }
 
+
     @GetMapping("/edit-profile")
     public String editProfile(Model model, Principal principal) {
-        String email;
-
-        if (principal instanceof OAuth2AuthenticationToken oauthToken) {
-            email = oauthToken.getPrincipal().getAttribute("email");
-        } else {
-            email = principal.getName();
-        }
-
-        Auth auth = authService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utente non trovato"));
-
-        UserProfile profile = userProfileRepository.findById(auth.getId())
-                .orElseThrow(() -> new RuntimeException("Profilo non trovato"));
-
+        UserProfile profile = getUserProfileFromPrincipal(principal);
         model.addAttribute("user", profile);
         return "edit-profile";
     }
+
+    private UserProfile getUserProfileFromPrincipal(Principal principal) {
+        String email = SecurityUtils.extractEmail(principal);
+        Auth auth = authService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+        return userProfileRepository.findById(auth.getId())
+                .orElseThrow(() -> new RuntimeException("Profilo non trovato"));
+    }
+
+
 
     @PostMapping("/update-profile")
     @Transactional

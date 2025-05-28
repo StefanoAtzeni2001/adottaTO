@@ -18,23 +18,19 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/register", "/login").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .defaultSuccessUrl("/googleRegistration", true)
-                )
+                        .defaultSuccessUrl("/googleRegistration", true))
                 .formLogin(form -> form
                         .loginPage("/login")
                         .defaultSuccessUrl("/userpage", true)
-                        .failureUrl("/login?error=true")      // → aggiunge parametro se login fallisce
-                        .permitAll()
-                )
+                        .failureUrl("/login?error=true")
+                        .permitAll())
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                        .logoutSuccessUrl("/login?logout").permitAll()
-                )
-                .csrf(csrf -> csrf.disable()); // solo per sviluppo
+                        .logoutSuccessUrl("/login?logout").permitAll())
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
