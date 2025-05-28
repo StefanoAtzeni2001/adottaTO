@@ -49,7 +49,7 @@ public class DataInitializer implements CommandLineRunner {
             adoptionPostRepository.save(
                     AdoptionPost.builder()
                             .name("Michelangelo")
-                            .description("Tartaturga simpatica, da tenere d'occhio...")
+                            .description("Grande amante della pizza, da tenere d'occhio...")
                             .species("Tartaruga")
                             .breed("Hermanni")
                             .gender("F")
