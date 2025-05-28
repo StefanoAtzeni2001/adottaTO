@@ -1,0 +1,69 @@
+package org.example.adoptionpostservice.controller;
+
+
+import jakarta.validation.Valid;
+import org.example.adoptionpostservice.dto.AdoptionPostDetailDto;
+import org.example.adoptionpostservice.dto.AdoptionPostFilterRequestDto;
+import org.example.adoptionpostservice.dto.AdoptionPostSummaryDto;
+import org.example.adoptionpostservice.service.AdoptionPostService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.nio.file.AccessDeniedException;
+import java.util.NoSuchElementException;
+
+@RestController
+@RequestMapping("/adoptions")
+public class AdoptionPostController {
+
+    private final AdoptionPostService adoptionPostService;
+
+    public AdoptionPostController(AdoptionPostService service) {
+        this.adoptionPostService = service;
+    }
+    //per testing
+    @GetMapping("/get-list")
+    public Page<AdoptionPostSummaryDto> getAllAdoptionPosts(Pageable pageable) {
+        return adoptionPostService.getAllPosts(pageable);
+    }
+
+    @GetMapping("/get-list-filtered")
+    public Page<AdoptionPostSummaryDto> getAdoptionPostsFilteredBy(@Valid AdoptionPostFilterRequestDto filterDto, Pageable pageable) {
+        return adoptionPostService.getFilteredPosts(filterDto,pageable);
+
+    }
+    @GetMapping("get-by-id/{postId}")
+    public ResponseEntity<AdoptionPostDetailDto> getAdoptionPostById(@PathVariable Long postId) {
+        try {
+            AdoptionPostDetailDto dto = adoptionPostService.getPostById(postId);
+            return ResponseEntity.ok(dto);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+    //NOTA BENE: bisogna decidere come passare l'id dell'utente dal gateway, per ora lo inserisco come parametro [ LO METTIAMO NEL HEADER ]
+
+    @PostMapping("create-adoption-post")
+    public ResponseEntity<AdoptionPostDetailDto> createAdoptionPost(@Valid @RequestBody AdoptionPostDetailDto postDto,@RequestParam Long userId) {
+        AdoptionPostDetailDto created = adoptionPostService.createPost(postDto,userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @DeleteMapping("delete-by-id/{postId}")
+    public ResponseEntity<Void> deleteAdoptionPost(@PathVariable Long postId, @RequestParam Long userId) throws AccessDeniedException {
+        adoptionPostService.deletePost(postId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("update-by-id/{postId}")
+    public ResponseEntity<AdoptionPostDetailDto> updateAdoptionPost(@RequestBody AdoptionPostDetailDto postDto,@PathVariable Long postId, @RequestParam Long userId) throws AccessDeniedException {
+        AdoptionPostDetailDto updated = adoptionPostService.updatePost(postDto,postId,userId);
+        return ResponseEntity.ok(updated);
+    }
+}
+

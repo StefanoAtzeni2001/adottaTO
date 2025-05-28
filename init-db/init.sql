@@ -1,0 +1,3 @@
+CREATE SCHEMA IF NOT EXISTS schema_adoption_posts AUTHORIZATION app_user;
+CREATE SEQUENCE IF NOT EXISTS schema_adoption_posts.data_seq START WITH 1 INCREMENT BY 1;
+
