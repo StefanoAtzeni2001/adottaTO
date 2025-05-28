@@ -14,23 +14,6 @@ services:
       - ./init-db:/docker-entrypoint-initdb.d
     networks:
       - app_network
-  auth-service:
-    build:
-      context: ./auth-service
-    container_name: authService
-    restart: always
-    depends_on:
-      - postgres-db_adottato
-    ports:
-      - "8083:8080"
-    env_file:
-      - .env
-    environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
-    networks:
-      - app_network
 
   pgadmin_adottato:
     image: dpage/pgadmin4
@@ -50,22 +33,6 @@ services:
     networks:
       - app_network
 
-  adoption-post-service:
-      build:
-        context: ./adoption-post-service
-      container_name: adoptionpostservice
-      restart: always
-      depends_on:
-        - postgres-db_adottato
-      ports:
-        - "8081:8080"
-      environment:
-        DB_USER: app_user
-        DB_PASSWORD: app_password
-        SPRING_PROFILES_ACTIVE: docker
-      networks:
-        - app_network
-        
 volumes:
   db_data:
   pgadmin_data:
