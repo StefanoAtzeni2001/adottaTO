@@ -12,23 +12,23 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import static com.example.authservice.constants.AuthEndpoints.*;
 
 /**
- * Configura la sicurezza dell'applicazione Spring, inclusa l'autenticazione
- * tramite form e OAuth2, la gestione del logout e la protezione CSRF.
+ * Configures the Spring application's security, including authentication
+ * via form login and OAuth2, logout handling, and CSRF protection.
  */
 @Configuration
 public class SecurityConfig {
 
     /**
-     * Configura la catena di filtri di sicurezza per l'applicazione.
+     * Configures the security filter chain for the application.
      * <p>
-     * - Permette l'accesso pubblico a /register e /login
-     * - Richiede autenticazione per tutte le altre richieste
-     * - Configura login form, login OAuth2 e logout
-     * - Disabilita CSRF (per esempio per API REST)
+     * - Allows public access to /register and /login
+     * - Requires authentication for all other endpoints
+     * - Configures form login, OAuth2 login, and logout
+     * - Disables CSRF protection (e.g., useful for REST APIs)
      *
-     * @param http oggetto HttpSecurity fornito da Spring
-     * @return SecurityFilterChain configurata
-     * @throws Exception se si verifica un errore nella configurazione
+     * @param http the HttpSecurity object provided by Spring
+     * @return the configured SecurityFilterChain
+     * @throws Exception if any configuration error occurs
      */
     @Bean
     public SecurityFilterChain configureSecurity(HttpSecurity http) throws Exception {
@@ -47,14 +47,14 @@ public class SecurityConfig {
     }
 
     /**
-     * Configura l'autenticazione tramite form login.
+     * Configures authentication via form login.
      * <p>
-     * - Imposta la pagina di login personalizzata
-     * - Definisce la URL di successo e di errore
-     * - Rende il form di login accessibile a tutti
+     * - Sets a custom login page
+     * - Defines success and failure URLs
+     * - Makes the login form publicly accessible
      *
-     * @param http oggetto HttpSecurity
-     * @throws Exception se si verifica un errore nella configurazione
+     * @param http the HttpSecurity object
+     * @throws Exception if any error occurs during configuration
      */
     private void configureFormLogin(HttpSecurity http) throws Exception {
         http.formLogin(form -> form
@@ -65,13 +65,13 @@ public class SecurityConfig {
     }
 
     /**
-     * Configura l'autenticazione tramite OAuth2 (es. Google).
+     * Configures authentication via OAuth2 (e.g., Google).
      * <p>
-     * - Usa la stessa pagina di login personalizzata
-     * - Imposta la URL di redirect dopo successo
+     * - Uses the same custom login page
+     * - Sets the redirect URL after successful login
      *
-     * @param http oggetto HttpSecurity
-     * @throws Exception se si verifica un errore nella configurazione
+     * @param http the HttpSecurity object
+     * @throws Exception if any error occurs during configuration
      */
     private void configureOAuth2Login(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
@@ -80,13 +80,13 @@ public class SecurityConfig {
     }
 
     /**
-     * Configura il logout dell'utente.
+     * Configures user logout handling.
      * <p>
-     * - Definisce la URL di logout e la URL di successo
-     * - Rende il logout accessibile a tutti
+     * - Sets the logout URL, and the success redirects URL
+     * - Makes the logout endpoint publicly accessible
      *
-     * @param http oggetto HttpSecurity
-     * @throws Exception se si verifica un errore nella configurazione
+     * @param http the HttpSecurity object
+     * @throws Exception if any error occurs during configuration
      */
     private void configureLogout(HttpSecurity http) throws Exception {
         http.logout(logout -> logout
@@ -96,11 +96,11 @@ public class SecurityConfig {
     }
 
     /**
-     * Fornisce un bean PasswordEncoder usando l'algoritmo BCrypt.
+     * Provides a PasswordEncoder bean using the BCrypt algorithm.
      * <p>
-     * È utilizzato da Spring Security per codificare le password prima di salvarle.
+     * This encoder is used by Spring Security to hash passwords before storing them.
      *
-     * @return PasswordEncoder basato su BCrypt
+     * @return a BCrypt-based PasswordEncoder
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
