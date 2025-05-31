@@ -26,6 +26,10 @@ public final class AuthEndpoints {
     /** URL di reindirizzamento dopo autenticazione OAuth2 (es. Google) */
     public static final String GOOGLE_REGISTRATION = "/googleRegistration";
 
+    public static final String EDIT_PROFILE_PAGE = "/edit-profile";
+
+    public static final String UPDATE_PROFILE_PAGE = "/update-profile";
+
     /**
      * Costruttore privato per evitare l'istanziazione della classe utility.
      */

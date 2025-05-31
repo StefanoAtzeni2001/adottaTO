@@ -1,50 +1,68 @@
 package com.example.authservice.controller;
 
-
 import com.example.authservice.dto.AuthRegisterRequestDTO;
-import com.example.authservice.model.Auth;
-import com.example.authservice.model.UserProfile;
-import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
-import com.example.authservice.service.JwtService;
-import com.example.authservice.util.SecurityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.security.Principal;
+import static com.example.authservice.constants.AuthEndpoints.*;
 
+/**
+ * Controller responsible for handling authentication-related operations:
+ * - Custom login page
+ * - Manual registration
+ * - Google OAuth2 registration
+ */
 @Controller
 public class AuthController {
 
-    @Autowired
-    private JwtService jwtService;
+    private final AuthService authService;
 
-    @GetMapping("/login")
+    /**
+     * Constructor for dependency injection of the authentication service.
+     *
+     * @param authService the authentication service to be used
+     */
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
+
+    /**
+     * Displays the custom login page.
+     *
+     * @return the name of the login view
+     */
+    @GetMapping(LOGIN_PAGE)
     public String login() {
-        System.out.println("→ Login personalizzato chiamato");
+        System.out.println("→ Custom login page accessed");
         return "login";
     }
 
-    @GetMapping("/register")
+    /**
+     * Displays the user registration page.
+     *
+     * @return the name of the registration view
+     */
+    @GetMapping(REGISTER_PAGE)
     public String registerForm() {
-        System.out.println("→ Pagina di registrazione chiamata");
+        System.out.println("→ Registration page accessed");
         return "register";
     }
 
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private UserProfileRepository userProfileRepository;
-
-    @PostMapping("/register")
+    /**
+     * Handles manual user registration using form data.
+     *
+     * @param email    the email of the new user
+     * @param password the password for the new account
+     * @param name     the first name of the user
+     * @param surname  the last name of the user
+     * @return redirect to the login page on success or to the registration page with an error
+     */
+    @PostMapping(REGISTER_PAGE)
     public String register(
             @RequestParam String email,
             @RequestParam String password,
@@ -58,14 +76,20 @@ public class AuthController {
             request.setSurname(surname);
 
             authService.register(request);
-            return "redirect:/login";
+            return "redirect:" + LOGIN_PAGE;
         } catch (IllegalArgumentException ex) {
-            return "redirect:/register?error=exists";
+            return "redirect:" + REGISTER_PAGE + "?error=exists";
         }
     }
 
+    /**
+     * Registers a user authenticated through Google OAuth2, if they don't already exist.
+     *
+     * @param token the OAuth2 authentication token containing user details
+     * @return redirect to the user page after login
+     */
     @Transactional
-    @GetMapping("/googleRegistration")
+    @GetMapping(GOOGLE_REGISTRATION)
     public String registerGoogleUser(OAuth2AuthenticationToken token) {
         String email = token.getPrincipal().getAttribute("email");
         String name = token.getPrincipal().getAttribute("given_name");
@@ -73,55 +97,6 @@ public class AuthController {
 
         authService.registerGoogleUserIfNecessary(email, name, surname);
 
-        return "redirect:/userpage";
+        return "redirect:" + USER_PAGE;
     }
-
-
-    @GetMapping("/userpage")
-    public String userPage(Model model, Principal principal) {
-        if (principal == null) return "redirect:/login";
-
-        String email = SecurityUtils.extractEmail(principal);
-        UserProfile profile = authService.getUserProfileByEmail(email);
-
-        model.addAttribute("name", profile.getName());
-        model.addAttribute("surname", profile.getSurname());
-        model.addAttribute("email", profile.getEmail());
-
-        return "userpage";
-    }
-
-
-    @GetMapping("/edit-profile")
-    public String editProfile(Model model, Principal principal) {
-        UserProfile profile = getUserProfileFromPrincipal(principal);
-        model.addAttribute("user", profile);
-        return "edit-profile";
-    }
-
-    private UserProfile getUserProfileFromPrincipal(Principal principal) {
-        String email = SecurityUtils.extractEmail(principal);
-        Auth auth = authService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utente non trovato"));
-        return userProfileRepository.findById(auth.getId())
-                .orElseThrow(() -> new RuntimeException("Profilo non trovato"));
-    }
-
-
-
-    @PostMapping("/update-profile")
-    @Transactional
-    public String updateProfile(@RequestParam Long id,
-                                @RequestParam String name,
-                                @RequestParam String surname) {
-        UserProfile profile = userProfileRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Profilo non trovato"));
-
-        profile.setName(name);
-        profile.setSurname(surname);
-        userProfileRepository.save(profile);
-
-        return "redirect:/userpage";
-    }
-
 }
