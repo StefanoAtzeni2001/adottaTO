@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service
+
+  cloud:
+    gateway:
+      routes:
+        # Route con accesso pubblico
+        - id: adoptionpost_route_public
+          uri: http://adoptionpostservice:8080
+          predicates:
+            - Path=/get-list,/get-list-filtered,/get-by-id/**
+
+        # Route con autorizzazione
+        - id: adoptionpost_route_auth
+          uri: http://adoptionpostservice:8080
+          predicates:
+            - Path=/create-adoption-post,/delete-by-id/**,/update-by-id/**
+          filters:
+            - JwtUserIdHeaderFilter
+jwt:
+  secret: ${JWT_SECRET}

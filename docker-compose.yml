@@ -1,4 +1,17 @@
 services:
+  gateway-service:
+    build:
+      context: ./gateway-service
+    container_name: gatewayservice
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+#      da gestire con file.env in futuro?
+      - JWT_SECRET=una-chiave-segreta-molto-lunga123456789
+    networks:
+      - app_network
+      
   auth-service:
     build:
       context: ./auth-service

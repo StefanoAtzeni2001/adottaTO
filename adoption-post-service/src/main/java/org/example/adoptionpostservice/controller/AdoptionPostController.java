@@ -16,14 +16,14 @@ import java.nio.file.AccessDeniedException;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/adoptions")
+@RequestMapping()
 public class AdoptionPostController {
 
     private final AdoptionPostService adoptionPostService;
-
     public AdoptionPostController(AdoptionPostService service) {
         this.adoptionPostService = service;
     }
+
     //per testing
     @GetMapping("/get-list")
     public Page<AdoptionPostSummaryDto> getAllAdoptionPosts(Pageable pageable) {
@@ -46,24 +46,30 @@ public class AdoptionPostController {
     }
 
 
-    //NOTA BENE: bisogna decidere come passare l'id dell'utente dal gateway, per ora lo inserisco come parametro [ LO METTIAMO NEL HEADER ]
-
     @PostMapping("create-adoption-post")
-    public ResponseEntity<AdoptionPostDetailDto> createAdoptionPost(@Valid @RequestBody AdoptionPostDetailDto postDto,@RequestParam Long userId) {
-        AdoptionPostDetailDto created = adoptionPostService.createPost(postDto,userId);
+    public ResponseEntity<AdoptionPostDetailDto> createAdoptionPost(@Valid @RequestBody AdoptionPostDetailDto postDto, @RequestHeader("User-Id") Long userId) {
+        AdoptionPostDetailDto created = adoptionPostService.createPost(postDto, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @DeleteMapping("delete-by-id/{postId}")
-    public ResponseEntity<Void> deleteAdoptionPost(@PathVariable Long postId, @RequestParam Long userId) throws AccessDeniedException {
-        adoptionPostService.deletePost(postId, userId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteAdoptionPost(@PathVariable Long postId, @RequestHeader("User-Id") Long userId)  {
+        try {
+            adoptionPostService.deletePost(postId, userId);
+            return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 
     @PutMapping("update-by-id/{postId}")
-    public ResponseEntity<AdoptionPostDetailDto> updateAdoptionPost(@RequestBody AdoptionPostDetailDto postDto,@PathVariable Long postId, @RequestParam Long userId) throws AccessDeniedException {
-        AdoptionPostDetailDto updated = adoptionPostService.updatePost(postDto,postId,userId);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<AdoptionPostDetailDto> updateAdoptionPost(@RequestBody AdoptionPostDetailDto postDto, @PathVariable Long postId, @RequestHeader("User-Id") Long userId){
+        try {
+            AdoptionPostDetailDto updated = adoptionPostService.updatePost(postDto, postId, userId);
+            return ResponseEntity.ok(updated);
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 }
 
