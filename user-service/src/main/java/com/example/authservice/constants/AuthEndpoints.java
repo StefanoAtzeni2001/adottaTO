@@ -30,6 +30,8 @@ public final class AuthEndpoints {
 
     public static final String UPDATE_PROFILE_PAGE = "/update-profile";
 
+    public static final String LOGIN_API = "/api/login";
+
     /**
      * Costruttore privato per evitare l'istanziazione della classe utility.
      */

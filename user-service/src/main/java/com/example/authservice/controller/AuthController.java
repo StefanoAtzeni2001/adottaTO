@@ -71,7 +71,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/api/login")
+    @PostMapping(LOGIN_API)
     @ResponseBody
     public ResponseEntity<?> apiLogin(@RequestBody LoginRequestDTO request) {
         try {
