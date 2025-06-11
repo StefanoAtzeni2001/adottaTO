@@ -1,13 +1,20 @@
 package com.example.authservice.controller;
 
 import com.example.authservice.dto.AuthRegisterRequestDTO;
+import com.example.authservice.dto.JwtResponseDTO;
+import com.example.authservice.dto.LoginRequestDTO;
 import com.example.authservice.service.AuthService;
+import com.example.authservice.service.JwtService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import static com.example.authservice.constants.AuthEndpoints.*;
 
@@ -22,13 +29,20 @@ public class AuthController {
 
     private final AuthService authService;
 
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+
     /**
      * Constructor for dependency injection of the authentication service.
      *
      * @param authService the authentication service to be used
      */
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService,
+                          AuthenticationManager authenticationManager,
+                          JwtService jwtService) {
         this.authService = authService;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     /**
@@ -41,6 +55,37 @@ public class AuthController {
         System.out.println("→ Custom login page accessed");
         return "login";
     }
+
+    @PostMapping(LOGIN_PAGE)
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO request) {
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+
+            String token = jwtService.generateToken(request.getEmail());
+
+            return ResponseEntity.ok(new JwtResponseDTO(token));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
+    }
+
+    @PostMapping("/api/login")
+    @ResponseBody
+    public ResponseEntity<?> apiLogin(@RequestBody LoginRequestDTO request) {
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+
+            String token = jwtService.generateToken(request.getEmail());
+            return ResponseEntity.ok(new JwtResponseDTO(token));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
+    }
+
 
     /**
      * Displays the user registration page.

@@ -32,6 +32,20 @@ services:
     networks:
       - app_network
 
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      INTERNAL_API_BASE: "http://user-service:8083"
+    depends_on:
+      - user-service
+    networks:
+      - app_network
+
   pgadmin_adottato:
     image: dpage/pgadmin4
     container_name: pgadmin_adottato
@@ -65,7 +79,7 @@ services:
         SPRING_PROFILES_ACTIVE: docker
       networks:
         - app_network
-        
+
 volumes:
   db_data:
   pgadmin_data:
