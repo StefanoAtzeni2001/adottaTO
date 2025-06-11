@@ -2,13 +2,17 @@ package org.example.adoptionpostservice.dto;
 
 import lombok.Data;
 import java.util.List;
-//Dto used to request an AdoptionPost list with filtering
+/**
+ * DTO used to request a filtered list of AdoptionPost entities.
+ * Contains optional filtering criteria.
+ */
 @Data
 public class AdoptionPostFilterRequestDto {
     private List<String> species;
     private List<String> breed;
     private String gender;
-    private Integer minAge;
-    private Integer maxAge;
+    private Integer minAge;// in months
+    private Integer maxAge;// in months
     private List<String> color;
+    private Boolean activeOnly;
 }

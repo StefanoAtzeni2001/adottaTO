@@ -8,7 +8,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-
+/**
+ * If Repository is empty initialize with 3 entries
+ */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -16,7 +18,7 @@ public class DataInitializer implements CommandLineRunner {
     private AdoptionPostRepository adoptionPostRepository;
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (adoptionPostRepository.count() == 0) {
             adoptionPostRepository.save(
                     AdoptionPost.builder()
@@ -29,6 +31,8 @@ public class DataInitializer implements CommandLineRunner {
                             .color("Rosso")
                             .publicationDate(LocalDateTime.now().minusDays(1))
                             .ownerId(123L)
+                            .active(true)
+                            .adopterId(null)
                             .build()
             );
 
@@ -43,6 +47,8 @@ public class DataInitializer implements CommandLineRunner {
                             .color("Marrone")
                             .publicationDate(LocalDateTime.now().minusDays(4))
                             .ownerId(42L)
+                            .active(true)
+                            .adopterId(null)
                             .build()
             );
 
@@ -57,6 +63,24 @@ public class DataInitializer implements CommandLineRunner {
                             .color("Verde")
                             .publicationDate(LocalDateTime.now().minusWeeks(1))
                             .ownerId(123L)
+                            .active(true)
+                            .adopterId(null)
+                            .build()
+            );
+
+            adoptionPostRepository.save(
+                    AdoptionPost.builder()
+                            .name("Megatron")
+                            .description("Animale già adottato")
+                            .species("Capibara")
+                            .breed("Meticcio")
+                            .gender("F")
+                            .age(72)
+                            .color("Marrone")
+                            .publicationDate(LocalDateTime.now().minusWeeks(8))
+                            .ownerId(42L)
+                            .active(false)
+                            .adopterId(4L)
                             .build()
             );
 

@@ -10,16 +10,16 @@ spring:
       routes:
         # Route con accesso pubblico
         - id: adoptionpost_route_public
-          uri: http://adoptionpostservice:8080
+          uri: http://localhost:8081 #adoptionpost
           predicates:
             - Path=/get-list,/get-list-filtered,/get-by-id/**
 
         # Route con autorizzazione
         - id: adoptionpost_route_auth
-          uri: http://adoptionpostservice:8080
+          uri: http://localhost:8081 #adoptionpost
           predicates:
             - Path=/create-adoption-post,/delete-by-id/**,/update-by-id/**,/get-my-owned-posts,/get-my-adopted-posts
           filters:
             - JwtUserIdHeaderFilter
 jwt:
-  secret: ${JWT_SECRET}
+  secret: una-chiave-segreta-molto-lunga123456789
