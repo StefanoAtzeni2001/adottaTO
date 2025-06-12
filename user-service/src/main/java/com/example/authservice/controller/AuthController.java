@@ -98,6 +98,18 @@ public class AuthController {
         return "register";
     }
 
+    @PostMapping("/api/register")
+    @ResponseBody
+    public ResponseEntity<?> registerViaApi(@RequestBody AuthRegisterRequestDTO request) {
+        try {
+            authService.register(request);
+            return ResponseEntity.ok("Utente registrato con successo");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email già registrata");
+        }
+    }
+
+
     /**
      * Handles manual user registration using form data.
      *
