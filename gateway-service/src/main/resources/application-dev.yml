@@ -21,5 +21,11 @@ spring:
             - Path=/create-adoption-post,/delete-by-id/**,/update-by-id/**,/get-my-owned-posts,/get-my-adopted-posts
           filters:
             - JwtUserIdHeaderFilter
+        - id: savedsearch_route_auth
+          uri: http://localhost:8084 #savedsearch
+          predicates:
+            - Path=/get-my-saved-search,/delete-saved-search/**,/save-search
+          filters:
+            - JwtUserIdHeaderFilter
 jwt:
   secret: una-chiave-segreta-molto-lunga123456789

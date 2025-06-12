@@ -3,7 +3,7 @@ package org.example.adoptionpostservice.controller;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.example.shareddtos.dto.AdoptionPostDetailDto;
-import org.example.shareddtos.dto.AdoptionPostFilterRequestDto;
+import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSummaryDto;
 import org.example.adoptionpostservice.service.AdoptionPostService;
 import static org.example.adoptionpostservice.constants.AdoptionPostEndPoints.*;
@@ -49,7 +49,7 @@ public class AdoptionPostController {
      * @return a page of adoption post summaries matching the filter criteria
      */
     @GetMapping(GET_FILTERED_ADOPTION_POSTS)
-    public Page<AdoptionPostSummaryDto> getAdoptionPostsFilteredBy(@Valid AdoptionPostFilterRequestDto filterDto, Pageable pageable) {
+    public Page<AdoptionPostSummaryDto> getAdoptionPostsFilteredBy(@Valid AdoptionPostSearchDto filterDto, Pageable pageable) {
         return adoptionPostService.getFilteredPosts(filterDto, pageable);
     }
 

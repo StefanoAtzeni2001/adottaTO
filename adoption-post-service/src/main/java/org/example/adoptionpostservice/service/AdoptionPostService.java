@@ -6,7 +6,7 @@ import org.example.adoptionpostservice.model.AdoptionPost;
 import org.example.adoptionpostservice.repository.AdoptionPostRepository;
 import org.example.adoptionpostservice.repository.AdoptionPostSpecification;
 import org.example.shareddtos.dto.AdoptionPostDetailDto;
-import org.example.shareddtos.dto.AdoptionPostFilterRequestDto;
+import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSummaryDto;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,7 +64,7 @@ public class AdoptionPostService {
      * @param pageable  pagination information
      * @return paginated list of filtered AdoptionPost summaries
      */
-    public Page<AdoptionPostSummaryDto> getFilteredPosts(@Valid AdoptionPostFilterRequestDto filterDto, Pageable pageable) {
+    public Page<AdoptionPostSummaryDto> getFilteredPosts(@Valid AdoptionPostSearchDto filterDto, Pageable pageable) {
         // Build a dynamic Specification based on provided filters
         Specification<AdoptionPost> spec = AdoptionPostSpecification.withFilters(
                 filterDto.getSpecies(),

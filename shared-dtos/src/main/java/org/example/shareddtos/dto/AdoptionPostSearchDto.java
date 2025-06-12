@@ -8,7 +8,7 @@ import java.util.List;
  * Contains optional filtering criteria.
  */
 @Data
-public class AdoptionPostFilterRequestDto {
+public class AdoptionPostSearchDto {
     private List<String> species;
     private List<String> breed;
     private String gender;
