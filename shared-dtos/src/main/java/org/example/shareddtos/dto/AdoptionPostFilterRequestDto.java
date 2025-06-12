@@ -1,6 +1,7 @@
-package org.example.adoptionpostservice.dto;
+package org.example.shareddtos.dto;
 
 import lombok.Data;
+
 import java.util.List;
 /**
  * DTO used to request a filtered list of AdoptionPost entities.

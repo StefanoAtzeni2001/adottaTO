@@ -2,13 +2,14 @@ package org.example.adoptionpostservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.example.adoptionpostservice.dto.AdoptionPostDetailDto;
-import org.example.adoptionpostservice.dto.AdoptionPostFilterRequestDto;
-import org.example.adoptionpostservice.dto.AdoptionPostSummaryDto;
 import org.example.adoptionpostservice.model.AdoptionPost;
 import org.example.adoptionpostservice.repository.AdoptionPostRepository;
 import org.example.adoptionpostservice.repository.AdoptionPostSpecification;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.example.shareddtos.dto.AdoptionPostDetailDto;
+import org.example.shareddtos.dto.AdoptionPostFilterRequestDto;
+import org.example.shareddtos.dto.AdoptionPostSummaryDto;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,16 +26,22 @@ import java.util.NoSuchElementException;
 @Service
 public class AdoptionPostService {
 
-    @Autowired
     private final AdoptionPostRepository repository;
+    private final RabbitTemplate rabbitTemplate;
+
+    @Value("${app.rabbitmq.exchange}")
+    private String adottatoExchange;
+    @Value("${app.rabbitmq.routingkey.new-post}")
+    private String newPostRoutingKey;
 
     /**
      * Constructor
      *
      * @param repository the adoption post repository
      */
-    public AdoptionPostService(AdoptionPostRepository repository) {
+    public AdoptionPostService(AdoptionPostRepository repository, RabbitTemplate rabbitTemplate) {
         this.repository = repository;
+        this.rabbitTemplate = rabbitTemplate ;
     }
 
     /**
@@ -95,7 +102,8 @@ public class AdoptionPostService {
                 .adopterId(null)
                 .publicationDate(LocalDateTime.now())
                 .build();
-        AdoptionPost saved = repository.save(post);
+        AdoptionPost saved = repository.save(post); //saving in db
+        sendNewPostEvent(toSummaryDto(post)); //sending message with rabbitMQ
         return toDetailDto(saved);
     }
 
@@ -168,7 +176,14 @@ public class AdoptionPostService {
         return repository.findByAdopterId(adopterId, pageable)
                 .map(this::toSummaryDto);
     }
-//--------------------------------------------------------------
+
+
+    public void sendNewPostEvent(AdoptionPostSummaryDto dto) {
+        rabbitTemplate.convertAndSend(adottatoExchange, newPostRoutingKey, dto);
+    }
+
+
+//--------------------------------------------------------------TODO: da implementare con un mapper automatico
     /**
      * Converts a AdoptionPost entity to detailed DTO.
      *

@@ -1,9 +1,9 @@
 package org.example.adoptionpostservice.controller;
 
 import jakarta.validation.Valid;
-import org.example.adoptionpostservice.dto.AdoptionPostDetailDto;
-import org.example.adoptionpostservice.dto.AdoptionPostFilterRequestDto;
-import org.example.adoptionpostservice.dto.AdoptionPostSummaryDto;
+import org.example.shareddtos.dto.AdoptionPostDetailDto;
+import org.example.shareddtos.dto.AdoptionPostFilterRequestDto;
+import org.example.shareddtos.dto.AdoptionPostSummaryDto;
 import org.example.adoptionpostservice.service.AdoptionPostService;
 import static org.example.adoptionpostservice.constants.AdoptionPostEndPoints.*;
 import org.springframework.data.domain.Page;

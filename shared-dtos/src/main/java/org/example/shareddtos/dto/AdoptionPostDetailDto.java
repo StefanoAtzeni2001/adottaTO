@@ -1,4 +1,4 @@
-package org.example.adoptionpostservice.dto;
+package org.example.shareddtos.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
