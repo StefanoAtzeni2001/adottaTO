@@ -1,5 +1,6 @@
 package org.example.adoptionpostservice.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.example.shareddtos.dto.AdoptionPostDetailDto;
 import org.example.shareddtos.dto.AdoptionPostFilterRequestDto;
@@ -95,6 +96,8 @@ public class AdoptionPostController {
             return ResponseEntity.noContent().build();
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 

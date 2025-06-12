@@ -1,4 +1,4 @@
-package org.example.gatewaydemo;
+package org.example.gatewayservice;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -8,6 +8,8 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 // classe a parte per generare un token jwt di prova
+//si può anche fare in automatico su postman
+//[DA BUTTARE IN FUTURO]
 public class JwtGenerator {
     public static void main(String[] args) {
         // Segreto condiviso (deve essere lungo almeno 32 caratteri per HS256)

@@ -1,4 +1,4 @@
-package org.example.gatewaydemo;
+package org.example.gatewayservice;
 
 
 
