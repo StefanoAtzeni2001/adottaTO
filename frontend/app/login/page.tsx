@@ -42,6 +42,10 @@ export default function Page() {
         }
     }
 
+    const handleGoogleLogin = () => {
+        window.location.href = "http://localhost:8083/oauth2/authorization/google"
+    }
+
     return (
         <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm">
@@ -87,7 +91,7 @@ export default function Page() {
                     <Button type="submit" className="w-full" onClick={handleLogin}>
                         Login
                     </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
                         Login con Google
                     </Button>
 

@@ -5,6 +5,8 @@ import com.example.authservice.dto.JwtResponseDTO;
 import com.example.authservice.dto.LoginRequestDTO;
 import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -139,21 +141,19 @@ public class AuthController {
         }
     }
 
-    /**
-     * Registers a user authenticated through Google OAuth2, if they don't already exist.
-     *
-     * @param token the OAuth2 authentication token containing user details
-     * @return redirect to the user page after login
-     */
-    @Transactional
     @GetMapping(GOOGLE_REGISTRATION)
-    public String registerGoogleUser(OAuth2AuthenticationToken token) {
+    @Transactional
+    public void registerGoogleUser(OAuth2AuthenticationToken token, HttpServletResponse response) throws IOException {
         String email = token.getPrincipal().getAttribute("email");
         String name = token.getPrincipal().getAttribute("given_name");
         String surname = token.getPrincipal().getAttribute("family_name");
 
         authService.registerGoogleUserIfNecessary(email, name, surname);
 
-        return "redirect:" + USER_PAGE;
+        String jwt = jwtService.generateToken(email);
+
+        // Redirect al frontend con il token
+        String redirectUrl = "http://localhost:3000/userpage?token=" + jwt;
+        response.sendRedirect(redirectUrl);
     }
 }
