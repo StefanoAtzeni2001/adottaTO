@@ -1,6 +1,6 @@
 spring:
   application:
-    name: saved-search-service
+    name: adoption-post-service
 
   datasource:
     url: jdbc:postgresql://postgres-db_adottato:5432/postgres_db
@@ -13,11 +13,11 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        default_schema: schema_saved_search
+        default_schema: schema_adoption_posts
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
-  rabbitmq:
+rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:rabbitmq}
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME}
@@ -26,10 +26,8 @@ spring:
 app:
   rabbitmq:
     exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
-    queue: ${RABBITMQ_SAVED_SEARCH_QUEUE} #savedsearch.queue
     routingkey:
       new-post: ${RABBITMQ_NEW_POST_ROUTING_KEY} #post.new
-
 
 server:
   port: 8080
