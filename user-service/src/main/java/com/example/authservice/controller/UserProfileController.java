@@ -10,6 +10,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import static com.example.authservice.constants.AuthEndpoints.API_PROFILE_UPDATE;
+import static com.example.authservice.constants.AuthEndpoints.PROFILE;
+
 /**
  * Controller responsible for displaying and editing the authenticated user's profile.
  * It includes functionality for:
@@ -36,7 +39,7 @@ public class UserProfileController {
         this.userProfileRepository = userProfileRepository;
     }
 
-    @GetMapping("/profile")
+    @GetMapping(PROFILE)
     public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(401).body("Token mancante o malformato");
@@ -58,7 +61,7 @@ public class UserProfileController {
         return ResponseEntity.ok(dto);
     }
 
-    @PostMapping("/api/profile/update")
+    @PostMapping(API_PROFILE_UPDATE)
     @Transactional
     public ResponseEntity<?> updateUserProfileViaApi(
             @RequestHeader("Authorization") String authHeader,

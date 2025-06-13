@@ -49,7 +49,7 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    @PostMapping(LOGIN_API)
+    @PostMapping(API_LOGIN)
     @ResponseBody
     public ResponseEntity<?> apiLogin(
             @RequestBody LoginRequestDTO request,
@@ -71,7 +71,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/api/register")
+    @PostMapping(API_REGISTER)
     @ResponseBody
     public ResponseEntity<?> registerViaApi(@RequestBody AuthRegisterRequestDTO request) {
         try {
@@ -98,7 +98,7 @@ public class AuthController {
         response.sendRedirect(redirectUrl);
     }
 
-    @GetMapping("/api/oauth-jwt")
+    @GetMapping(API_OAUTH_JWT)
     @ResponseBody
     public ResponseEntity<?> getJwtFromOauthCookie(@CookieValue(value = "oauth_email", required = false) String email) {
         if (email == null) {

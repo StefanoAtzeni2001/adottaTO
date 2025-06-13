@@ -14,23 +14,21 @@ public final class AuthEndpoints {
     /** URL della pagina di login per utenti e OAuth2 */
     public static final String LOGIN_PAGE = "/login";
 
-    /** URL per eseguire il logout dell'utente */
-    public static final String LOGOUT_PAGE = "/logout";
-
     /** URL della pagina di registrazione per nuovi utenti */
     public static final String REGISTER_PAGE = "/register";
-
-    /** URL della pagina utente dopo l'accesso riuscito con form login */
-    public static final String USER_PAGE = "/userpage";
 
     /** URL di reindirizzamento dopo autenticazione OAuth2 (es. Google) */
     public static final String GOOGLE_REGISTRATION = "/googleRegistration";
 
-    public static final String EDIT_PROFILE_PAGE = "/edit-profile";
+    public static final String API_LOGIN = "/api/login";
 
-    public static final String UPDATE_PROFILE_PAGE = "/update-profile";
+    public static final String API_REGISTER = "/api/register";
 
-    public static final String LOGIN_API = "/api/login";
+    public static final String PROFILE = "/profile";
+
+    public static final String API_PROFILE_UPDATE = "/api/profile/update";
+
+    public static final String API_OAUTH_JWT = "/api/oauth-jwt";
 
     /**
      * Costruttore privato per evitare l'istanziazione della classe utility.

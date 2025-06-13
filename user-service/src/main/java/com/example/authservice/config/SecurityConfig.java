@@ -15,7 +15,6 @@ import org.springframework.security.oauth2.client.web.DefaultOAuth2Authorization
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth.requestMatchers(
                         HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(REGISTER_PAGE, LOGIN_PAGE, LOGIN_API, "/api/register", "/api/oauth-jwt", "/profile", "/api/profile/update").permitAll()
+                        .requestMatchers(REGISTER_PAGE, LOGIN_PAGE, API_LOGIN, API_REGISTER, API_OAUTH_JWT, PROFILE, API_PROFILE_UPDATE).permitAll()
                         .anyRequest().authenticated()
                 );
 
