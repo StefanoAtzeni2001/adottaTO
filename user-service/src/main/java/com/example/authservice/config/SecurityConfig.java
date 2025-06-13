@@ -1,5 +1,6 @@
 package com.example.authservice.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,36 +9,34 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.example.authservice.constants.AuthEndpoints.*;
 
-/**
- * Configures the Spring application's security, including authentication
- * via form login and OAuth2, logout handling, and CSRF protection.
- */
 @Configuration
 public class SecurityConfig {
 
-    /**
-     * Configures the security filter chain for the application.
-     * <p>
-     * - Allows public access to /register and /login
-     * - Requires authentication for all other endpoints
-     * - Configures form login, OAuth2 login, and logout
-     * - Disables CSRF protection (e.g., useful for REST APIs)
-     *
-     * @param http the HttpSecurity object provided by Spring
-     * @return the configured SecurityFilterChain
-     * @throws Exception if any configuration error occurs
-     */
+    private final ClientRegistrationRepository clientRegistrationRepository;
+
+    public SecurityConfig(ClientRegistrationRepository clientRegistrationRepository) {
+        this.clientRegistrationRepository = clientRegistrationRepository;
+    }
+
     @Bean
     public SecurityFilterChain configureSecurity(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(REGISTER_PAGE, LOGIN_PAGE, LOGIN_API, "/api/register").permitAll()
-                        .anyRequest().authenticated());
+                        .requestMatchers(REGISTER_PAGE, LOGIN_PAGE, LOGIN_API, "/api/register", "/api/oauth-jwt", "/profile").permitAll()
+                        .anyRequest().authenticated()
+                );
 
         configureFormLogin(http);
         configureOAuth2Login(http);
@@ -48,16 +47,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Configures authentication via form login.
-     * <p>
-     * - Sets a custom login page
-     * - Defines success and failure URLs
-     * - Makes the login form publicly accessible
-     *
-     * @param http the HttpSecurity object
-     * @throws Exception if any error occurs during configuration
-     */
     private void configureFormLogin(HttpSecurity http) throws Exception {
         http.formLogin(form -> form
                 .loginPage(LOGIN_PAGE)
@@ -66,30 +55,16 @@ public class SecurityConfig {
                 .permitAll());
     }
 
-    /**
-     * Configures authentication via OAuth2 (e.g., Google).
-     * <p>
-     * - Uses the same custom login page
-     * - Sets the redirect URL after successful login
-     *
-     * @param http the HttpSecurity object
-     * @throws Exception if any error occurs during configuration
-     */
     private void configureOAuth2Login(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
                 .loginPage(LOGIN_PAGE)
-                .defaultSuccessUrl(GOOGLE_REGISTRATION, true));
+                .authorizationEndpoint(endpoint -> endpoint
+                        .authorizationRequestResolver(customAuthorizationRequestResolver())
+                )
+                .defaultSuccessUrl(GOOGLE_REGISTRATION, true)
+        );
     }
 
-    /**
-     * Configures user logout handling.
-     * <p>
-     * - Sets the logout URL, and the success redirects URL
-     * - Makes the logout endpoint publicly accessible
-     *
-     * @param http the HttpSecurity object
-     * @throws Exception if any error occurs during configuration
-     */
     private void configureLogout(HttpSecurity http) throws Exception {
         http.logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher(LOGOUT_PAGE))
@@ -97,13 +72,40 @@ public class SecurityConfig {
                 .permitAll());
     }
 
-    /**
-     * Provides a PasswordEncoder bean using the BCrypt algorithm.
-     * <p>
-     * This encoder is used by Spring Security to hash passwords before storing them.
-     *
-     * @return a BCrypt-based PasswordEncoder
-     */
+    private OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver() {
+        DefaultOAuth2AuthorizationRequestResolver defaultResolver =
+                new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
+
+        return new OAuth2AuthorizationRequestResolver() {
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
+                OAuth2AuthorizationRequest req = defaultResolver.resolve(request);
+                return customizeRequest(req);
+            }
+
+            @Override
+            public OAuth2AuthorizationRequest resolve(HttpServletRequest request, String clientRegistrationId) {
+                OAuth2AuthorizationRequest req = defaultResolver.resolve(request, clientRegistrationId);
+                return customizeRequest(req);
+            }
+
+            private OAuth2AuthorizationRequest customizeRequest(OAuth2AuthorizationRequest req) {
+                if (req == null) return null;
+
+                Map<String, Object> additionalParameters = new HashMap<>(req.getAdditionalParameters());
+
+                // Imposta il comportamento desiderato dopo logout:
+                // "consent" = forza selezione account / autorizzazione
+                // "login" = forza reinserimento credenziali
+                additionalParameters.put("prompt", "consent");
+
+                return OAuth2AuthorizationRequest.from(req)
+                        .additionalParameters(additionalParameters)
+                        .build();
+            }
+        };
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

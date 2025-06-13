@@ -150,10 +150,24 @@ public class AuthController {
 
         authService.registerGoogleUserIfNecessary(email, name, surname);
 
-        String jwt = jwtService.generateToken(email);
+        // Salva l’email in un cookie HttpOnly temporaneo
+        String redirectUrl = "http://localhost:3000/oauth-redirect"; // pagina neutra che chiama l'API per ottenere il JWT
 
-        // Redirect al frontend con il token
-        String redirectUrl = "http://localhost:3000/userpage?token=" + jwt;
+        response.addHeader("Set-Cookie", "oauth_email=" + email + "; Path=/; HttpOnly; SameSite=Lax");
         response.sendRedirect(redirectUrl);
     }
+
+    @GetMapping("/api/oauth-jwt")
+    @ResponseBody
+    public ResponseEntity<?> getJwtFromOauthCookie(@CookieValue(value = "oauth_email", required = false) String email) {
+        if (email == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nessun email trovata nel cookie");
+        }
+
+        String token = jwtService.generateToken(email);
+
+        return ResponseEntity.ok(new JwtResponseDTO(token));
+    }
+
+
 }

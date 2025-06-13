@@ -1,15 +1,19 @@
 package com.example.authservice.controller;
 
+import com.example.authservice.dto.UserProfileDTO;
 import com.example.authservice.model.Auth;
 import com.example.authservice.model.UserProfile;
 import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
+import com.example.authservice.service.JwtService;
 import com.example.authservice.util.SecurityUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import static com.example.authservice.constants.AuthEndpoints.*;
@@ -28,6 +32,7 @@ public class UserProfileController {
 
     private final UserProfileRepository userProfileRepository;
     private final AuthService authService;
+    private final JwtService jwtService;
 
     /**
      * Constructor with dependencies injected.
@@ -35,9 +40,10 @@ public class UserProfileController {
      * @param userProfileRepository the repository for accessing user profile data
      * @param authService the authentication service for retrieving authenticated user info
      */
-    public UserProfileController(UserProfileRepository userProfileRepository, AuthService authService) {
-        this.userProfileRepository = userProfileRepository;
+    public UserProfileController(JwtService jwtService, AuthService authService, UserProfileRepository userProfileRepository) {
+        this.jwtService = jwtService;
         this.authService = authService;
+        this.userProfileRepository = userProfileRepository;
     }
 
     /**
@@ -110,5 +116,27 @@ public class UserProfileController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return userProfileRepository.findById(auth.getId())
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body("Token mancante o malformato");
+        }
+
+        String token = authHeader.substring(7);
+        if (!jwtService.isTokenValid(token)) {
+            return ResponseEntity.status(401).body("Token non valido");
+        }
+
+        String email = jwtService.extractEmail(token);
+        UserProfile profile = authService.getUserProfileByEmail(email);
+
+        if (profile == null) {
+            return ResponseEntity.status(404).body("Profilo non trovato");
+        }
+
+        UserProfileDTO dto = new UserProfileDTO(profile.getName(), profile.getSurname(), profile.getEmail());
+        return ResponseEntity.ok(dto);
     }
 }

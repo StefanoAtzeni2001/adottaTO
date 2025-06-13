@@ -59,12 +59,15 @@ public class JwtService {
      * and if the token is not expired.
      *
      * @param token the JWT token string
-     * @param email the email to compare with the token's subject
      * @return true if valid, false otherwise
      */
-    public boolean isTokenValid(String token, String email) {
-        String tokenEmail = extractEmail(token);
-        return tokenEmail.equals(email) && !isTokenExpired(token);
+    public boolean isTokenValid(String token) {
+        try {
+            String username = extractEmail(token);
+            return username != null && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
