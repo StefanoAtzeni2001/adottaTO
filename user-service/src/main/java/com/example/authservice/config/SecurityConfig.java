@@ -40,21 +40,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
 
-        configureFormLogin(http);
         configureOAuth2Login(http);
-        configureLogout(http);
 
         http.csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
-    }
-
-    private void configureFormLogin(HttpSecurity http) throws Exception {
-        http.formLogin(form -> form
-                .loginPage(LOGIN_PAGE)
-                .defaultSuccessUrl(USER_PAGE, true)
-                .failureUrl(LOGIN_PAGE + "?error=true")
-                .permitAll());
     }
 
     private void configureOAuth2Login(HttpSecurity http) throws Exception {
@@ -65,13 +55,6 @@ public class SecurityConfig {
                 )
                 .defaultSuccessUrl(GOOGLE_REGISTRATION, true)
         );
-    }
-
-    private void configureLogout(HttpSecurity http) throws Exception {
-        http.logout(logout -> logout
-                .logoutRequestMatcher(new AntPathRequestMatcher(LOGOUT_PAGE))
-                .logoutSuccessUrl(LOGIN_PAGE + "?logout")
-                .permitAll());
     }
 
     private OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver() {
