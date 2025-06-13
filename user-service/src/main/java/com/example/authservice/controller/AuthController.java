@@ -88,8 +88,9 @@ public class AuthController {
         String email = token.getPrincipal().getAttribute("email");
         String name = token.getPrincipal().getAttribute("given_name");
         String surname = token.getPrincipal().getAttribute("family_name");
+        String profilePicture = token.getPrincipal().getAttribute("picture");
 
-        authService.registerGoogleUserIfNecessary(email, name, surname);
+        authService.registerGoogleUserIfNecessary(email, name, surname, profilePicture);
 
         // Salva l’email in un cookie HttpOnly temporaneo
         String redirectUrl = "http://localhost:3000/oauth-redirect"; // pagina neutra che chiama l'API per ottenere il JWT

@@ -22,6 +22,7 @@ interface UserProfile {
     name: string
     surname: string
     email: string
+    profilePicture: string
 }
 
 export default function Page() {
@@ -46,6 +47,7 @@ export default function Page() {
                 return res.json()
             })
             .then(data => {
+                console.log("Profile data:", data)
                 setProfile(data)
             })
             .catch(() => {
@@ -65,7 +67,7 @@ export default function Page() {
         <div className="container py-6">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="w-32 h-32">
-                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarImage src={profile.profilePicture ?? "/default-avatar.svg"} />
                     <AvatarFallback>{profile.name.charAt(0)}{profile.surname.charAt(0)}</AvatarFallback>
                 </Avatar>
 

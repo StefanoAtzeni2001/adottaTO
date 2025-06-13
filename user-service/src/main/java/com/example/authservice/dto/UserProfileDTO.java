@@ -4,14 +4,16 @@ public class UserProfileDTO {
     private String name;
     private String surname;
     private String email;
+    private String profilePicture;
 
     public UserProfileDTO() {
     }
 
-    public UserProfileDTO(String name, String surname, String email) {
+    public UserProfileDTO(String name, String surname, String email, String profilePicture) {
         this.name = name;
         this.surname = surname;
         this.email = email;
+        this.profilePicture = profilePicture;
     }
 
     public String getName() {
@@ -26,6 +28,10 @@ public class UserProfileDTO {
         return email;
     }
 
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -36,6 +42,10 @@ public class UserProfileDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }
 

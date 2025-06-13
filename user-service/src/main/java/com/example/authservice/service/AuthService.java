@@ -114,10 +114,10 @@ public class AuthService implements UserDetailsService {
      * @param surname user's last name
      */
     @Transactional
-    public void registerGoogleUserIfNecessary(String email, String name, String surname) {
+    public void registerGoogleUserIfNecessary(String email, String name, String surname, String picture) {
         Auth auth = findOrCreateAuthByEmail(email);
         userProfileRepository.findById(auth.getId())
-                .orElseGet(() -> saveGoogleUserProfile(auth, email, name, surname));
+                .orElseGet(() -> saveGoogleUserProfile(auth, email, name, surname, picture));
     }
 
     /**
@@ -224,12 +224,13 @@ public class AuthService implements UserDetailsService {
      * @param surname user's last name
      * @return the saved UserProfile entity
      */
-    private UserProfile saveGoogleUserProfile(Auth auth, String email, String name, String surname) {
+    private UserProfile saveGoogleUserProfile(Auth auth, String email, String name, String surname, String picture) {
         UserProfile profile = new UserProfile();
         profile.setAuth(auth);
         profile.setEmail(email);
         profile.setName(name);
         profile.setSurname(surname);
+        profile.setProfilePicture(picture);
         return userProfileRepository.save(profile);
     }
 }

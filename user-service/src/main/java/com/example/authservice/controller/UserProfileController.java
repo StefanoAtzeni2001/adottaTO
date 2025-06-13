@@ -57,7 +57,7 @@ public class UserProfileController {
             return ResponseEntity.status(404).body("Profilo non trovato");
         }
 
-        UserProfileDTO dto = new UserProfileDTO(profile.getName(), profile.getSurname(), profile.getEmail());
+        UserProfileDTO dto = new UserProfileDTO(profile.getName(), profile.getSurname(), profile.getEmail(), profile.getProfilePicture());
         return ResponseEntity.ok(dto);
     }
 
