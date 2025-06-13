@@ -3,6 +3,7 @@ package com.example.authservice.config;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,7 +34,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain configureSecurity(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                        HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(REGISTER_PAGE, LOGIN_PAGE, LOGIN_API, "/api/register", "/api/oauth-jwt", "/profile").permitAll()
                         .anyRequest().authenticated()
                 );

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
     CardContent,
@@ -16,14 +15,13 @@ export default function Page() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
-    const router = useRouter()
-
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
 
         try {
             const res = await fetch("http://localhost:8083/api/login", {
                 method: "POST",
+                credentials: "include", // Necessario per i cookie HttpOnly
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -32,8 +30,8 @@ export default function Page() {
 
             if (res.ok) {
                 const data = await res.json()
-                console.log("Login OK. Token:", data.token)
-                router.push("/userpage")
+                console.log("Login OK. Redirect a:", data.redirectUrl)
+                window.location.href = data.redirectUrl // ✅ redirect gestito dal frontend
             } else {
                 console.error("Login fallito")
             }
@@ -84,17 +82,17 @@ export default function Page() {
                                 />
                             </div>
                         </div>
+                        {/* Spostato il pulsante submit qui per far funzionare onSubmit correttamente */}
+                        <Button type="submit" className="w-full mt-6">
+                            Login
+                        </Button>
                     </form>
                 </CardContent>
-                <Separator  className="my-4" />
+                <Separator className="my-4" />
                 <CardFooter className="flex-col gap-2">
-                    <Button type="submit" className="w-full" onClick={handleLogin}>
-                        Login
-                    </Button>
                     <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
                         Login con Google
                     </Button>
-
                     <div className="text-center text-sm">
                         Non hai un account?{" "}
                         <a href="/signUp" className="underline underline-offset-4">
@@ -105,5 +103,4 @@ export default function Page() {
             </div>
         </div>
     )
-
 }

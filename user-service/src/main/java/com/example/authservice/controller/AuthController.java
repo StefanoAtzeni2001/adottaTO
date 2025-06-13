@@ -7,6 +7,8 @@ import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -75,18 +77,27 @@ public class AuthController {
 
     @PostMapping(LOGIN_API)
     @ResponseBody
-    public ResponseEntity<?> apiLogin(@RequestBody LoginRequestDTO request) {
+    public ResponseEntity<?> apiLogin(
+            @RequestBody LoginRequestDTO request,
+            HttpServletResponse response
+    ) {
         try {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
-            String token = jwtService.generateToken(request.getEmail());
-            return ResponseEntity.ok(new JwtResponseDTO(token));
+            // imposta cookie HttpOnly
+            response.addHeader("Set-Cookie", "oauth_email=" + request.getEmail() + "; Path=/; HttpOnly; SameSite=Lax");
+
+            // risponde con l’URL da seguire
+            return ResponseEntity.ok().body(Map.of("redirectUrl", "http://localhost:3000/oauth-redirect"));
+
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
     }
+
+
 
 
     /**
