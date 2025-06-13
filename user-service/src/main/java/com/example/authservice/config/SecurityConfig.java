@@ -36,7 +36,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth.requestMatchers(
                         HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(REGISTER_PAGE, LOGIN_PAGE, LOGIN_API, "/api/register", "/api/oauth-jwt", "/profile").permitAll()
+                        .requestMatchers(REGISTER_PAGE, LOGIN_PAGE, LOGIN_API, "/api/register", "/api/oauth-jwt", "/profile", "/api/profile/update").permitAll()
                         .anyRequest().authenticated()
                 );
 

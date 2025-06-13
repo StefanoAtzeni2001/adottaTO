@@ -11,10 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import static com.example.authservice.constants.AuthEndpoints.*;
 
@@ -139,4 +136,34 @@ public class UserProfileController {
         UserProfileDTO dto = new UserProfileDTO(profile.getName(), profile.getSurname(), profile.getEmail());
         return ResponseEntity.ok(dto);
     }
+
+    @PostMapping("/api/profile/update")
+    @Transactional
+    public ResponseEntity<?> updateUserProfileViaApi(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody UserProfileDTO updateRequest) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body("Token mancante o malformato");
+        }
+
+        String token = authHeader.substring(7);
+        if (!jwtService.isTokenValid(token)) {
+            return ResponseEntity.status(401).body("Token non valido");
+        }
+
+        String email = jwtService.extractEmail(token);
+        UserProfile profile = authService.getUserProfileByEmail(email);
+
+        if (profile == null) {
+            return ResponseEntity.status(404).body("Profilo non trovato");
+        }
+
+        profile.setName(updateRequest.getName());
+        profile.setSurname(updateRequest.getSurname());
+        userProfileRepository.save(profile);
+
+        return ResponseEntity.ok("Profilo aggiornato con successo");
+    }
+
 }
