@@ -13,10 +13,10 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import ExpandedAdoptionCard from "@/components/adoption/ExpandedAdoptionCard" // Assicurati del path corretto
 
 interface AdoptionPost {
     id: number
@@ -28,10 +28,35 @@ interface AdoptionPost {
     color: string
 }
 
+interface AdoptionPostDetail {
+    id: number
+    name: string
+    description: string
+    publicationDate: string
+    species: string
+    breed: string
+    gender: string
+    age: number
+    color: string
+    ownerId: number
+    // Aggiungi opzionali per visualizzare mock nel componente
+    location?: string
+    vaccinated?: boolean
+    chipped?: boolean
+    dewormed?: boolean
+    ownerName?: string
+}
+
 export default function HomePage() {
-    const [species, setSpecies] = useState("")
-    const [gender, setGender] = useState("")
+    const [species, setSpecies] = useState<string | undefined>()
+    const [gender, setGender] = useState<string | undefined>()
     const [results, setResults] = useState<AdoptionPost[]>([])
+    const [selectedPost, setSelectedPost] = useState<AdoptionPostDetail | null>(null)
+
+    const handleDeleteFilter = () => {
+        setSpecies(undefined)
+        setGender(undefined)
+    }
 
     const handleSearch = async () => {
         try {
@@ -42,9 +67,20 @@ export default function HomePage() {
             const res = await fetch(`http://localhost:8081/adoptions/get-list-filtered?${params.toString()}`)
             if (!res.ok) throw new Error("Errore nella richiesta")
             const data = await res.json()
-            setResults(data.content) // `content` viene da Page<AdoptionPostSummaryDto>
+            setResults(data.content)
         } catch (err) {
             console.error("Errore durante la ricerca:", err)
+        }
+    }
+
+    const handleCardClick = async (postId: number) => {
+        try {
+            const res = await fetch(`http://localhost:8081/adoptions/get-by-id/${postId}`)
+            if (!res.ok) throw new Error("Errore nel recupero dettagli")
+            const detail = await res.json()
+            setSelectedPost(detail)
+        } catch (err) {
+            console.error("Errore nel caricamento dettagli:", err)
         }
     }
 
@@ -52,7 +88,7 @@ export default function HomePage() {
         <div className="flex flex-col items-center gap-6 p-6">
             {/* Filtro */}
             <div className="flex gap-4">
-                <Select onValueChange={setSpecies}>
+                <Select onValueChange={(val) => setSpecies(val)}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Specie" />
                     </SelectTrigger>
@@ -62,7 +98,7 @@ export default function HomePage() {
                     </SelectContent>
                 </Select>
 
-                <Select onValueChange={setGender}>
+                <Select onValueChange={(val) => setGender(val)}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Genere" />
                     </SelectTrigger>
@@ -72,6 +108,10 @@ export default function HomePage() {
                     </SelectContent>
                 </Select>
 
+                <Button onClick={handleDeleteFilter} variant="outline">
+                    Elimina i filtri
+                </Button>
+
                 <Button onClick={handleSearch} variant="outline">
                     Ricerca!
                 </Button>
@@ -80,7 +120,7 @@ export default function HomePage() {
             {/* Risultati */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
                 {results.map(post => (
-                    <Card key={post.id} className="w-full">
+                    <Card key={post.id} className="w-full cursor-pointer" onClick={() => handleCardClick(post.id)}>
                         <CardHeader>
                             <CardTitle>{post.name}</CardTitle>
                             <CardDescription>{post.species} - {post.breed}</CardDescription>
@@ -90,12 +130,14 @@ export default function HomePage() {
                             <p><strong>Colore:</strong> {post.color}</p>
                             <p><strong>Sesso:</strong> {post.gender === "M" ? "Maschio" : "Femmina"}</p>
                         </CardContent>
-                        <CardFooter>
-                            <Button variant="outline">Dettagli</Button>
-                        </CardFooter>
                     </Card>
                 ))}
             </div>
+
+            {/* Espansione card */}
+            {selectedPost && (
+                <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
+            )}
         </div>
     )
 }
