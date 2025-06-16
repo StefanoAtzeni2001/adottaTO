@@ -2,13 +2,14 @@ package org.example.adoptionpostservice.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.example.adoptionpostservice.dto.AdoptionPostDetailDto;
-import org.example.adoptionpostservice.dto.AdoptionPostFilterRequestDto;
-import org.example.adoptionpostservice.dto.AdoptionPostSummaryDto;
 import org.example.adoptionpostservice.model.AdoptionPost;
 import org.example.adoptionpostservice.repository.AdoptionPostRepository;
 import org.example.adoptionpostservice.repository.AdoptionPostSpecification;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.example.shareddtos.dto.AdoptionPostDetailDto;
+import org.example.shareddtos.dto.AdoptionPostSearchDto;
+import org.example.shareddtos.dto.AdoptionPostSummaryDto;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,40 +20,75 @@ import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
+/**
+ * Service for managing adoption posts.
+ */
 @Service
 public class AdoptionPostService {
-    @Autowired
-    private final AdoptionPostRepository repository;
 
-    public AdoptionPostService(AdoptionPostRepository repository) {
+    private final AdoptionPostRepository repository;
+    private final RabbitTemplate rabbitTemplate;
+
+    @Value("${app.rabbitmq.exchange}")
+    private String adottatoExchange;
+    @Value("${app.rabbitmq.routingkey.new-post}")
+    private String newPostRoutingKey;
+
+    /**
+     * Constructor
+     *
+     * @param repository the adoption post repository
+     */
+    public AdoptionPostService(AdoptionPostRepository repository, RabbitTemplate rabbitTemplate) {
         this.repository = repository;
+        this.rabbitTemplate = rabbitTemplate ;
     }
-    //Get all post
-    public Page<AdoptionPostSummaryDto> getAllPosts(Pageable pageable) {
-        return repository.findAll(pageable)
-                .map(this::toSummaryDto);
-    }
-    //Get a post by id
+
+    /**
+     * Retrieves a post by its ID.
+     *
+     * @param id post ID
+     * @return detailed AdoptionPost DTO
+     * @throws NoSuchElementException if post not found
+     */
     public AdoptionPostDetailDto getPostById(Long id) {
         AdoptionPost post = repository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Not found" + id));
         return toDetailDto(post);
     }
-    //Get a list of filtered post
-    public Page<AdoptionPostSummaryDto> getFilteredPosts(@Valid AdoptionPostFilterRequestDto filterDto, Pageable pageable) {
+
+    /**
+     * Retrieves filtered adoption posts with pagination.
+     *
+     * @param filterDto filtering criteria
+     * @param pageable  pagination information
+     * @return paginated list of filtered AdoptionPost summaries
+     */
+    public Page<AdoptionPostSummaryDto> getFilteredPosts(@Valid AdoptionPostSearchDto filterDto, Pageable pageable) {
+        // Build a dynamic Specification based on provided filters
         Specification<AdoptionPost> spec = AdoptionPostSpecification.withFilters(
                 filterDto.getSpecies(),
                 filterDto.getBreed(),
                 filterDto.getGender(),
                 filterDto.getMinAge(),
                 filterDto.getMaxAge(),
-                filterDto.getColor()
+                filterDto.getColor(),
+                filterDto.getActiveOnly()
+
         );
+        // Execute the query with filters and pagination, then map results to summary DTOs
         return repository.findAll(spec, pageable)
                 .map(this::toSummaryDto);
     }
-    //Create and save a new post
-    public AdoptionPostDetailDto createPost(AdoptionPostDetailDto dto,Long userId) {
+
+    /**
+     * Creates and saves a new post.
+     *
+     * @param dto    AdoptionPost details
+     * @param userId Requesting user ID (=owner)
+     * @return saved AdoptionPost DTO
+     */
+    public AdoptionPostDetailDto createPost(AdoptionPostDetailDto dto, Long userId) {
         AdoptionPost post = AdoptionPost.builder()
                 .name(dto.getName())
                 .description(dto.getDescription())
@@ -62,30 +98,44 @@ public class AdoptionPostService {
                 .age(dto.getAge())
                 .color(dto.getColor())
                 .ownerId(userId)
+                .active(true)
+                .adopterId(null)
                 .publicationDate(LocalDateTime.now())
                 .build();
-        AdoptionPost saved = repository.save(post);
+        AdoptionPost saved = repository.save(post); //saving in db
+        sendNewPostEvent(toSummaryDto(post)); //sending message with rabbitMQ
         return toDetailDto(saved);
     }
 
-    //Delete a post if user is owner
+    /**
+     * Deletes a post if the user is the owner.
+     *
+     * @param postId AdoptionPost ID
+     * @param userId Requesting user ID
+     * @throws AccessDeniedException if user is not the owner
+     */
     @Transactional
     public void deletePost(Long postId, Long userId) throws AccessDeniedException {
         AdoptionPost post = repository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with id " + postId));
-        //check if user is owner
         if (!post.getOwnerId().equals(userId)) {
             throw new AccessDeniedException("You are not the owner of this post");
         }
-
         repository.delete(post);
     }
 
-    //Update a post if user is owner
-    public AdoptionPostDetailDto updatePost(AdoptionPostDetailDto dto,Long postId, Long userId) throws AccessDeniedException {
+    /**
+     * Updates a post if the user is the owner.
+     *
+     * @param dto    updated post data
+     * @param postId AdoptionPost ID
+     * @param userId Requesting user ID
+     * @return updated AdoptionPost DTO
+     * @throws AccessDeniedException if user is not the owner
+     */
+    public AdoptionPostDetailDto updatePost(AdoptionPostDetailDto dto, Long postId, Long userId) throws AccessDeniedException {
         AdoptionPost post = repository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Post not found with id " + postId));
-        //check if user is owner
         if (!post.getOwnerId().equals(userId)) {
             throw new AccessDeniedException("You are not the owner of this post");
         }
@@ -100,9 +150,46 @@ public class AdoptionPostService {
         AdoptionPost updated = repository.save(post);
         return toDetailDto(updated);
     }
-    //---------------------------Mapping dto
 
-    //Mapping from AdoptionPost to AdoptionPostDetailDto
+    /**
+     * Returns a paginated list of adoption posts owned by the given owner.
+     * Checks that the requesting user matches the ownerId.
+     *
+     * @param ownerId owner ID
+     * @param pageable pagination information
+     * @return a page of AdoptionPostSummaryDto
+     */
+    public Page<AdoptionPostSummaryDto> getPostsByOwnerId(Long ownerId, Pageable pageable) {
+        return repository.findByOwnerId(ownerId, pageable)
+                .map(this::toSummaryDto);
+    }
+
+    /**
+     * Returns a paginated list of adoption posts adopted by the given adopter.
+     * Checks that the requesting user matches the adopterId.
+     *
+     * @param adopterId adopter ID
+     * @param pageable pagination information
+     * @return a page of AdoptionPostSummaryDto
+     */
+    public Page<AdoptionPostSummaryDto> getPostsByAdopterId(Long adopterId, Pageable pageable)  {
+        return repository.findByAdopterId(adopterId, pageable)
+                .map(this::toSummaryDto);
+    }
+
+
+    public void sendNewPostEvent(AdoptionPostSummaryDto dto) {
+        rabbitTemplate.convertAndSend(adottatoExchange, newPostRoutingKey, dto);
+    }
+
+
+//--------------------------------------------------------------TODO: da implementare con un mapper automatico
+    /**
+     * Converts a AdoptionPost entity to detailed DTO.
+     *
+     * @param post the AdoptionPost entity
+     * @return AdoptionPost detailed DTO
+     */
     private AdoptionPostDetailDto toDetailDto(AdoptionPost post) {
         AdoptionPostDetailDto dto = new AdoptionPostDetailDto();
         dto.setId(post.getId());
@@ -115,9 +202,18 @@ public class AdoptionPostService {
         dto.setColor(post.getColor());
         dto.setPublicationDate(post.getPublicationDate());
         dto.setOwnerId(post.getOwnerId());
+        dto.setActive(post.getActive());
+        dto.setAdopterId(post.getAdopterId());
+
         return dto;
     }
-    //Mapping from AdoptionPost to AdoptionPostListDto
+
+    /**
+     * Converts a post entity to summary DTO.
+     *
+     * @param post the AdoptionPost entity
+     * @return AdoptionPost summary DTO
+     */
     private AdoptionPostSummaryDto toSummaryDto(AdoptionPost post) {
         AdoptionPostSummaryDto dto = new AdoptionPostSummaryDto();
         dto.setId(post.getId());
@@ -127,8 +223,7 @@ public class AdoptionPostService {
         dto.setGender(post.getGender());
         dto.setAge(post.getAge());
         dto.setColor(post.getColor());
+        dto.setActive(post.getActive());
         return dto;
     }
-
-
 }

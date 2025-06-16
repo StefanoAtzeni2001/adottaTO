@@ -1,6 +1,6 @@
 spring:
   application:
-    name: adoption-post-service
+    name: saved-search-service
 
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres_db
@@ -13,7 +13,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        default_schema: schema_adoption_posts
+        default_schema: schema_saved_search
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
@@ -26,8 +26,9 @@ spring:
 app:
   rabbitmq:
     exchange: adottato.exchange
+    queue: savedsearch.queue
     routingkey:
       new-post: post.new
 
 server:
-  port: 8081
+  port: 8084

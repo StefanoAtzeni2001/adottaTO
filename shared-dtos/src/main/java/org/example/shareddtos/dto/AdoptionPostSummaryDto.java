@@ -1,14 +1,18 @@
-package org.example.adoptionpostservice.dto;
+package org.example.shareddtos.dto;
 import lombok.Data;
 
-//Dto used to send most important information of an AdoptionPost
+/**
+ * DTO used to transfer summary information of an AdoptionPost.
+ * used in list views.
+ */
 @Data
 public class AdoptionPostSummaryDto {
     private Long id;
     private String name;
     private String species;
     private String breed;
-    private Integer age;
+    private Integer age;// in months
     private String gender;
     private String color;
+    private Boolean active;
 }
