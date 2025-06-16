@@ -1,20 +1,40 @@
 services:
-  postgres-db_adottato:
-    image: postgres:latest
-    container_name: postgres_db_adottato
+  gateway-service:
+    build:
+      context: ./gateway-service
+    container_name: gatewayservice
     restart: always
-    environment:
-      POSTGRES_DB: postgres_db
-      POSTGRES_USER: app_user
-      POSTGRES_PASSWORD: app_password
     ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d
+      - "8080:8080"
+    environment:
+#      da gestire con file.env in futuro?
+      - JWT_SECRET=una-chiave-segreta-molto-lunga123456789
     networks:
       - app_network
-  user-service:
+
+  adoption-post-service:
+    build:
+      context: .  #root project
+      dockerfile: adoption-post-service/Dockerfile
+    container_name: adoptionpostservice
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+    ports:
+      - "8081:8080"
+    environment:
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: user
+      SPRING_RABBITMQ_PASSWORD: password
+      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      RABBITMQ_NEW_POST_ROUTING_KEY: post.new
+    networks:
+      - app_network   
+      
+   user-service:
     build:
       context: ./user-service
     container_name: userService
@@ -28,7 +48,45 @@ services:
     environment:
       DB_USER: app_user
       DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - app_network
+
+  saved-search-service:
+    build:
+      context: .  #root project
+      dockerfile: saved-search-service/Dockerfile
+    container_name: savedsearchservice
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+    ports:
+      - "8084:8080"
+    environment:
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: user
+      SPRING_RABBITMQ_PASSWORD: password
+      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      RABBITMQ_SAVED_SEARCH_QUEUE: savedsearch.queue
+      RABBITMQ_NEW_POST_ROUTING_KEY: post.new
+    networks:
+      - app_network
+
+  postgres-db_adottato:
+    image: postgres:latest
+    container_name: postgres_db_adottato
+    restart: always
+    environment:
+      POSTGRES_DB: postgres_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
     networks:
       - app_network
 
@@ -63,26 +121,24 @@ services:
       - ./pgadmin-config/.pgpass:/pgpass:ro
     networks:
       - app_network
-
-  adoption-post-service:
-      build:
-        context: ./adoption-post-service
-      container_name: adoptionpostservice
-      restart: always
-      depends_on:
-        - postgres-db_adottato
-      ports:
-        - "8081:8080"
-      environment:
-        DB_USER: app_user
-        DB_PASSWORD: app_password
-        SPRING_PROFILES_ACTIVE: docker
-      networks:
-        - app_network
+      
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+    networks:
+      - app_network
 
 volumes:
   db_data:
   pgadmin_data:
+  rabbitmq_data:
 
 networks:
   app_network:

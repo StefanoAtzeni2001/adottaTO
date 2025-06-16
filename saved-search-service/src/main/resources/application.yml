@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: saved-search-service
+
+  datasource:
+    url: jdbc:postgresql://postgres-db_adottato:5432/postgres_db
+    username: ${DB_USER:app_user}
+    password: ${DB_PASSWORD:app_password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: schema_saved_search
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME}
+    password: ${SPRING_RABBITMQ_PASSWORD}
+
+app:
+  rabbitmq:
+    exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
+    queue: ${RABBITMQ_SAVED_SEARCH_QUEUE} #savedsearch.queue
+    routingkey:
+      new-post: ${RABBITMQ_NEW_POST_ROUTING_KEY} #post.new
+
+
+server:
+  port: 8080

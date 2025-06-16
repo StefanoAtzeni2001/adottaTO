@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
+/**
+ * Entity representing an adoption post.
+ * Stores all relevant information about an animal available for adoption.
+ */
 @Entity
 @Table(name = "adoption_posts")
 @Data
@@ -25,5 +28,7 @@ public class AdoptionPost {
     private Integer age; // in months
     private String color;
     private Long ownerId;
+    private Boolean active;
+    private Long adopterId;
 
 }
