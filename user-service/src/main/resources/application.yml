@@ -1,6 +1,6 @@
 spring:
   application:
-    name: userService
+    name: userservice
 
   datasource:
     url: jdbc:postgresql://postgres-db_adottato:5432/postgres_db

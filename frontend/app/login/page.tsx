@@ -19,7 +19,7 @@ export default function Page() {
         e.preventDefault()
 
         try {
-            const res = await fetch("http://localhost:8083/api/login", {
+            const res = await fetch("http://localhost:8090/api/login", {
                 method: "POST",
                 credentials: "include", // Necessario per i cookie HttpOnly
                 headers: {
@@ -41,7 +41,7 @@ export default function Page() {
     }
 
     const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:8083/oauth2/authorization/google"
+        window.location.href = "http://localhost:8090/oauth2/authorization/google"
     }
 
     return (
