@@ -64,7 +64,7 @@ export default function HomePage() {
             if (species) params.append("species", species)
             if (gender) params.append("gender", gender)
 
-            const res = await fetch(`http://localhost:8081/adoptions/get-list-filtered?${params.toString()}`)
+            const res = await fetch(`http://localhost:8081/get-list-filtered?${params.toString()}`)
             if (!res.ok) throw new Error("Errore nella richiesta")
             const data = await res.json()
             setResults(data.content)
@@ -75,7 +75,7 @@ export default function HomePage() {
 
     const handleCardClick = async (postId: number) => {
         try {
-            const res = await fetch(`http://localhost:8081/adoptions/get-by-id/${postId}`)
+            const res = await fetch(`http://localhost:8081/get-by-id/${postId}`)
             if (!res.ok) throw new Error("Errore nel recupero dettagli")
             const detail = await res.json()
             setSelectedPost(detail)

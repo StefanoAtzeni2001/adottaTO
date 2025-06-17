@@ -34,7 +34,7 @@ services:
     networks:
       - app_network   
       
-   user-service:
+  user-service:
     build:
       context: ./user-service
     container_name: userService
