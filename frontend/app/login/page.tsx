@@ -41,6 +41,7 @@ export default function Page() {
     }
 
     const handleGoogleLogin = () => {
+
         window.location.href = "http://localhost:8083/oauth2/authorization/google"
     }
 
