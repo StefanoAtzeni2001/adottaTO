@@ -7,6 +7,8 @@ spring:
 
   cloud:
     gateway:
+      forwarded:
+        enabled: true        # <-- aggiunto per abilitare X-Forwarded headers
       routes:
         # ADOPTION POST SERVICE: public
         - id: adoptionpost_route_public
@@ -35,7 +37,6 @@ spring:
           uri: http://userService:8080
           predicates:
             - Path=/login/oauth2/**,/api/login,/google-registration,/api/register,/api/oauth-jwt,/oauth2/authorization/**
-
 
         # USER SERVICE: private
         - id: user_route_auth
