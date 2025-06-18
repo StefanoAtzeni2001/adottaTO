@@ -6,10 +6,15 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+
 @Component
 public class EmailService {
 
     private final ObjectMapper objectMapper;
+
+
 
     public EmailService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
