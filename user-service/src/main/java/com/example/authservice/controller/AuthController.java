@@ -67,6 +67,7 @@ public class AuthController {
         String surname = token.getPrincipal().getAttribute("family_name");
         String profilePicture = token.getPrincipal().getAttribute("picture");
 
+
         authService.registerGoogleUserIfNecessary(email, name, surname, profilePicture);
 
         Auth userAuth = authService.findByEmail(email).orElse(null);

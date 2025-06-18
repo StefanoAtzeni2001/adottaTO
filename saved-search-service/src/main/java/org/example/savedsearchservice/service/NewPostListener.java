@@ -18,6 +18,7 @@ public class NewPostListener {
     public NewPostListener(SavedSearchRepository repository) {
         this.repository = repository;
     }
+
     @RabbitListener(queues = "${app.rabbitmq.queue}")
     public void handleNewAdoptionPost(AdoptionPostSummaryDto post) {
         List<Long> userIds = repository.findMatchingUserIds(
