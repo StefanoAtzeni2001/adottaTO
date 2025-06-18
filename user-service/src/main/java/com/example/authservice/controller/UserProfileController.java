@@ -1,6 +1,7 @@
 package com.example.authservice.controller;
 
 import com.example.authservice.dto.UserProfileDTO;
+import com.example.authservice.model.Auth;
 import com.example.authservice.model.UserProfile;
 import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
@@ -42,14 +43,11 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Token non valido");
         }
 
-        // Nel JwtService hai extractUserId() invece di extractEmail(), quindi uso extractUserId
-        String email = jwtService.extractUserId(token);
-        UserProfile profile = authService.getUserProfileByEmail(email);
+        String userId = jwtService.extractUserId(token);
+        Auth user = authService.findById(Long.parseLong(userId)).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body("Utente non trovato");
 
-        if (profile == null) {
-            return ResponseEntity.status(404).body("Profilo non trovato");
-        }
-
+        UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
         UserProfileDTO dto = new UserProfileDTO(
                 profile.getName(),
                 profile.getSurname(),
@@ -58,6 +56,7 @@ public class UserProfileController {
         );
         return ResponseEntity.ok(dto);
     }
+
 
     @PostMapping(API_PROFILE_UPDATE)
     @Transactional
@@ -74,18 +73,23 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Token non valido");
         }
 
-        String email = jwtService.extractUserId(token);
-        UserProfile profile = authService.getUserProfileByEmail(email);
+        // 👇 Usa correttamente l'ID per trovare l'utente
+        Long userId = Long.parseLong(jwtService.extractUserId(token));
+        Auth user = authService.findById(userId).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body("Utente non trovato");
 
+        UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
         if (profile == null) {
             return ResponseEntity.status(404).body("Profilo non trovato");
         }
 
         profile.setName(updateRequest.getName());
         profile.setSurname(updateRequest.getSurname());
-        profile.setProfilePicture(updateRequest.getProfilePicture()); // opzionale se previsto aggiornare
+        profile.setProfilePicture(updateRequest.getProfilePicture()); // opzionale
+
         userProfileRepository.save(profile);
 
         return ResponseEntity.ok("Profilo aggiornato con successo");
     }
+
 }
