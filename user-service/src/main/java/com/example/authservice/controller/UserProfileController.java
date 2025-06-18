@@ -14,11 +14,7 @@ import static com.example.authservice.constants.AuthEndpoints.API_PROFILE_UPDATE
 import static com.example.authservice.constants.AuthEndpoints.PROFILE;
 
 /**
- * Controller responsible for displaying and editing the authenticated user's profile.
- * It includes functionality for:
- * - Viewing user profile data
- * - Editing user information
- * - Updating stored profile data
+ * Controller per visualizzare e modificare il profilo dell'utente autenticato.
  */
 @Controller
 public class UserProfileController {
@@ -27,20 +23,16 @@ public class UserProfileController {
     private final AuthService authService;
     private final JwtService jwtService;
 
-    /**
-     * Constructor with dependencies injected.
-     *
-     * @param userProfileRepository the repository for accessing user profile data
-     * @param authService the authentication service for retrieving authenticated user info
-     */
-    public UserProfileController(JwtService jwtService, AuthService authService, UserProfileRepository userProfileRepository) {
+    public UserProfileController(JwtService jwtService,
+                                 AuthService authService,
+                                 UserProfileRepository userProfileRepository) {
         this.jwtService = jwtService;
         this.authService = authService;
         this.userProfileRepository = userProfileRepository;
     }
 
     @GetMapping(PROFILE)
-    public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getUserProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(401).body("Token mancante o malformato");
         }
@@ -50,21 +42,27 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Token non valido");
         }
 
-        String email = jwtService.extractEmail(token);
+        // Nel JwtService hai extractUserId() invece di extractEmail(), quindi uso extractUserId
+        String email = jwtService.extractUserId(token);
         UserProfile profile = authService.getUserProfileByEmail(email);
 
         if (profile == null) {
             return ResponseEntity.status(404).body("Profilo non trovato");
         }
 
-        UserProfileDTO dto = new UserProfileDTO(profile.getName(), profile.getSurname(), profile.getEmail(), profile.getProfilePicture());
+        UserProfileDTO dto = new UserProfileDTO(
+                profile.getName(),
+                profile.getSurname(),
+                profile.getEmail(),
+                profile.getProfilePicture()
+        );
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping(API_PROFILE_UPDATE)
     @Transactional
     public ResponseEntity<?> updateUserProfileViaApi(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody UserProfileDTO updateRequest) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -76,7 +74,7 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Token non valido");
         }
 
-        String email = jwtService.extractEmail(token);
+        String email = jwtService.extractUserId(token);
         UserProfile profile = authService.getUserProfileByEmail(email);
 
         if (profile == null) {
@@ -85,9 +83,9 @@ public class UserProfileController {
 
         profile.setName(updateRequest.getName());
         profile.setSurname(updateRequest.getSurname());
+        profile.setProfilePicture(updateRequest.getProfilePicture()); // opzionale se previsto aggiornare
         userProfileRepository.save(profile);
 
         return ResponseEntity.ok("Profilo aggiornato con successo");
     }
-
 }

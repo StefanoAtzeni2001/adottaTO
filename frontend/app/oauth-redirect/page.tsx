@@ -10,17 +10,22 @@ export default function OAuthRedirectPage() {
         const fetchJwt = async () => {
             try {
                 const res = await fetch("http://localhost:8090/api/oauth-jwt", {
-                    credentials: "include", // manda i cookie
+                    credentials: "include", // manda i cookie HttpOnly
                 })
+
+                // Prima controllo se la risposta è ok
+                if (!res.ok) {
+                    const errorText = await res.text()
+                    console.error("Errore JWT:", errorText)
+                    router.push("/login")
+                    return
+                }
+
+                // Se ok, estraggo il json con il token
                 const data = await res.json()
 
-                if (res.ok) {
-                    localStorage.setItem("jwt", data.token)
-                    router.push("/userpage")
-                } else {
-                    console.error("Errore JWT:", data)
-                    router.push("/login")
-                }
+                localStorage.setItem("jwt", data.token)
+                router.push("/userpage")
             } catch (err) {
                 console.error("Errore connessione:", err)
                 router.push("/login")
@@ -28,7 +33,7 @@ export default function OAuthRedirectPage() {
         }
 
         fetchJwt()
-    }, [])
+    }, [router])
 
     return <div>Accesso in corso...</div>
 }

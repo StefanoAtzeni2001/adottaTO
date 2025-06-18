@@ -233,4 +233,8 @@ public class AuthService implements UserDetailsService {
         profile.setProfilePicture(picture);
         return userProfileRepository.save(profile);
     }
+
+    public Optional<Auth> findById(Long id) {
+        return authRepository.findById(id);
+    }
 }

@@ -3,6 +3,7 @@ package com.example.authservice.controller;
 import com.example.authservice.dto.AuthRegisterRequestDTO;
 import com.example.authservice.dto.JwtResponseDTO;
 import com.example.authservice.dto.LoginRequestDTO;
+import com.example.authservice.model.Auth;
 import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,15 +33,9 @@ import static com.example.authservice.constants.AuthEndpoints.*;
 public class AuthController {
 
     private final AuthService authService;
-
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    /**
-     * Constructor for dependency injection of the authentication service.
-     *
-     * @param authService the authentication service to be used
-     */
     public AuthController(AuthService authService,
                           AuthenticationManager authenticationManager,
                           JwtService jwtService) {
@@ -60,14 +55,20 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
             );
 
-            // imposta cookie HttpOnly
-            response.addHeader("Set-Cookie", "oauth_email=" + request.getEmail() + "; Path=/; HttpOnly; SameSite=Lax");
+            // Recupera l'utente per ottenere l'ID
+            Auth userAuth = authService.findByEmail(request.getEmail()).orElse(null);
+            if (userAuth == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Utente non trovato"));
+            }
 
-            // risponde con l’URL da seguire
+            // Imposta cookie HttpOnly con ID utente (non email)
+            response.addHeader("Set-Cookie", "oauth_user_id=" + userAuth.getId() + "; Path=/; HttpOnly; SameSite=Lax");
+            // Risponde con l’URL da seguire
             return ResponseEntity.ok().body(Map.of("redirectUrl", "http://localhost:3000/oauth-redirect"));
 
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
         }
     }
 
@@ -92,24 +93,49 @@ public class AuthController {
 
         authService.registerGoogleUserIfNecessary(email, name, surname, profilePicture);
 
-        // Salva l’email in un cookie HttpOnly temporaneo
-        String redirectUrl = "http://localhost:3000/oauth-redirect"; // pagina neutra che chiama l'API per ottenere il JWT
+        // Recupera l'utente per ottenere l'ID
+        Auth userAuth = authService.findByEmail(email).orElse(null);
+        if (userAuth == null) {
+            // Gestione errore, es. redirect a pagina di errore o login
+            response.sendRedirect("http://localhost:3000/login");
+            return;
+        }
 
-        response.addHeader("Set-Cookie", "oauth_email=" + email + "; Path=/; HttpOnly; SameSite=Lax");
+        // Salva l’ID utente in un cookie HttpOnly temporaneo
+        String redirectUrl = "http://localhost:3000/oauth-redirect";
+        response.addHeader("Set-Cookie", "oauth_user_id=" + userAuth.getId() + "; Path=/; HttpOnly; SameSite=Lax");
         response.sendRedirect(redirectUrl);
     }
 
     @GetMapping(API_OAUTH_JWT)
     @ResponseBody
-    public ResponseEntity<?> getJwtFromOauthCookie(@CookieValue(value = "oauth_email", required = false) String email) {
-        if (email == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Nessun email trovata nel cookie");
+    public ResponseEntity<?> getJwtFromOauthCookie(@CookieValue(value = "oauth_user_id", required = false) String userId) {
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Nessun user ID trovato nel cookie"));
         }
 
-        String token = jwtService.generateToken(email);
+        Long id;
+        try {
+            id = Long.parseLong(userId);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User ID non valido"));
+        }
+
+        Auth userAuth = authService.findById(id).orElse(null);
+
+        if (userAuth == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Utente non trovato"));
+        }
+
+        // Genera token JWT usando ID utente
+        String token = jwtService.generateToken(String.valueOf(userAuth.getId()));
+
+        System.out.println("Token: " + token + ", id: " + id + ", id auth: " + userAuth.getId());
 
         return ResponseEntity.ok(new JwtResponseDTO(token));
     }
-
 
 }
