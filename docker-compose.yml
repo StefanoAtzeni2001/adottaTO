@@ -12,6 +12,53 @@ services:
     networks:
       - app_network
 
+  chat-service:
+    build:
+      context: ./chat-service
+    container_name: chat-service
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+    ports:
+      - "8082:8080"
+    environment:
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: user
+      SPRING_RABBITMQ_PASSWORD: password
+      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      RABBITMQ_NEW_MESSAGE_ROUTING_KEY: message.new
+      RABBITMQ_ADOPTION_REQUEST_ROUTING_KEY: adoption.request
+      RABBITMQ_ADOPTION_ACCEPT_ROUTING_KEY: adoption.accept
+    networks:
+      - app_network
+
+  email-service:
+    build:
+      context: ./email-service
+    container_name: email-service
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+    ports:
+      - "8085:8080"
+    environment:
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: user
+      SPRING_RABBITMQ_PASSWORD: password
+      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      RABBITMQ_EMAIL_QUEUE: email.queue
+      RABBITMQ_NEW_MESSAGE_ROUTING_KEY: message.new
+    networks:
+      - app_network
+
   adoption-post-service:
     build:
       context: .  #root project

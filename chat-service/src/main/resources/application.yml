@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: chat-service
+
+  datasource:
+    url: jdbc:postgresql://postgres-db_adottato:5432/postgres_db
+    username: ${DB_USER:app_user}
+    password: ${DB_PASSWORD:app_password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: schema_chat
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+  rabbitmq:
+    host: localhost #locale
+    port: 5672
+    username: user
+    password: password
+
+app:
+  rabbitmq:
+    exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
+    routingkey:
+      new-message: ${RABBITMQ_NEW_MESSAGE_ROUTING_KEY} #message.new
+      request: ${RABBITMQ_ADOPTION_REQUEST_ROUTING_KEY}
+      accept: ${RABBITMQ_ADOPTION_ACCEPT_ROUTING_KEY}
+
+server:
+  port: 8080

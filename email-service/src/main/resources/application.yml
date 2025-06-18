@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: email-service
+
+  rabbitmq:
+    host: localhost #locale
+    port: 5672
+    username: user
+    password: password
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+app:
+  rabbitmq:
+    exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
+    routingkey:
+      new-message: ${RABBITMQ_NEW_MESSAGE_ROUTING_KEY} #message.new
+      #request: adoption.request
+      #accept: adoption.accept
+    queue: email.queue
+
+server:
+  port: 8080
