@@ -1,6 +1,7 @@
 package com.example.authservice.controller;
 
 import com.example.authservice.dto.UserProfileDTO;
+import com.example.authservice.model.Auth;
 import com.example.authservice.model.UserProfile;
 import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
@@ -14,11 +15,7 @@ import static com.example.authservice.constants.AuthEndpoints.API_PROFILE_UPDATE
 import static com.example.authservice.constants.AuthEndpoints.PROFILE;
 
 /**
- * Controller responsible for displaying and editing the authenticated user's profile.
- * It includes functionality for:
- * - Viewing user profile data
- * - Editing user information
- * - Updating stored profile data
+ * Controller per visualizzare e modificare il profilo dell'utente autenticato.
  */
 @Controller
 public class UserProfileController {
@@ -27,20 +24,16 @@ public class UserProfileController {
     private final AuthService authService;
     private final JwtService jwtService;
 
-    /**
-     * Constructor with dependencies injected.
-     *
-     * @param userProfileRepository the repository for accessing user profile data
-     * @param authService the authentication service for retrieving authenticated user info
-     */
-    public UserProfileController(JwtService jwtService, AuthService authService, UserProfileRepository userProfileRepository) {
+    public UserProfileController(JwtService jwtService,
+                                 AuthService authService,
+                                 UserProfileRepository userProfileRepository) {
         this.jwtService = jwtService;
         this.authService = authService;
         this.userProfileRepository = userProfileRepository;
     }
 
     @GetMapping(PROFILE)
-    public ResponseEntity<?> getUserProfile(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getUserProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(401).body("Token mancante o malformato");
         }
@@ -50,21 +43,25 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Token non valido");
         }
 
-        String email = jwtService.extractEmail(token);
-        UserProfile profile = authService.getUserProfileByEmail(email);
+        String userId = jwtService.extractUserId(token);
+        Auth user = authService.findById(Long.parseLong(userId)).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body("Utente non trovato");
 
-        if (profile == null) {
-            return ResponseEntity.status(404).body("Profilo non trovato");
-        }
-
-        UserProfileDTO dto = new UserProfileDTO(profile.getName(), profile.getSurname(), profile.getEmail(), profile.getProfilePicture());
+        UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
+        UserProfileDTO dto = new UserProfileDTO(
+                profile.getName(),
+                profile.getSurname(),
+                profile.getEmail(),
+                profile.getProfilePicture()
+        );
         return ResponseEntity.ok(dto);
     }
+
 
     @PostMapping(API_PROFILE_UPDATE)
     @Transactional
     public ResponseEntity<?> updateUserProfileViaApi(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody UserProfileDTO updateRequest) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -76,15 +73,20 @@ public class UserProfileController {
             return ResponseEntity.status(401).body("Token non valido");
         }
 
-        String email = jwtService.extractEmail(token);
-        UserProfile profile = authService.getUserProfileByEmail(email);
+        // 👇 Usa correttamente l'ID per trovare l'utente
+        Long userId = Long.parseLong(jwtService.extractUserId(token));
+        Auth user = authService.findById(userId).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body("Utente non trovato");
 
+        UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
         if (profile == null) {
             return ResponseEntity.status(404).body("Profilo non trovato");
         }
 
         profile.setName(updateRequest.getName());
         profile.setSurname(updateRequest.getSurname());
+        profile.setProfilePicture(updateRequest.getProfilePicture()); // opzionale
+
         userProfileRepository.save(profile);
 
         return ResponseEntity.ok("Profilo aggiornato con successo");

@@ -37,7 +37,7 @@ export default function Page() {
             return
         }
 
-        fetch("http://localhost:8083/profile", {
+        fetch("http://localhost:8090/profile", {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -116,7 +116,7 @@ export default function Page() {
                                         type="button"
                                         onClick={async () => {
                                             const token = localStorage.getItem("jwt")
-                                            const res = await fetch("http://localhost:8083/api/profile/update", {
+                                            const res = await fetch("http://localhost:8090/api/profile/update", {
                                                 method: "POST",
                                                 headers: {
                                                     "Content-Type": "application/json",

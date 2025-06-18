@@ -15,7 +15,7 @@ public final class AuthEndpoints {
     public static final String LOGIN_PAGE = "/login";
 
     /** URL di reindirizzamento dopo autenticazione OAuth2 (es. Google) */
-    public static final String GOOGLE_REGISTRATION = "/googleRegistration";
+    public static final String GOOGLE_REGISTRATION = "/google-registration";
 
     public static final String API_LOGIN = "/api/login";
 

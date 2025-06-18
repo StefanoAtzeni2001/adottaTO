@@ -2,8 +2,11 @@ package com.example.authservice.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -14,38 +17,26 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // Token expiration time in milliseconds (1 day)
+    @Value("${jwt.secret}")
+    private String secret;
+
     private static final long EXPIRATION_TIME = 86400000;
 
-    // Secret key for signing JWTs (should be long and secure)
-    private static final String SECRET = "super-secret-key-for-signing-jwt-which-should-be-long";
+    public String generateToken(String userId) {
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
-    // Key object generated from the secret for signing and parsing JWTs
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+        System.out.println("chiave:" + secret);
 
-    /**
-     * Generates a JWT token containing the email as the subject,
-     * issued at the current time and expiring after EXPIRATION_TIME.
-     *
-     * @param email the email to include in the token subject
-     * @return a signed JWT token string
-     */
-    public String generateToken(String email) {
         return Jwts.builder()
-                .setSubject(email)
+                .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    /**
-     * Extracts the email (subject) from a given JWT token.
-     *
-     * @param token the JWT token string
-     * @return the email contained in the token's subject
-     */
-    public String extractEmail(String token) {
+    public String extractUserId(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -54,30 +45,16 @@ public class JwtService {
                 .getSubject();
     }
 
-    /**
-     * Validates the token by checking if the email matches
-     * and if the token is not expired.
-     *
-     * @param token the JWT token string
-     * @return true if valid, false otherwise
-     */
     public boolean isTokenValid(String token) {
         try {
-            String username = extractEmail(token);
-            return username != null && !isTokenExpired(token);
+            return extractUserId(token) != null && !isTokenExpired(token);
         } catch (Exception e) {
             return false;
         }
     }
 
-    /**
-     * Checks whether the token is expired by comparing
-     * the expiration date to the current date.
-     *
-     * @param token the JWT token string
-     * @return true if expired, false otherwise
-     */
     private boolean isTokenExpired(String token) {
+        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()

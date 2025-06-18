@@ -5,7 +5,7 @@ services:
     container_name: gatewayservice
     restart: always
     ports:
-      - "8080:8080"
+      - "8090:8080"
     environment:
 #      da gestire con file.env in futuro?
       - JWT_SECRET=una-chiave-segreta-molto-lunga123456789
@@ -83,7 +83,7 @@ services:
   user-service:
     build:
       context: ./user-service
-    container_name: userService
+    container_name: userservice
     restart: always
     depends_on:
       - postgres-db_adottato

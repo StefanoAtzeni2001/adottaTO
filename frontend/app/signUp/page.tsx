@@ -24,7 +24,7 @@ export default function Page() {
         e.preventDefault()
 
         try {
-            const res = await fetch("http://localhost:8083/api/register", {
+            const res = await fetch("http://localhost:8090/api/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

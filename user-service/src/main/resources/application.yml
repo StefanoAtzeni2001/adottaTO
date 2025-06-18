@@ -1,6 +1,6 @@
 spring:
   application:
-    name: userService
+    name: userservice
 
   datasource:
     url: jdbc:postgresql://postgres-db_adottato:5432/postgres_db
@@ -24,6 +24,11 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+
+jwt:
+  secret: ${JWT_SECRET}
 
 server:
   port: 8080
+  forward-headers-strategy: framework
