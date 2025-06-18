@@ -17,10 +17,8 @@ app:
   rabbitmq:
     exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
     routingkey:
-      new-message: ${RABBITMQ_NEW_MESSAGE_ROUTING_KEY} #message.new
-      #request: adoption.request
-      #accept: adoption.accept
-    queue: email.queue
+      chat-notification: ${RABBITMQ_CHAT_ROUTING_KEY} #chat.notification
+    queue: email.queue.chat
 
 server:
   port: 8080

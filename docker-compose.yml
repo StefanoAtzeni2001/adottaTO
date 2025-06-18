@@ -30,9 +30,7 @@ services:
       SPRING_RABBITMQ_USERNAME: user
       SPRING_RABBITMQ_PASSWORD: password
       RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
-      RABBITMQ_NEW_MESSAGE_ROUTING_KEY: message.new
-      RABBITMQ_ADOPTION_REQUEST_ROUTING_KEY: adoption.request
-      RABBITMQ_ADOPTION_ACCEPT_ROUTING_KEY: adoption.accept
+      RABBITMQ_CHAT_ROUTING_KEY: chat.notification
     networks:
       - app_network
 
@@ -43,6 +41,7 @@ services:
     restart: always
     depends_on:
       - postgres-db_adottato
+      - rabbitmq
     ports:
       - "8085:8080"
     environment:
@@ -55,7 +54,7 @@ services:
       SPRING_RABBITMQ_PASSWORD: password
       RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
       RABBITMQ_EMAIL_QUEUE: email.queue
-      RABBITMQ_NEW_MESSAGE_ROUTING_KEY: message.new
+      RABBITMQ_CHAT_ROUTING_KEY: chat.notification
     networks:
       - app_network
 

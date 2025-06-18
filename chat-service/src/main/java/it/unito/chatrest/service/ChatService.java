@@ -28,11 +28,11 @@ public class ChatService {
         Chat chat;
 
         if (request.getChatId() != null) {
-            // Caso 1: chatId presente → recupera la chat
+            //recover the chat
             chat = chatRepository.findById(request.getChatId())
                     .orElseThrow(() -> new IllegalArgumentException("Chat " + request.getChatId() + " not found"));
         } else {
-            // Caso 2: chatId assente → verifica se esiste già chat tra sender e receiver per il post
+
             if (request.getAdoptionPostId() == null) {
                 throw new IllegalArgumentException("Adoption post not found");
             }
@@ -42,6 +42,7 @@ public class ChatService {
                     request.getReceiverId(),
                     request.getAdoptionPostId()
             ).orElseGet(() -> {
+                //create new chat
                 Chat newChat = new Chat();
                 newChat.setAdopterId(request.getSenderId());
                 newChat.setOwnerId(request.getReceiverId());
@@ -52,7 +53,7 @@ public class ChatService {
             });
         }
 
-        // Crea e salva il messaggio
+        // Create and save message
         Message message = new Message();
         message.setChat(chat);
         message.setSenderId(request.getSenderId());
@@ -61,6 +62,7 @@ public class ChatService {
         message.setTimeStamp(LocalDateTime.now());
         message.setSeen(false);
 
+        //send email notification
         senderRabbitMQService.sendNewMessageEmail(request.getSenderId(), request.getReceiverId(), request.getMessage());
 
         return messageRepository.save(message);
@@ -70,7 +72,7 @@ public class ChatService {
     public List<Chat> getChatsForUser(Long userId) {
         List<Chat> chats = chatRepository.findByOwnerIdOrAdopterId(userId, userId);
 
-        // Mappa le chat al loro ultimo messaggio
+        // Map chats to their last message
         chats.sort((c1, c2) -> {
             Message m1 = messageRepository.findFirstByChatIdOrderByTimeStampDesc(c1.getId());
             Message m2 = messageRepository.findFirstByChatIdOrderByTimeStampDesc(c2.getId());
@@ -87,27 +89,26 @@ public class ChatService {
     }
 
 
-    // Tutta la chat e marca quelli ricevuti da userId come letti
     public List<Message> getChatMessagesAndMarkSeen(Long chatId, Long userId) {
-        // 1. Trova i messaggi ricevuti non letti
+        // 1. Find unread received messages
         List<Message> unreadMessages = messageRepository.findByChatIdAndReceiverIdAndSeenFalse(chatId, userId);
 
-        // 2. Marcarli come letti
+        // 2. Mark them as read
         for (Message m : unreadMessages) {
             m.setSeen(true);
         }
 
-        // 3. Salva aggiornamenti in batch
+        // 3. Save update
         messageRepository.saveAll(unreadMessages);
 
-        // 4. Restituisci tutti i messaggi ordinati
+        // 4. Return all sorted messages
         return messageRepository.findByChatIdOrderByTimeStampAsc(chatId);
     }
 
 
-    // Solo nuovi messaggi non letti ricevuti da userId e marca come letti
     public List<Message> getUnreadMessagesAndMarkSeen(Long chatId, Long userId) {
-        List<Message> unreadMessages = messageRepository.findByChatIdAndReceiverIdAndSeenFalse(
+        //Find unread received messages
+        List<Message> unreadMessages = messageRepository.findByChatIdAndReceiverIdAndSeenFalseOrderByTimeStampAsc(
                 chatId, userId
         );
 
@@ -118,6 +119,7 @@ public class ChatService {
         messageRepository.saveAll(unreadMessages);
         return unreadMessages;
     }
+
 
     public String sendRequest(Long chatId, Long adopterId) {
         Chat chat = chatRepository.findById(chatId).orElse(null);
@@ -133,19 +135,20 @@ public class ChatService {
         chat.setRequestFlag(true);
         chatRepository.save(chat);
 
-        senderRabbitMQService.sendRequestEmail(chatId, adopterId, chat.getOwnerId(), "send");
+        senderRabbitMQService.sendRequestEmail(chat.getOwnerId(), adopterId, "send");
 
-        return "Proposta inviata con successo";
+        return null;
     }
 
-    public String cancelRequest(Long chatId, Long userId) {
+
+    public String cancelRequest(Long chatId, Long adopterId) {
         Chat chat = chatRepository.findById(chatId).orElse(null);
 
         if (chat == null) {
             return "Chat non trovata";
         }
 
-        if (!chat.getAdopterId().equals(userId)) {
+        if (!chat.getAdopterId().equals(adopterId)) {
             return "Solo l'adopter può ritirare la proposta";
         }
 
@@ -156,10 +159,13 @@ public class ChatService {
         chat.setRequestFlag(false);
         chatRepository.save(chat);
 
-        return "Proposta cancellata con successo";
+        senderRabbitMQService.sendRequestEmail(chat.getOwnerId(), adopterId, "cancel");
+
+        return null;
     }
 
-    public String acceptRequest(Long chatId, Long userId) {
+
+    public String acceptRequest(Long chatId, Long ownerId) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(null);
 
@@ -167,7 +173,7 @@ public class ChatService {
             return "Chat non trovata";
         }
 
-        if (!chat.getOwnerId().equals(userId)) {
+        if (!chat.getOwnerId().equals(ownerId)) {
             return "Solo l'owner può accettare la proposta";
         }
 
@@ -178,10 +184,13 @@ public class ChatService {
         chat.setAcceptedFlag(true);
         chatRepository.save(chat);
 
-        return "Richiesta accettata con successo";
+        senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "accept");
+
+        return null;
     }
 
-    public String rejectRequest(Long chatId, Long userId) {
+
+    public String rejectRequest(Long chatId, Long ownerId) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(null);
 
@@ -189,7 +198,7 @@ public class ChatService {
             return "Chat non trovata";
         }
 
-        if (!chat.getOwnerId().equals(userId)) {
+        if (!chat.getOwnerId().equals(ownerId)) {
             return "Solo l'owner può rifiutare la proposta";
         }
 
@@ -200,7 +209,9 @@ public class ChatService {
         chat.setRequestFlag(false);
         chatRepository.save(chat);
 
-        return "Richiesta rifiutata con successo";
+        senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "reject");
+
+        return null;
     }
 
 }

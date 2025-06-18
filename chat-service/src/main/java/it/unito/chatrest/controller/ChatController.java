@@ -53,8 +53,8 @@ public class ChatController {
     public ResponseEntity<String> sendRequest(@RequestBody ChatRequest request) {
         String result = chatService.sendRequest(request.getChatId(), request.getUserId());
 
-        if (result.equals("Proposta inviata con successo")) {
-            return ResponseEntity.ok(result);
+        if (result == null) {
+            return ResponseEntity.ok("Proposta inviata con successo");
         } else {
             return ResponseEntity.badRequest().body(result);
         }
@@ -64,8 +64,8 @@ public class ChatController {
     public ResponseEntity<String> cancelRequest(@RequestBody ChatRequest request) {
         String result = chatService.cancelRequest(request.getChatId(), request.getUserId());
 
-        if (result.equals("Proposta ritirata con successo")) {
-            return ResponseEntity.ok(result);
+        if (result == null) {
+            return ResponseEntity.ok("Proposta cancellata con successo");
         } else {
             return ResponseEntity.badRequest().body(result);
         }
@@ -75,8 +75,8 @@ public class ChatController {
     public ResponseEntity<String> acceptRequest(@RequestBody ChatRequest request) {
         String result = chatService.acceptRequest(request.getChatId(), request.getUserId());
 
-        if (result.equals("Richiesta accettata con successo")) {
-            return ResponseEntity.ok(result);
+        if (result == null) {
+            return ResponseEntity.ok("Richiesta accettata con successo");
         } else {
             return ResponseEntity.badRequest().body(result);
         }
@@ -86,8 +86,8 @@ public class ChatController {
     public ResponseEntity<String> rejectRequest(@RequestBody ChatRequest request) {
         String result = chatService.rejectRequest(request.getChatId(), request.getUserId());
 
-        if (result.equals("Richiesta rifiutata con successo")) {
-            return ResponseEntity.ok(result);
+        if (result == null) {
+            return ResponseEntity.ok("Richiesta rifiutata con successo");
         } else {
             return ResponseEntity.badRequest().body(result);
         }

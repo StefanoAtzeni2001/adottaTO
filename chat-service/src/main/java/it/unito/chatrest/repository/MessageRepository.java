@@ -12,6 +12,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByChatIdAndReceiverIdAndSeenFalse(Long chatId, Long receiverId);
 
+    List<Message> findByChatIdAndReceiverIdAndSeenFalseOrderByTimeStampAsc(Long chatId, Long receiverId);
+
     List<Message> findByChatIdOrderByTimeStampAsc(Long chatId);
 
 

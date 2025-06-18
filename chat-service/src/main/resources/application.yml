@@ -27,9 +27,7 @@ app:
   rabbitmq:
     exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
     routingkey:
-      new-message: ${RABBITMQ_NEW_MESSAGE_ROUTING_KEY} #message.new
-      request: ${RABBITMQ_ADOPTION_REQUEST_ROUTING_KEY}
-      accept: ${RABBITMQ_ADOPTION_ACCEPT_ROUTING_KEY}
+      chat-notification: ${RABBITMQ_CHAT_ROUTING_KEY} #chat.notification
 
 server:
   port: 8080

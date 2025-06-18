@@ -12,5 +12,5 @@ public class MessageRabbitMQ {
     private final Long receiverId;
     private final Long senderId;
     private final String message;
-
+    private final String type;
 }

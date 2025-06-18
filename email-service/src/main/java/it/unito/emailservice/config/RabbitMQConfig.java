@@ -23,29 +23,28 @@ public class RabbitMQConfig {
     @Value("${app.rabbitmq.queue}")
     private String queueName;
 
-    @Value("${app.rabbitmq.routingkey.new-message}")
-    private String routingKey;
+    @Value("${app.rabbitmq.routingkey.chat-notification}")
+    private String chatRoutingKey;
 
-    //Definizione dell'exchange (dove i messaggi vengono spediti)
+
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchangeName, true, false);
     }
 
-    //Definizione della Queue (dove i messaggi vengono consegnati in attessa di essere prelevati)
     @Bean
     public Queue queue() {
         return new Queue(queueName, true);
     }
-    //Definizione binding (quando un messaggio con questa routing key arriva su questo exchange, mandalo in questa queue)
+
     @Bean
-    public Binding binding(Queue queue, DirectExchange exchange) {
+    public Binding chatBinding(Queue queue, DirectExchange exchange) {
         return BindingBuilder.bind(queue)
                 .to(exchange)
-                .with(routingKey);
+                .with(chatRoutingKey);
     }
 
-    //mapping object <--> json
+
     @Bean
     public MessageConverter messageConverter(ObjectMapper objectMapper) {
         return new Jackson2JsonMessageConverter(objectMapper);
