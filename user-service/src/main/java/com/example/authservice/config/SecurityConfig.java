@@ -35,7 +35,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth.requestMatchers(
                         HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(LOGIN_PAGE, API_LOGIN, API_REGISTER, API_OAUTH_JWT, PROFILE, API_PROFILE_UPDATE).permitAll()
+                        .requestMatchers(API_LOGIN, API_REGISTER, API_OAUTH_JWT, PROFILE, API_PROFILE_UPDATE).permitAll()
                         .anyRequest().authenticated()
                 );
 
@@ -48,7 +48,7 @@ public class SecurityConfig {
 
     private void configureOAuth2Login(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
-                .loginPage(LOGIN_PAGE)
+                .loginPage(API_LOGIN)
                 .authorizationEndpoint(endpoint -> endpoint
                         .authorizationRequestResolver(customAuthorizationRequestResolver())
                 )
