@@ -73,6 +73,7 @@ public class AdoptionPostService {
                 filterDto.getMinAge(),
                 filterDto.getMaxAge(),
                 filterDto.getColor(),
+                filterDto.getLocation(),
                 filterDto.getActiveOnly()
 
         );
@@ -202,6 +203,7 @@ public class AdoptionPostService {
         dto.setGender(post.getGender());
         dto.setAge(post.getAge());
         dto.setColor(post.getColor());
+        dto.setLocation(post.getLocation());
         dto.setPublicationDate(post.getPublicationDate());
         dto.setOwnerId(post.getOwnerId());
         dto.setActive(post.getActive());
@@ -225,6 +227,7 @@ public class AdoptionPostService {
         dto.setGender(post.getGender());
         dto.setAge(post.getAge());
         dto.setColor(post.getColor());
+        dto.setLocation(post.getLocation());
         dto.setActive(post.getActive());
         return dto;
     }

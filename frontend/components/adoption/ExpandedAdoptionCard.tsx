@@ -13,11 +13,7 @@ interface ExpandedAdoptionCardProps {
         color: string
         ownerId: number
         publicationDate: string
-        // Dati opzionali per estensione futura:
-        location?: string
-        vaccinated?: boolean
-        chipped?: boolean
-        dewormed?: boolean
+        location: string
         ownerName?: string
     }
     onClose: () => void
@@ -61,11 +57,7 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                     <p><strong>Sesso:</strong> {post.gender === "M" ? "Maschio" : "Femmina"}</p>
                     <p><strong>Età:</strong> {post.age} mesi</p>
                     <p><strong>Data Pubblicazione:</strong> {new Date(post.publicationDate).toLocaleDateString()}</p>
-                    {/* I seguenti sono solo placeholder se vorrai estendere il backend */}
-                    <p><strong>Località:</strong> {post.location || "Torino (TO)"}</p>
-                    <p><strong>Vaccinato:</strong> {post.vaccinated ? "Sì" : "No"}</p>
-                    <p><strong>Chip Installato:</strong> {post.chipped ? "Sì" : "No"}</p>
-                    <p><strong>Sverminato:</strong> {post.dewormed ? "Sì" : "No"}</p>
+                    <p><strong>Località:</strong> {post.location}</p>
                 </div>
 
                 {/* Proprietario + bottone azione */}

@@ -29,6 +29,7 @@ public class AdoptionPostSpecification {
             Integer minAge,
             Integer maxAge,
             List<String> colorList,
+            List<String> locationList,
             Boolean activeOnly
     ) {
         return (root, query, cb) -> {
@@ -44,6 +45,10 @@ public class AdoptionPostSpecification {
             // Filtering by color
             if (colorList != null && !colorList.isEmpty()) {
                 predicates.add(root.get("color").in(colorList));
+            }
+            // Filtering by location
+            if (locationList != null && !locationList.isEmpty()) {
+                predicates.add(root.get("location").in(locationList));
             }
             // Filtering by gender
             if (gender != null && !gender.isBlank()) {
