@@ -2,6 +2,18 @@ spring:
   application:
     name: email-service
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: adottato.taass@gmail.com
+    password: pzgyrvtzuqyvfbgt
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
   rabbitmq:
     host: localhost #locale
     port: 5672
