@@ -5,30 +5,29 @@ services:
     container_name: gatewayservice
     restart: always
     ports:
-      - "8090:8080"
+      - "8090:8090"
     env_file:
-      - .env
+      - env/.env.shared
+      - env/.env.secret
+    environment:
+      SERVER_PORT: 8090
     networks:
       - app_network
 
   adoption-post-service:
     build:
-      context: .  #root project
+      context: .  # root project
       dockerfile: adoption-post-service/Dockerfile
     container_name: adoptionpostservice
     restart: always
     depends_on:
       - postgres-db_adottato
     ports:
-      - "8081:8080"
+      - "8081:8081"
+    env_file:
+      - env/.env.shared
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      SERVER_PORT: 8081
       RABBITMQ_NEW_POST_ROUTING_KEY: post.new
     networks:
       - app_network
@@ -41,7 +40,9 @@ services:
     depends_on:
       - postgres-db_adottato
     ports:
-      - "8082:8080"
+      - "8082:8082"
+    env_file:
+      - env/.env.shared
     environment:
       DB_USER: app_user
       DB_PASSWORD: app_password
@@ -63,33 +64,29 @@ services:
     depends_on:
       - postgres-db_adottato
     ports:
-      - "8083:8080"
+      - "8083:8083"
     env_file:
-      - .env
+      - env/.env.shared
+      - env/.env.secret
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
+      SERVER_PORT: 8083
     networks:
       - app_network
 
   saved-search-service:
     build:
-      context: .  #root project
+      context: .  # root project
       dockerfile: saved-search-service/Dockerfile
     container_name: savedsearchservice
     restart: always
     depends_on:
       - postgres-db_adottato
     ports:
-      - "8084:8080"
+      - "8084:8084"
+    env_file:
+      - env/.env.shared
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      SERVER_PORT: 8084
       RABBITMQ_SAVED_SEARCH_QUEUE: savedsearch.queue
       RABBITMQ_NEW_POST_ROUTING_KEY: post.new
     networks:
@@ -104,18 +101,28 @@ services:
       - postgres-db_adottato
       - rabbitmq
     ports:
-      - "8085:8080"
+      - "8085:8085"
+    env_file:
+      - env/.env.shared
+      - env/.env.secret
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      SERVER_PORT: 8085
       RABBITMQ_EMAIL_QUEUE: email.queue
       RABBITMQ_CHAT_ROUTING_KEY: chat.notification
+    networks:
+      - app_network
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      INTERNAL_API_BASE: "http://user-service:8083"
+    depends_on:
+      - user-service
     networks:
       - app_network
 
@@ -132,20 +139,6 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
-    networks:
-      - app_network
-
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-      INTERNAL_API_BASE: "http://user-service:8083"
-    depends_on:
-      - user-service
     networks:
       - app_network
 
@@ -166,7 +159,7 @@ services:
       - ./pgadmin-config/.pgpass:/pgpass:ro
     networks:
       - app_network
-      
+
   rabbitmq:
     image: rabbitmq:3.11-management
     container_name: rabbitmq
@@ -187,4 +180,5 @@ volumes:
 
 networks:
   app_network:
+
 

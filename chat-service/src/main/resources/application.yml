@@ -30,4 +30,4 @@ app:
       chat-notification: ${RABBITMQ_CHAT_ROUTING_KEY} #chat.notification
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8082}

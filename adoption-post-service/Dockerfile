@@ -23,8 +23,7 @@ WORKDIR /app
 # Copy the built jar from the build stage to the runtime image
 COPY --from=build /app/adoption-post-service/target/*.jar app.jar
 
-# Expose port 8080 inside the container
-EXPOSE 8080
+EXPOSE 8081
 
 # Run the application
 CMD ["java", "-jar", "app.jar"]

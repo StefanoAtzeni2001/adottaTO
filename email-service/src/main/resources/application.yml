@@ -21,4 +21,4 @@ app:
     queue: email.queue.chat
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8085}

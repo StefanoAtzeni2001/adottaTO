@@ -30,4 +30,4 @@ app:
       new-post: ${RABBITMQ_NEW_POST_ROUTING_KEY} #post.new
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8081}
