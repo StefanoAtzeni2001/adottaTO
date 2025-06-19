@@ -97,6 +97,7 @@ public class AdoptionPostService {
                 .gender(dto.getGender())
                 .age(dto.getAge())
                 .color(dto.getColor())
+                .location(dto.getLocation())
                 .ownerId(userId)
                 .active(true)
                 .adopterId(null)
@@ -146,6 +147,7 @@ public class AdoptionPostService {
         if (dto.getGender() != null) post.setGender(dto.getGender());
         if (dto.getAge() != null) post.setAge(dto.getAge());
         if (dto.getColor() != null) post.setColor(dto.getColor());
+        if (dto.getLocation() != null) post.setLocation(dto.getLocation());
 
         AdoptionPost updated = repository.save(post);
         return toDetailDto(updated);

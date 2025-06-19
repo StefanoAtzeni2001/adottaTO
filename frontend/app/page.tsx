@@ -39,11 +39,7 @@ interface AdoptionPostDetail {
     age: number
     color: string
     ownerId: number
-    // Aggiungi opzionali per visualizzare mock nel componente
-    location?: string
-    vaccinated?: boolean
-    chipped?: boolean
-    dewormed?: boolean
+    location: string
     ownerName?: string
 }
 
