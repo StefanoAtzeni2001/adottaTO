@@ -1,6 +1,6 @@
 import { X } from "lucide-react"
 import Image from "next/image"
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react"
 
 interface ExpandedAdoptionCardProps {
     post: {
@@ -24,7 +24,7 @@ interface UserProfile {
     name: string
     surname: string
     email: string
-    profilePicture?: string
+    profilePicture?: string | null
 }
 
 export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoptionCardProps) {
@@ -44,63 +44,79 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
         fetchUserProfile()
     }, [post.ownerId])
 
+    // ✅ Gestione robusta immagine profilo con IIFE
+    const profileImg = (() => {
+        const pic = userProfile?.profilePicture?.trim()
+        if (!pic) return "/default-avatar.svg"
+        return pic.startsWith("http")
+            ? pic
+            : `/${pic.replace(/^\/+/, "")}`
+    })()
+
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex justify-center items-center z-50">
-            <div className="relative bg-white rounded-2xl max-w-4xl w-full p-6">
-                {/* Bottone chiudi */}
+            <div className="relative bg-gray-100 rounded-3xl max-w-4xl w-full overflow-hidden">
+                {/* Pulsante chiusura */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-red-500 hover:text-red-700"
+                    className="absolute top-4 right-4 text-pink-500 hover:text-pink-700 z-10"
                 >
                     <X size={32} />
                 </button>
 
-                {/* Immagine placeholder */}
-                <div className="flex justify-center mb-4">
+                {/* Immagine animale */}
+                <div className="relative w-full h-72 sm:h-80 md:h-96 overflow-hidden">
                     <Image
                         src="/default-pet.jpg"
                         alt="Immagine animale"
-                        width={500}
-                        height={300}
-                        className="rounded-xl object-cover"
+                        fill
+                        className="object-cover"
+                        unoptimized
                     />
                 </div>
 
-                {/* Titolo e descrizione */}
-                <h1 className="text-4xl font-bold">{post.name}</h1>
-                <p className="text-lg font-semibold mt-2">Descrizione</p>
-                <p className="text-gray-700 mb-4">
-                    {post.description || "Nessuna descrizione disponibile."}
-                </p>
+                {/* Contenuto */}
+                <div className="p-6 sm:p-8 bg-gray-100">
+                    {/* Titolo */}
+                    <h1 className="text-5xl font-extrabold text-white -mt-24 ml-4 drop-shadow-lg">{post.name}</h1>
 
-                {/* Info */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                    <p><strong>Specie:</strong> {post.species}</p>
-                    <p><strong>Razza:</strong> {post.breed}</p>
-                    <p><strong>Colore:</strong> {post.color}</p>
-                    <p><strong>Sesso:</strong> {post.gender === "M" ? "Maschio" : "Femmina"}</p>
-                    <p><strong>Età:</strong> {post.age} mesi</p>
-                    <p><strong>Data Pubblicazione:</strong> {new Date(post.publicationDate).toLocaleDateString()}</p>
-                    <p><strong>Località:</strong> {post.location}</p>
-                </div>
+                    {/* Descrizione */}
+                    <h2 className="text-xl font-semibold text-gray-500 mt-4">Descrizione</h2>
+                    <p className="text-gray-800 mt-1">
+                        {post.description || "Nessuna descrizione disponibile."}
+                    </p>
 
-                {/* Proprietario + bottone azione */}
-                <div className="flex items-center justify-between mt-6">
-                    <div className="flex items-center gap-2">
-                        <Image
-                            src={userProfile?.profilePicture || "/default-avatar.png"}
-                            alt="Proprietario"
-                            width={40}
-                            height={40}
-                            className="rounded-full"
-                        />
-                        <span className="font-bold text-lg">
-                            {userProfile ? `${userProfile.name} ${userProfile.surname}` : `Proprietario #${post.ownerId}`}
-                        </span>
+                    {/* Info principali */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-gray-800 mt-6 text-sm sm:text-base">
+                        <p><strong>Razza:</strong> {post.breed}</p>
+                        <p><strong>Località:</strong> {post.location}</p>
+                        <p><strong>Colore:</strong> {post.color}</p>
+                        <p><strong>Sesso:</strong> {post.gender === "M" ? "Maschio" : "Femmina"}</p>
+                        <p><strong>Età:</strong> {post.age} mesi</p>
+                        <p><strong>Vaccinato:</strong> Sì</p>
                     </div>
-                    <button className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700">
-                        Manda Proposta
-                    </button>
+
+                    {/* Proprietario + bottone */}
+                    <div className="flex items-center justify-between mt-8">
+                        <div className="flex items-center gap-3">
+                            <Image
+                                src={profileImg}
+                                alt="Foto profilo"
+                                width={48}
+                                height={48}
+                                className="rounded-full object-cover"
+                                unoptimized
+                            />
+                            <span className="text-lg font-bold text-gray-800">
+                                {userProfile
+                                    ? `${userProfile.name} ${userProfile.surname}`
+                                    : `Proprietario #${post.ownerId}`}
+                            </span>
+                        </div>
+                        <button className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-full transition">
+                            Manda Proposta
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
