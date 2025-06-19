@@ -1,5 +1,6 @@
 import { X } from "lucide-react"
 import Image from "next/image"
+import {useEffect, useState} from "react";
 
 interface ExpandedAdoptionCardProps {
     post: {
@@ -19,7 +20,30 @@ interface ExpandedAdoptionCardProps {
     onClose: () => void
 }
 
+interface UserProfile {
+    name: string
+    surname: string
+    email: string
+    profilePicture?: string
+}
+
 export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoptionCardProps) {
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const res = await fetch(`http://localhost:8090/api/profile/${post.ownerId}`)
+                if (!res.ok) throw new Error("Errore nella fetch")
+                const data = await res.json()
+                setUserProfile(data)
+            } catch (err) {
+                console.error("Errore caricamento profilo:", err)
+            }
+        }
+        fetchUserProfile()
+    }, [post.ownerId])
+
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex justify-center items-center z-50">
             <div className="relative bg-white rounded-2xl max-w-4xl w-full p-6">
@@ -64,14 +88,14 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                 <div className="flex items-center justify-between mt-6">
                     <div className="flex items-center gap-2">
                         <Image
-                            src="/default-avatar.png"
+                            src={userProfile?.profilePicture || "/default-avatar.png"}
                             alt="Proprietario"
                             width={40}
                             height={40}
                             className="rounded-full"
                         />
                         <span className="font-bold text-lg">
-                            {post.ownerName || `Proprietario #${post.ownerId}`}
+                            {userProfile ? `${userProfile.name} ${userProfile.surname}` : `Proprietario #${post.ownerId}`}
                         </span>
                     </div>
                     <button className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700">

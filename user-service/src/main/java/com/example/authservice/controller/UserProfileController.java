@@ -92,4 +92,29 @@ public class UserProfileController {
         return ResponseEntity.ok("Profilo aggiornato con successo");
     }
 
+    @GetMapping("/api/profile/{id}")
+    public ResponseEntity<?> getUserProfileById(@PathVariable Long id) {
+
+        System.out.println("ID richiesto: " + id);
+
+        return authService.findById(id)
+                .map(auth -> {
+                    UserProfile profile = authService.getUserProfileByEmail(auth.getEmail());
+                    if (profile == null) {
+                        return ResponseEntity.status(404).body("Profilo non trovato");
+                    }
+                    UserProfileDTO dto = new UserProfileDTO(
+                            profile.getName(),
+                            profile.getSurname(),
+                            profile.getEmail(),
+                            profile.getProfilePicture()
+                    );
+
+                    System.out.println("ID restituito: " + id + ", profile: " + profile.getId());
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.status(404).body("Utente non trovato"));
+    }
+
+
 }
