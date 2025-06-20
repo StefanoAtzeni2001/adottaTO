@@ -1,11 +1,11 @@
-"use client"
+ "use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface Chat {
-    chatId: number
+    id: number
     ownerId: number
     adoptionPostId: number
 }
@@ -24,12 +24,24 @@ interface UserProfile {
     profilePicture?: string | null
 }
 
+interface Message {
+    id: number
+    senderId: number
+    receiverId: number
+    message: string
+    timeStamp: string
+    seen: boolean
+}
+
 export default function ChatPage() {
     const [chats, setChats] = useState<Chat[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [profilesMap, setProfilesMap] = useState<Record<number, UserProfile>>({})
     const [adoptionPostsMap, setAdoptionPostsMap] = useState<Record<number, AdoptionPostDetailDto>>({})
+    const [selectedChatId, setSelectedChatId] = useState<number | null>(null)
+    const [messages, setMessages] = useState<Message[]>([])
+
     const router = useRouter()
 
     useEffect(() => {
@@ -95,6 +107,28 @@ export default function ChatPage() {
             })
     }, [router])
 
+    const fetchChatMessages = async (chatId: number) => {
+        const token = localStorage.getItem("jwt")
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/history", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ chatId }),
+            })
+
+            if (!res.ok) throw new Error("Errore nel recupero dei messaggi")
+            const data: Message[] = await res.json()
+            setMessages(data)
+            setSelectedChatId(chatId)
+        } catch (err) {
+            console.error("Errore caricamento messaggi:", err)
+        }
+    }
+
     if (loading) return <div>Caricamento chat...</div>
     if (error) return <div>{error}</div>
 
@@ -117,9 +151,13 @@ export default function ChatPage() {
 
                         return (
                             <Card
-                                key={chat.chatId}
-                                onClick={() => router.push(`/chat/${chat.chatId}`)}
-                                className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                                key={chat.id}
+                                onClick={() => {
+                                    fetchChatMessages(chat.id)
+                                }}
+                                className={`cursor-pointer hover:shadow-lg transition-shadow duration-200 ${
+                                    selectedChatId === chat.id ? "border-2 border-primary" : ""
+                                }`}
                             >
                                 <CardHeader className="flex items-center space-x-4">
                                     <img
@@ -138,13 +176,39 @@ export default function ChatPage() {
                                         )}
                                     </div>
                                 </CardHeader>
-                                {/* CardContent può essere mantenuto vuoto o rimosso se non serve */}
-                                <CardContent />
                             </Card>
                         )
                     })}
                 </div>
             )}
+
+            {/* Sezione messaggi */}
+            {selectedChatId && (
+                <div className="mt-8 px-6 py-4 bg-gray-50 rounded-md max-w-3xl mx-auto">
+                    <h2 className="text-xl font-semibold mb-4">Cronologia chat</h2>
+                    <div className="flex flex-col gap-4">
+                        {messages.map((msg) => {
+                            const isOwn = localStorage.getItem("userId") === msg.senderId.toString()
+                            return (
+                                <div
+                                    key={msg.id}
+                                    className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
+                                        isOwn
+                                            ? "bg-primary text-primary-foreground ml-auto"
+                                            : "bg-muted"
+                                    }`}
+                                >
+                                    {msg.message /* usa message non content */}
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        {new Date(msg.timeStamp).toLocaleString()}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
         </div>
     )
 }
