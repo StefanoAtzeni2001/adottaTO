@@ -14,5 +14,6 @@ public class AdoptionPostSummaryDto {
     private Integer age;// in months
     private String gender;
     private String color;
+    private String location;
     private Boolean active;
 }

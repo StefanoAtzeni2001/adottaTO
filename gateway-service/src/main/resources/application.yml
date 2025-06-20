@@ -36,7 +36,7 @@ spring:
         - id: user_route_public
           uri: http://userservice:8080
           predicates:
-            - Path=/login/oauth2/**,/api/login,/google-registration,/api/register,/api/oauth-jwt,/oauth2/authorization/**
+            - Path=/login/oauth2/**,/api/login,/google-registration,/api/register,/api/oauth-jwt,/oauth2/authorization/**,/api/profile/**
 
         # USER SERVICE: private
         - id: user_route_auth
