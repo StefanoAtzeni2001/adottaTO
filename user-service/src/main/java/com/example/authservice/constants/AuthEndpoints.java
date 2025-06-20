@@ -23,6 +23,8 @@ public final class AuthEndpoints {
 
     public static final String PROFILE = "/profile";
 
+    public static final String PROFILE_EMAIL = "/profile-email";
+
     public static final String API_PROFILE_UPDATE = "/api/profile/update";
 
     public static final String API_OAUTH_JWT = "/api/oauth-jwt";

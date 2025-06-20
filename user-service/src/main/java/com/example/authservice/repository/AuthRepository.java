@@ -19,4 +19,5 @@ public interface AuthRepository extends JpaRepository<Auth, Long> {
      * @return an Optional containing the found Auth or empty if none found
      */
     Optional<Auth> findByEmail(String email);
+    Optional<Auth> findById(Long id);
 }

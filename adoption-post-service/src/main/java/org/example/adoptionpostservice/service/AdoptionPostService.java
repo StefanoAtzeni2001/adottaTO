@@ -8,8 +8,6 @@ import org.example.adoptionpostservice.repository.AdoptionPostSpecification;
 import org.example.shareddtos.dto.AdoptionPostDetailDto;
 import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSummaryDto;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,21 +25,17 @@ import java.util.NoSuchElementException;
 public class AdoptionPostService {
 
     private final AdoptionPostRepository repository;
-    private final RabbitTemplate rabbitTemplate;
 
-    @Value("${app.rabbitmq.exchange}")
-    private String adottatoExchange;
-    @Value("${app.rabbitmq.routingkey.new-post}")
-    private String newPostRoutingKey;
+    private final RabbitMQService rabbitMQService;
 
     /**
      * Constructor
      *
      * @param repository the adoption post repository
      */
-    public AdoptionPostService(AdoptionPostRepository repository, RabbitTemplate rabbitTemplate) {
+    public AdoptionPostService(AdoptionPostRepository repository, RabbitMQService rabbitMQService) {
         this.repository = repository;
-        this.rabbitTemplate = rabbitTemplate ;
+        this.rabbitMQService = rabbitMQService;
     }
 
     /**
@@ -103,7 +97,7 @@ public class AdoptionPostService {
                 .publicationDate(LocalDateTime.now())
                 .build();
         AdoptionPost saved = repository.save(post); //saving in db
-        sendNewPostEvent(toSummaryDto(post)); //sending message with rabbitMQ
+        rabbitMQService.sendNewPostEvent(toSummaryDto(post)); //sending message with rabbitMQ
         return toDetailDto(saved);
     }
 
@@ -177,10 +171,6 @@ public class AdoptionPostService {
                 .map(this::toSummaryDto);
     }
 
-
-    public void sendNewPostEvent(AdoptionPostSummaryDto dto) {
-        rabbitTemplate.convertAndSend(adottatoExchange, newPostRoutingKey, dto);
-    }
 
 
 //--------------------------------------------------------------TODO: da implementare con un mapper automatico
