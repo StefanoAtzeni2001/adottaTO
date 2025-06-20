@@ -6,9 +6,8 @@ services:
     restart: always
     ports:
       - "8090:8080"
-    environment:
-#      da gestire con file.env in futuro?
-      - JWT_SECRET=una-chiave-segreta-molto-lunga123456789
+    env_file:
+      - .env
     networks:
       - app_network
 
@@ -58,7 +57,7 @@ services:
       RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY: chat.request.accepted
     networks:
       - app_network
-      
+
   user-service:
     build:
       context: ./user-service
