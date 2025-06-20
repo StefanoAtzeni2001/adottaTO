@@ -12,55 +12,6 @@ services:
     networks:
       - app_network
 
-  chat-service:
-    build:
-      context: ./chat-service
-    container_name: chat-service
-    restart: always
-    depends_on:
-      - postgres-db_adottato
-    ports:
-      - "8082:8080"
-    environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
-      RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY: chat.notification
-      RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY: chat.request.accepted
-    networks:
-      - app_network
-
-  email-service:
-    build:
-      context: ./email-service
-    container_name: email-service
-    restart: always
-    depends_on:
-      - postgres-db_adottato
-      - rabbitmq
-    ports:
-      - "8085:8080"
-    environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
-      RABBITMQ_EMAIL_QUEUE_CHAT: email.queue.chat
-      RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH: email.queue.savedsearch
-      RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY: chat.notification
-      RABBITMQ_SAVED_SEARCH_ROUTING_KEY: savedsearch.match
-    networks:
-      - app_network
-
   adoption-post-service:
     build:
       context: .  #root project
@@ -83,7 +34,30 @@ services:
       RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY: chat.request.accepted
       RABBITMQ_ADOPTION_POST_QUEUE_CHAT: adoptionpost.queue.requestaccepted
     networks:
-      - app_network   
+      - app_network
+
+  chat-service:
+    build:
+      context: ./chat-service
+    container_name: chat-service
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+    ports:
+      - "8082:8080"
+    environment:
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: user
+      SPRING_RABBITMQ_PASSWORD: password
+      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY: chat.notification
+      RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY: chat.request.accepted
+    networks:
+      - app_network
       
   user-service:
     build:
@@ -122,6 +96,32 @@ services:
       RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
       RABBITMQ_SAVED_SEARCH_QUEUE: savedsearch.queue
       RABBITMQ_NEW_POST_ROUTING_KEY: post.new
+    networks:
+      - app_network
+
+  email-service:
+    build:
+      context: ./email-service
+    container_name: email-service
+    restart: always
+    depends_on:
+      - postgres-db_adottato
+      - rabbitmq
+    ports:
+      - "8085:8080"
+    environment:
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: user
+      SPRING_RABBITMQ_PASSWORD: password
+      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      RABBITMQ_EMAIL_QUEUE_CHAT: email.queue.chat
+      RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH: email.queue.savedsearch
+      RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY: chat.notification
+      RABBITMQ_SAVED_SEARCH_ROUTING_KEY: savedsearch.match
     networks:
       - app_network
 
