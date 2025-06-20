@@ -19,7 +19,7 @@ public class EmailService {
     private UserServiceClient userServiceClient;
 
 
-    @RabbitListener(queues = "${app.rabbitmq.queue}")
+    @RabbitListener(queues = "${app.rabbitmq.queue.chat-notification}")
     public void receiveMessage(MessageRabbitMQ message) {
         try {
 
