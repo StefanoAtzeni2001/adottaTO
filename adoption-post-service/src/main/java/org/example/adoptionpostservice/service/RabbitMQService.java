@@ -27,7 +27,6 @@ public class RabbitMQService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-
     public void sendNewPostEvent(AdoptionPostSummaryDto dto) {
         rabbitTemplate.convertAndSend(adottatoExchange, newPostRoutingKey, dto);
     }

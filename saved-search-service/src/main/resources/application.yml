@@ -29,7 +29,7 @@ app:
     queue: ${RABBITMQ_SAVED_SEARCH_QUEUE} #savedsearch.queue
     routingkey:
       new-post: ${RABBITMQ_NEW_POST_ROUTING_KEY} #post.new
-
+      savedsearch-match: ${RABBITMQ_SAVEDSEARCH_MATCH} #savedsearch.match
 
 server:
   port: 8080

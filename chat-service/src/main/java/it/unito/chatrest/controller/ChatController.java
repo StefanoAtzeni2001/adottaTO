@@ -22,9 +22,9 @@ public class ChatController {
     private ChatService chatService;
 
     @PostMapping("/send")
-    public ResponseEntity<?> sendMessage(@RequestBody MessageSendRequest request) {
+    public ResponseEntity<?> sendMessage(@RequestBody MessageSendRequest request, @RequestHeader("User-Id") Long userId) {
         try {
-            Message message = chatService.sendMessage(request);
+            Message message = chatService.sendMessage(request, userId);
             return ResponseEntity.ok(message);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -32,26 +32,26 @@ public class ChatController {
     }
 
     @PostMapping("/chats")
-    public ResponseEntity<List<Chat>> getChatsForUser(@RequestBody UserIdRequest request) {
-        List<Chat> chats = chatService.getChatsForUser(request.getUserId());
+    public ResponseEntity<List<Chat>> getChatsForUser(@RequestHeader("User-Id") Long userId) {
+        List<Chat> chats = chatService.getChatsForUser(userId);
         return ResponseEntity.ok(chats);
     }
 
     @PostMapping("/history")
-    public ResponseEntity<List<Message>> getFullChat(@RequestBody ChatRequest request) {
-        List<Message> messages = chatService.getChatMessagesAndMarkSeen(request.getChatId(), request.getUserId());
+    public ResponseEntity<List<Message>> getFullChat(@RequestBody ChatRequest request, @RequestHeader("User-Id") Long userId) {
+        List<Message> messages = chatService.getChatMessagesAndMarkSeen(request.getChatId(), userId);
         return ResponseEntity.ok(messages);
     }
 
     @PostMapping("/unread")
-    public ResponseEntity<List<Message>> getUnreadMessages(@RequestBody ChatRequest request) {
-        List<Message> unreadMessages = chatService.getUnreadMessagesAndMarkSeen(request.getChatId(), request.getUserId());
+    public ResponseEntity<List<Message>> getUnreadMessages(@RequestBody ChatRequest request, @RequestHeader("User-Id") Long userId) {
+        List<Message> unreadMessages = chatService.getUnreadMessagesAndMarkSeen(request.getChatId(), userId);
         return ResponseEntity.ok(unreadMessages);
     }
 
     @PostMapping("/sendRequest")
-    public ResponseEntity<String> sendRequest(@RequestBody ChatRequest request) {
-        String result = chatService.sendRequest(request.getChatId(), request.getUserId());
+    public ResponseEntity<String> sendRequest(@RequestBody ChatRequest request, @RequestHeader("User-Id") Long userId) {
+        String result = chatService.sendRequest(request.getChatId(), userId);
 
         if (result == null) {
             return ResponseEntity.ok("Proposta inviata con successo");
@@ -61,8 +61,8 @@ public class ChatController {
     }
 
     @PostMapping("/cancelRequest")
-    public ResponseEntity<String> cancelRequest(@RequestBody ChatRequest request) {
-        String result = chatService.cancelRequest(request.getChatId(), request.getUserId());
+    public ResponseEntity<String> cancelRequest(@RequestBody ChatRequest request, @RequestHeader("User-Id") Long userId) {
+        String result = chatService.cancelRequest(request.getChatId(), userId);
 
         if (result == null) {
             return ResponseEntity.ok("Proposta cancellata con successo");
@@ -72,8 +72,8 @@ public class ChatController {
     }
 
     @PostMapping("/acceptRequest")
-    public ResponseEntity<String> acceptRequest(@RequestBody ChatRequest request) {
-        String result = chatService.acceptRequest(request.getChatId(), request.getUserId());
+    public ResponseEntity<String> acceptRequest(@RequestBody ChatRequest request, @RequestHeader("User-Id") Long userId) {
+        String result = chatService.acceptRequest(request.getChatId(), userId);
 
         if (result == null) {
             return ResponseEntity.ok("Richiesta accettata con successo");
@@ -83,8 +83,8 @@ public class ChatController {
     }
 
     @PostMapping("/rejectRequest")
-    public ResponseEntity<String> rejectRequest(@RequestBody ChatRequest request) {
-        String result = chatService.rejectRequest(request.getChatId(), request.getUserId());
+    public ResponseEntity<String> rejectRequest(@RequestBody ChatRequest request, @RequestHeader("User-Id") Long userId) {
+        String result = chatService.rejectRequest(request.getChatId(), userId);
 
         if (result == null) {
             return ResponseEntity.ok("Richiesta rifiutata con successo");
