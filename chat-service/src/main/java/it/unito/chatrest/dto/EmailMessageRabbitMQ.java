@@ -7,7 +7,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class MessageRabbitMQ {
+public class EmailMessageRabbitMQ {
 
     private final Long receiverId;
     private final Long senderId;

@@ -20,8 +20,8 @@ public class RabbitMQConfig {
     @Value("${app.rabbitmq.exchange}")
     private String exchangeName;
 
-    @Value("${app.rabbitmq.queue}")
-    private String queueName;
+    @Value("${app.rabbitmq.queue.chat-notification}")
+    private String chatQueueName;
 
     @Value("${app.rabbitmq.routingkey.chat-notification}")
     private String chatRoutingKey;
@@ -34,7 +34,7 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue queue() {
-        return new Queue(queueName, true);
+        return new Queue(chatQueueName, true);
     }
 
     @Bean

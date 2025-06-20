@@ -5,6 +5,7 @@ import it.unito.chatrest.model.Chat;
 import it.unito.chatrest.model.Message;
 import it.unito.chatrest.repository.ChatRepository;
 import it.unito.chatrest.repository.MessageRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -166,52 +167,57 @@ public class ChatService {
 
 
     public String acceptRequest(Long chatId, Long ownerId) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(null);
+        try{
+            Chat chat = chatRepository.findById(chatId)
+                    .orElseThrow(() -> new EntityNotFoundException("Chat non trovata"));
 
-        if (chat == null) {
+            if (!chat.getOwnerId().equals(ownerId)) {
+                return "Solo l'owner può accettare la proposta";
+            }
+
+            if (!chat.isRequestFlag()) {
+                return "Proposta non ancora inviata";
+            }
+
+            chat.setAcceptedFlag(true);
+            chatRepository.save(chat);
+
+            senderRabbitMQService.sendRequestAccepted(chat.getAdoptionPostId(), chat.getAdopterId());
+            senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "accept");
+
+            return null;
+        }catch (EntityNotFoundException e){
             return "Chat non trovata";
         }
 
-        if (!chat.getOwnerId().equals(ownerId)) {
-            return "Solo l'owner può accettare la proposta";
-        }
 
-        if (!chat.isRequestFlag()) {
-            return "Proposta non ancora inviata";
-        }
 
-        chat.setAcceptedFlag(true);
-        chatRepository.save(chat);
-
-        senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "accept");
-
-        return null;
     }
 
 
     public String rejectRequest(Long chatId, Long ownerId) {
-        Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(null);
+        try{
+            Chat chat = chatRepository.findById(chatId)
+                    .orElseThrow(() -> new EntityNotFoundException("Chat non trovata"));
 
-        if (chat == null) {
+            if (!chat.getOwnerId().equals(ownerId)) {
+                return "Solo l'owner può rifiutare la proposta";
+            }
+
+            if (!chat.isRequestFlag()) {
+                return "Proposta non ancora inviata";
+            }
+
+            chat.setRequestFlag(false);
+            chatRepository.save(chat);
+
+            senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "reject");
+
+            return null;
+        }catch (EntityNotFoundException e){
             return "Chat non trovata";
         }
 
-        if (!chat.getOwnerId().equals(ownerId)) {
-            return "Solo l'owner può rifiutare la proposta";
-        }
-
-        if (!chat.isRequestFlag()) {
-            return "Proposta non ancora inviata";
-        }
-
-        chat.setRequestFlag(false);
-        chatRepository.save(chat);
-
-        senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "reject");
-
-        return null;
     }
 
 }

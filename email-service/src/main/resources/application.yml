@@ -2,6 +2,18 @@ spring:
   application:
     name: email-service
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: adottato.taass@gmail.com
+    password: pzgyrvtzuqyvfbgt
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
   rabbitmq:
     host: localhost #locale
     port: 5672
@@ -15,10 +27,13 @@ spring:
 
 app:
   rabbitmq:
-    exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
+    exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} # adottato.exchange
     routingkey:
-      chat-notification: ${RABBITMQ_CHAT_ROUTING_KEY} #chat.notification
-    queue: email.queue.chat
+      chat-notification: ${RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY}        # chat.notification
+      savedsearch-match: ${RABBITMQ_SAVED_SEARCH_ROUTING_KEY} # savedsearch.match
+    queue:
+      chat-notification: ${RABBITMQ_EMAIL_QUEUE_CHAT} # email.queue.chat
+      savedsearch-match: ${RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH} # email.queue.savedsearch
 
 server:
   port: 8080
