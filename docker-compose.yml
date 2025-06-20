@@ -95,6 +95,7 @@ services:
       RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
       RABBITMQ_SAVED_SEARCH_QUEUE: savedsearch.queue
       RABBITMQ_NEW_POST_ROUTING_KEY: post.new
+      RABBITMQ_SAVEDSEARCH_MATCH: savedsearch.match
     networks:
       - app_network
 

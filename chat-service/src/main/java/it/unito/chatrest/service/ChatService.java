@@ -25,8 +25,13 @@ public class ChatService {
     @Autowired
     private SenderRabbitMQService senderRabbitMQService;
 
-    public Message sendMessage(MessageSendRequest request) {
+    public Message sendMessage(MessageSendRequest request, Long userId) {
+
         Chat chat;
+
+        if(!request.getSenderId().equals(userId)) {
+            throw new IllegalArgumentException("Sender non corrispondente a userId loggato");
+        }
 
         if (request.getChatId() != null) {
             //recover the chat
