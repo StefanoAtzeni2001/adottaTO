@@ -99,6 +99,10 @@ export default function UserPage() {
         router.push("/login")
     }
 
+    const handleGoChat = () => {
+        router.push("/chat")
+    }
+
     const handleCardClick = async (postId: number) => {
         const token = localStorage.getItem("jwt")
         try {
@@ -131,6 +135,11 @@ export default function UserPage() {
                     </div>
                     <p className="text-lg text-gray-600">{profile.email}</p>
                     <PostAdoption />
+                    <Button
+                        onClick={handleGoChat}
+                        className="bg-red-600 text-white">
+                        Le  mie chat
+                    </Button>
                 </div>
             </div>
 
