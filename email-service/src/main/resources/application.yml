@@ -36,4 +36,4 @@ app:
       savedsearch-match: ${RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH} # email.queue.savedsearch
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8085}

@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8090}
 
 spring:
   application:
@@ -8,17 +8,17 @@ spring:
   cloud:
     gateway:
       forwarded:
-        enabled: true        # <-- aggiunto per abilitare X-Forwarded headers
+        enabled: true
       routes:
         # ADOPTION POST SERVICE: public
         - id: adoptionpost_route_public
-          uri: http://adoptionpostservice:8080
+          uri: http://adoption-post-service:8081
           predicates:
-            - Path=/get-list,/get-list-filtered,/get-by-id/**
+            - Path=/get-list,/get-list-filtered**,/get-by-id/**,/api/get-list-filtered**
 
         # ADOPTION POST SERVICE: private
         - id: adoptionpost_route_auth
-          uri: http://adoptionpostservice:8080
+          uri: http://adoption-post-service:8081
           predicates:
             - Path=/create-adoption-post,/delete-by-id/**,/update-by-id/**,/get-my-owned-posts,/get-my-adopted-posts
           filters:
@@ -26,7 +26,7 @@ spring:
 
         # SAVED SEARCH SERVICE: private
         - id: savedsearch_route_auth
-          uri: http://savedsearchservice:8080
+          uri: http://saved-search-service:8084
           predicates:
             - Path=/get-my-saved-search,/delete-saved-search/**,/save-search
           filters:
@@ -34,13 +34,13 @@ spring:
 
         # USER SERVICE: public
         - id: user_route_public
-          uri: http://userservice:8080
+          uri: http://user-service:8083
           predicates:
             - Path=/login/oauth2/**,/api/login,/google-registration,/api/register,/api/oauth-jwt,/oauth2/authorization/**,/api/profile/**
 
         # USER SERVICE: private
         - id: user_route_auth
-          uri: http://userservice:8080
+          uri: http://user-service:8083
           predicates:
             - Path=/profile,/api/profile/update
           filters:
@@ -48,7 +48,7 @@ spring:
 
         # CHAT SERVICE: private
         - id: chat_route_auth
-          uri: http://chatservice:8080
+          uri: http://chat-service:8082
           predicates:
             - Path=/chat/**
           filters:

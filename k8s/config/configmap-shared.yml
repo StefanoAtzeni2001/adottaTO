@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shared-config
+  namespace: adottato
+data:
+  SPRING_PROFILES_ACTIVE: docker
+  SPRING_RABBITMQ_HOST: rabbitmq
+  SPRING_RABBITMQ_PORT: "5672"
+  RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+

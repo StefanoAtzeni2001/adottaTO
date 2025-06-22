@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-sql
+  namespace: adottato
+data:
+  init.sql: |
+    CREATE SCHEMA IF NOT EXISTS schema_user AUTHORIZATION app_user;
+    CREATE SEQUENCE IF NOT EXISTS schema_user.data_seq START WITH 1 INCREMENT BY 1;
+  
+    CREATE SCHEMA IF NOT EXISTS schema_adoption_posts AUTHORIZATION app_user;
+    CREATE SEQUENCE IF NOT EXISTS schema_adoption_posts.data_seq START WITH 1 INCREMENT BY 1;
+  
+    CREATE SCHEMA IF NOT EXISTS schema_saved_search AUTHORIZATION app_user;
+    CREATE SEQUENCE IF NOT EXISTS schema_saved_search.data_seq START WITH 1 INCREMENT BY 1;
+  
+    CREATE SCHEMA IF NOT EXISTS schema_chat AUTHORIZATION app_user;
+    CREATE SEQUENCE IF NOT EXISTS schema_chat.data_seq START WITH 1 INCREMENT BY 1;

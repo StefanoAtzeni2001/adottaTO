@@ -10,5 +10,5 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 #porta utilizzata all'interno del container
-EXPOSE 8080
+EXPOSE 8085
 CMD ["java", "-jar", "app.jar"]

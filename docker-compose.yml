@@ -2,33 +2,32 @@ services:
   gateway-service:
     build:
       context: ./gateway-service
-    container_name: gatewayservice
+    image: adottato/gateway-service:latest
     restart: always
     ports:
-      - "8090:8080"
+      - "8090:8090"
     env_file:
-      - .env
+      - env/.env.shared
+      - env/.env.secret
+    environment:
+      SERVER_PORT: 8090
     networks:
       - app_network
 
   adoption-post-service:
     build:
-      context: .  #root project
+      context: .
       dockerfile: adoption-post-service/Dockerfile
-    container_name: adoptionpostservice
+    image: adottato/adoption-post-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
-      - "8081:8080"
+      - "8081:8081"
+    env_file:
+      - env/.env.shared
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      SERVER_PORT: 8081
       RABBITMQ_NEW_POST_ROUTING_KEY: post.new
       RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY: chat.request.accepted
       RABBITMQ_ADOPTION_POST_QUEUE_CHAT: adoptionpost.queue.requestaccepted
@@ -38,21 +37,15 @@ services:
   chat-service:
     build:
       context: ./chat-service
-    container_name: chatservice
+    image: adottato/chat-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
-      - "8082:8080"
+      - "8082:8082"
+    env_file:
+      - env/.env.shared
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
       RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY: chat.notification
       RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY: chat.request.accepted
     networks:
@@ -61,38 +54,34 @@ services:
   user-service:
     build:
       context: ./user-service
-    container_name: userservice
+    image: adottato/user-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
-      - "8083:8080"
+      - "8083:8083"
     env_file:
-      - .env
+      - env/.env.shared
+      - env/.env.secret
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
+      SERVER_PORT: 8083
     networks:
       - app_network
 
   saved-search-service:
     build:
-      context: .  #root project
+      context: .
       dockerfile: saved-search-service/Dockerfile
-    container_name: savedsearchservice
+    image: adottato/saved-search-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
-      - "8084:8080"
+      - "8084:8084"
+    env_file:
+      - env/.env.shared
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      SERVER_PORT: 8084
       RABBITMQ_SAVED_SEARCH_QUEUE: savedsearch.queue
       RABBITMQ_NEW_POST_ROUTING_KEY: post.new
       RABBITMQ_SAVEDSEARCH_MATCH: savedsearch.match
@@ -102,22 +91,18 @@ services:
   email-service:
     build:
       context: ./email-service
-    container_name: emailservice
+    image: adottato/email-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
       - rabbitmq
     ports:
-      - "8085:8080"
+      - "8085:8085"
+    env_file:
+      - env/.env.shared
+      - env/.env.secret
     environment:
-      DB_USER: app_user
-      DB_PASSWORD: app_password
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: user
-      SPRING_RABBITMQ_PASSWORD: password
-      RABBITMQ_ADOTTATO_EXCHANGE: adottato.exchange
+      SERVER_PORT: 8085
       RABBITMQ_EMAIL_QUEUE_CHAT: email.queue.chat
       RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH: email.queue.savedsearch
       RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY: chat.notification
@@ -125,9 +110,22 @@ services:
     networks:
       - app_network
 
-  postgres-db_adottato:
+  frontend:
+    build: ./frontend
+    image: adottato/frontend:latest
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      INTERNAL_API_BASE: "http://gateway-service:8090"
+    depends_on:
+      - gateway-service
+    networks:
+      - app_network
+
+  postgres-db-adottato:
     image: postgres:latest
-    container_name: postgres_db_adottato
     restart: always
     environment:
       POSTGRES_DB: postgres_db
@@ -141,41 +139,25 @@ services:
     networks:
       - app_network
 
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-      INTERNAL_API_BASE: "http://user-service:8083"
-    depends_on:
-      - user-service
-    networks:
-      - app_network
-
-  pgadmin_adottato:
+  pgadmin-adottato:
     image: dpage/pgadmin4
-    container_name: pgadmin_adottato
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: password
     ports:
-      - "5051:80"
+      - "5051:5051"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - ./pgadmin-config/servers.json:/pgadmin4/servers.json:ro
       - ./pgadmin-config/.pgpass:/pgpass:ro
     networks:
       - app_network
-      
+
   rabbitmq:
     image: rabbitmq:3.11-management
-    container_name: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
@@ -193,4 +175,3 @@ volumes:
 
 networks:
   app_network:
-
