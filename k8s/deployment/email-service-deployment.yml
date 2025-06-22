@@ -29,7 +29,14 @@ spec:
             - secretRef:
                 name: rabbitmq-secret
           env:
-            - name: RABBITMQ_EMAIL_QUEUE
-              value: "email.queue"
-            - name: RABBITMQ_CHAT_ROUTING_KEY
+            - name: RABBITMQ_EMAIL_QUEUE_CHAT
+              value: "email.queue.chat"
+            - name: RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH
+              value: "email.queue.savedsearch"
+            - name: RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY
               value: "chat.notification"
+            - name: RABBITMQ_SAVED_SEARCH_ROUTING_KEY
+              value: "savedsearch.match"
+            - name: USER_SERVICE_URL
+              value: "http://user-service:8083"
+

@@ -33,3 +33,5 @@ spec:
               value: "savedsearch.queue"
             - name: RABBITMQ_NEW_POST_ROUTING_KEY
               value: "post.new"
+            - name:  RABBITMQ_SAVEDSEARCH_MATCH
+              value: "savedsearch.match"

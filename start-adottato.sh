@@ -26,7 +26,7 @@ while true; do
         echo "🟢🟢🟢 Tutti i pods sono pronti."
         break
     fi
-    echo "🟡🟡🟡 In attesa..."
+    echo "🟡 In attesa... 🟡 "
     sleep 5
 done
 

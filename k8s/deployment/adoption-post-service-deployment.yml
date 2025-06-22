@@ -31,4 +31,9 @@ spec:
           env:
             - name: RABBITMQ_NEW_POST_ROUTING_KEY
               value: "post.new"
+            - name: RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY
+              value: "chat.request.accepted"
+            - name: RABBITMQ_ADOPTION_POST_QUEUE_CHAT
+              value: "adoptionpost.queue.requestaccepted"
+
 

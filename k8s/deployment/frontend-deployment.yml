@@ -25,7 +25,7 @@ spec:
             - name: NODE_ENV
               value: "production"
             - name: INTERNAL_API_BASE
-              value: "http://gateway.192.168.49.2.nip.io"
+              value: "http://localhost:8090"
           readinessProbe:
             tcpSocket:
               port: 3000

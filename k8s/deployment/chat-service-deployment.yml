@@ -29,5 +29,7 @@ spec:
             - secretRef:
                 name: rabbitmq-secret
           env:
-            - name: RABBITMQ_CHAT_ROUTING_KEY
+            - name: RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY
               value: "chat.notification"
+            - name: RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY
+              value: "chat.request.accepted"
