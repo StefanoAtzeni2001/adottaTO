@@ -103,6 +103,7 @@ services:
       - env/.env.secret
     environment:
       SERVER_PORT: 8085
+      USER_SERVICE_URL: http://user-service:8083
       RABBITMQ_EMAIL_QUEUE_CHAT: email.queue.chat
       RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH: email.queue.savedsearch
       RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY: chat.notification

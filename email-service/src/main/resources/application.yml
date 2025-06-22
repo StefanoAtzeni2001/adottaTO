@@ -26,6 +26,8 @@ spring:
       - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 
 app:
+  webclient:
+    userservice: ${USER_SERVICE_URL} #http://user-service:8083
   rabbitmq:
     exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} # adottato.exchange
     routingkey:
