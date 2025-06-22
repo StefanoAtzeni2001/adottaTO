@@ -21,27 +21,42 @@ public class RabbitMQConfig {
     private String exchangeName;
 
     @Value("${app.rabbitmq.queue.chat-notification}")
-    private String chatQueueName;
+    private String chatQueue;
+
+    @Value("${app.rabbitmq.queue.savedsearch-match}")
+    private String savedSearchQueue;
 
     @Value("${app.rabbitmq.routingkey.chat-notification}")
     private String chatRoutingKey;
 
+    @Value("${app.rabbitmq.routingkey.savedsearch-match}")
+    private String savedSearchRoutingKey;
 
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchangeName, true, false);
     }
 
+    // === CHAT QUEUE CONFIGURATION ===
     @Bean
-    public Queue queue() {
-        return new Queue(chatQueueName, true);
+    public Queue chatQueue() {
+        return new Queue(chatQueue, true);
     }
 
     @Bean
-    public Binding chatBinding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue)
-                .to(exchange)
-                .with(chatRoutingKey);
+    public Binding chatBinding(Queue chatQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(chatQueue).to(exchange).with(chatRoutingKey);
+    }
+
+    // === SAVED SEARCH QUEUE CONFIGURATION ===
+    @Bean
+    public Queue savedSearchQueue() {
+        return new Queue(savedSearchQueue, true);
+    }
+
+    @Bean
+    public Binding savedSearchBinding(Queue savedSearchQueue, DirectExchange exchange) {
+        return BindingBuilder.bind(savedSearchQueue).to(exchange).with(savedSearchRoutingKey);
     }
 
 

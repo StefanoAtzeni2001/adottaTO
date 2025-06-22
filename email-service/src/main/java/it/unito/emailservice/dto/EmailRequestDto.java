@@ -7,8 +7,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class EmailResponseDTO {
-    private String name;
-    private String surname;
-    private String email;
+public class EmailRequestDto {
+    private Long userId;
 }
