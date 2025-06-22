@@ -38,7 +38,7 @@ services:
   chat-service:
     build:
       context: ./chat-service
-    container_name: chat-service
+    container_name: chatservice
     restart: always
     depends_on:
       - postgres-db_adottato
@@ -102,7 +102,7 @@ services:
   email-service:
     build:
       context: ./email-service
-    container_name: email-service
+    container_name: emailservice
     restart: always
     depends_on:
       - postgres-db_adottato

@@ -1,11 +1,9 @@
 package it.unito.emailservice.service;
 
-import it.unito.emailservice.dto.EmailRequestDTO;
-import it.unito.emailservice.dto.EmailResponseDTO;
-import org.springframework.http.HttpStatus;
+import it.unito.emailservice.dto.EmailRequestDto;
+import it.unito.emailservice.dto.EmailResponseDto;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 @Component
 public class UserServiceClient {
@@ -18,15 +16,15 @@ public class UserServiceClient {
                 .build();
     }
 
-    public EmailResponseDTO getUser(Long userId) {
+    public EmailResponseDto getUser(Long userId) {
 
-        EmailRequestDTO request = new EmailRequestDTO(userId);
+        EmailRequestDto request = new EmailRequestDto(userId);
 
         return webClient.post()
                 .uri("/profile-email")
                 .bodyValue(request)
                 .retrieve()
-                .bodyToMono(EmailResponseDTO.class)
+                .bodyToMono(EmailResponseDto.class)
                 .block();
     }
 }
