@@ -8,8 +8,6 @@ import org.example.adoptionpostservice.repository.AdoptionPostSpecification;
 import org.example.shareddtos.dto.AdoptionPostDetailDto;
 import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSummaryDto;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,21 +25,17 @@ import java.util.NoSuchElementException;
 public class AdoptionPostService {
 
     private final AdoptionPostRepository repository;
-    private final RabbitTemplate rabbitTemplate;
 
-    @Value("${app.rabbitmq.exchange}")
-    private String adottatoExchange;
-    @Value("${app.rabbitmq.routingkey.new-post}")
-    private String newPostRoutingKey;
+    private final RabbitMQService rabbitMQService;
 
     /**
      * Constructor
      *
      * @param repository the adoption post repository
      */
-    public AdoptionPostService(AdoptionPostRepository repository, RabbitTemplate rabbitTemplate) {
+    public AdoptionPostService(AdoptionPostRepository repository, RabbitMQService rabbitMQService) {
         this.repository = repository;
-        this.rabbitTemplate = rabbitTemplate ;
+        this.rabbitMQService = rabbitMQService;
     }
 
     /**
@@ -73,6 +67,7 @@ public class AdoptionPostService {
                 filterDto.getMinAge(),
                 filterDto.getMaxAge(),
                 filterDto.getColor(),
+                filterDto.getLocation(),
                 filterDto.getActiveOnly()
 
         );
@@ -97,13 +92,14 @@ public class AdoptionPostService {
                 .gender(dto.getGender())
                 .age(dto.getAge())
                 .color(dto.getColor())
+                .location(dto.getLocation())
                 .ownerId(userId)
                 .active(true)
                 .adopterId(null)
                 .publicationDate(LocalDateTime.now())
                 .build();
         AdoptionPost saved = repository.save(post); //saving in db
-        sendNewPostEvent(toSummaryDto(post)); //sending message with rabbitMQ
+        rabbitMQService.sendNewPostEvent(toSummaryDto(post)); //sending message with rabbitMQ
         return toDetailDto(saved);
     }
 
@@ -146,6 +142,7 @@ public class AdoptionPostService {
         if (dto.getGender() != null) post.setGender(dto.getGender());
         if (dto.getAge() != null) post.setAge(dto.getAge());
         if (dto.getColor() != null) post.setColor(dto.getColor());
+        if (dto.getLocation() != null) post.setLocation(dto.getLocation());
 
         AdoptionPost updated = repository.save(post);
         return toDetailDto(updated);
@@ -178,10 +175,6 @@ public class AdoptionPostService {
     }
 
 
-    public void sendNewPostEvent(AdoptionPostSummaryDto dto) {
-        rabbitTemplate.convertAndSend(adottatoExchange, newPostRoutingKey, dto);
-    }
-
 
 //--------------------------------------------------------------TODO: da implementare con un mapper automatico
     /**
@@ -200,6 +193,7 @@ public class AdoptionPostService {
         dto.setGender(post.getGender());
         dto.setAge(post.getAge());
         dto.setColor(post.getColor());
+        dto.setLocation(post.getLocation());
         dto.setPublicationDate(post.getPublicationDate());
         dto.setOwnerId(post.getOwnerId());
         dto.setActive(post.getActive());
@@ -223,6 +217,7 @@ public class AdoptionPostService {
         dto.setGender(post.getGender());
         dto.setAge(post.getAge());
         dto.setColor(post.getColor());
+        dto.setLocation(post.getLocation());
         dto.setActive(post.getActive());
         return dto;
     }

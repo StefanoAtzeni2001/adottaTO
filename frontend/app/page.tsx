@@ -1,22 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import ExpandedAdoptionCard from "@/components/adoption/ExpandedAdoptionCard" // Assicurati del path corretto
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import ExpandedAdoptionCard from "@/components/adoption/ExpandedAdoptionCard"
+import SearchFilters from "@/components/adoption/SearchFilters"
 
 interface AdoptionPost {
     id: number
@@ -26,6 +13,7 @@ interface AdoptionPost {
     gender: string
     age: number
     color: string
+    location: string
 }
 
 interface AdoptionPostDetail {
@@ -38,31 +26,39 @@ interface AdoptionPostDetail {
     gender: string
     age: number
     color: string
+    location: string
     ownerId: number
-    // Aggiungi opzionali per visualizzare mock nel componente
-    location?: string
-    vaccinated?: boolean
-    chipped?: boolean
-    dewormed?: boolean
-    ownerName?: string
+    ownerName: string
+}
+
+// Tipi dei filtri con array di stringhe per quelli multipli
+interface Filters {
+    species?: string[]
+    breed?: string[]
+    gender?: string[]
+    color?: string[]
+    location?: string[]
+    minAge?: string
+    maxAge?: string
 }
 
 export default function HomePage() {
-    const [species, setSpecies] = useState<string | undefined>()
-    const [gender, setGender] = useState<string | undefined>()
     const [results, setResults] = useState<AdoptionPost[]>([])
     const [selectedPost, setSelectedPost] = useState<AdoptionPostDetail | null>(null)
 
-    const handleDeleteFilter = () => {
-        setSpecies(undefined)
-        setGender(undefined)
-    }
-
-    const handleSearch = async () => {
+    const handleSearch = async (filters: Filters) => {
         try {
             const params = new URLSearchParams()
-            if (species) params.append("species", species)
-            if (gender) params.append("gender", gender)
+
+            Object.entries(filters).forEach(([key, value]) => {
+                if (!value) return
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => params.append(key, v))
+                } else {
+                    params.append(key, value)
+                }
+            })
 
             const res = await fetch(`http://localhost:8090/get-list-filtered?${params.toString()}`)
             if (!res.ok) throw new Error("Errore nella richiesta")
@@ -86,46 +82,17 @@ export default function HomePage() {
 
     return (
         <div className="flex flex-col items-center gap-6 p-6">
-            {/* Filtro */}
-            <div className="flex gap-4">
-                <Select onValueChange={(val) => setSpecies(val)}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Specie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Cane">Cane</SelectItem>
-                        <SelectItem value="Gatto">Gatto</SelectItem>
-                    </SelectContent>
-                </Select>
+            <SearchFilters onSearchAction={handleSearch} />
 
-                <Select onValueChange={(val) => setGender(val)}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Genere" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="M">Maschio</SelectItem>
-                        <SelectItem value="F">Femmina</SelectItem>
-                    </SelectContent>
-                </Select>
-
-                <Button onClick={handleDeleteFilter} variant="outline">
-                    Elimina i filtri
-                </Button>
-
-                <Button onClick={handleSearch} variant="outline">
-                    Ricerca!
-                </Button>
-            </div>
-
-            {/* Risultati */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-6">
                 {results.map(post => (
-                    <Card key={post.id} className="w-full cursor-pointer" onClick={() => handleCardClick(post.id)}>
+                    <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
                         <CardHeader>
                             <CardTitle>{post.name}</CardTitle>
                             <CardDescription>{post.species} - {post.breed}</CardDescription>
                         </CardHeader>
                         <CardContent>
+                            <p><strong>Provincia:</strong> {post.location}</p>
                             <p><strong>Età:</strong> {post.age} mesi</p>
                             <p><strong>Colore:</strong> {post.color}</p>
                             <p><strong>Sesso:</strong> {post.gender === "M" ? "Maschio" : "Femmina"}</p>
@@ -134,7 +101,6 @@ export default function HomePage() {
                 ))}
             </div>
 
-            {/* Espansione card */}
             {selectedPost && (
                 <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
             )}

@@ -1,22 +1,65 @@
 package it.unito.emailservice.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.unito.emailservice.dto.MessageRabbitMQ;
-import org.springframework.amqp.core.Message;
+import it.unito.emailservice.dto.AdoptionPostRabbitMQDto;
+import it.unito.emailservice.dto.EmailResponseDto;
+import it.unito.emailservice.dto.MessageRabbitMQDto;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@Component
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+@Service
 public class EmailService {
 
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private JavaMailSender mailSender;
 
-    public EmailService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    @Autowired
+    private UserServiceClient userServiceClient;
+
+    @RabbitListener(queues = "${app.rabbitmq.queue.savedsearch-match}")
+    public void receiveMatch(AdoptionPostRabbitMQDto adoptionPostRabbitMQDto) {
+
+        System.out.println("Nuovo post ricevuto: " + adoptionPostRabbitMQDto);
+
+        EmailResponseDto receiverUser = userServiceClient.getUser(adoptionPostRabbitMQDto.getUserId());
+
+        String subject = "Nuovo annuncio corrispondente alla tua ricerca";
+        String body = "Ciao " + receiverUser.getName() + "!\n"
+                + "È stato pubblicato un nuovo annuncio corrispondente ai tuoi criteri di ricerca. Ecco le caratteristiche:";
+
+        if(adoptionPostRabbitMQDto.getName() != null) {
+            body += "\nNome: " + adoptionPostRabbitMQDto.getName();
+        }
+        if(adoptionPostRabbitMQDto.getSpecies() != null) {
+            body += "\nSpecie: " + adoptionPostRabbitMQDto.getSpecies();
+        }
+        if(adoptionPostRabbitMQDto.getBreed() != null) {
+            body += "\nBreed: " + adoptionPostRabbitMQDto.getBreed();
+        }
+        if(adoptionPostRabbitMQDto.getAge() != null) {
+            body += "\nAge: " + adoptionPostRabbitMQDto.getAge();
+        }
+        if(adoptionPostRabbitMQDto.getGender() != null) {
+            body += "\nGender: " + adoptionPostRabbitMQDto.getGender();
+        }
+        if(adoptionPostRabbitMQDto.getColor() != null) {
+            body += "\nColor: " + adoptionPostRabbitMQDto.getColor();
+        }
+        if(adoptionPostRabbitMQDto.getLocation() != null) {
+            body += "\nLocation: " + adoptionPostRabbitMQDto.getLocation();
+        }
+
+        System.out.println(subject);
+        System.out.println(body);
+        sendEmail(receiverUser.getEmail(), subject, body);
     }
 
-    @RabbitListener(queues = "${app.rabbitmq.queue}")
-    public void receiveMessage(MessageRabbitMQ message) {
+    @RabbitListener(queues = "${app.rabbitmq.queue.chat-notification}")
+    public void receiveMessage(MessageRabbitMQDto message) {
+
         try {
 
             String type = message.getType();
@@ -39,18 +82,84 @@ public class EmailService {
         }
     }
 
-    private void handleNewMessage(MessageRabbitMQ message) {
+    private void handleNewMessage(MessageRabbitMQDto message) {
         System.out.println("Nuovo messaggio ricevuto: " + message);
-        // invio email o altra logica
+
+        EmailResponseDto receiverUser = userServiceClient.getUser(message.getReceiverId());
+        EmailResponseDto senderUser = userServiceClient.getUser(message.getSenderId());
+
+        String subject = "Nuovo messaggio da " + senderUser.getName();
+        String body = "Ciao " + receiverUser.getName() + "!\n"
+                + "Hai ricevuto un nuovo messaggio da " + senderUser.getName() + " " +  senderUser.getSurname() + ":\n"
+                + message.getMessage();
+
+        System.out.println(subject);
+        System.out.println(body);
+        sendEmail(receiverUser.getEmail(), subject, body);
+        //sendEmail("evina2.ef@gmail.com", "Test email", "This is a test email!");
+
     }
 
-    private void handleAdoptionRequest(MessageRabbitMQ message) {
+    private void handleAdoptionRequest(MessageRabbitMQDto message) {
         System.out.println("Richiesta adozione ricevuta: " + message);
-        // logica per richiesta
+
+        EmailResponseDto receiverUser = userServiceClient.getUser(message.getReceiverId());
+        EmailResponseDto senderUser = userServiceClient.getUser(message.getSenderId());
+
+        String subject = null;
+        String body = null;
+        switch (message.getMessage()){
+            case "send":
+                subject = "Nuova richiesta di adozione da " + senderUser.getName();
+                body = "Ciao " + receiverUser.getName() + "!\n"
+                        + "Hai ricevuto una richiesta di adozione da " + senderUser.getName() + " " +  senderUser.getSurname() + ":\n";
+                break;
+            case "cancel":
+                subject = "Richiesta di adozione annullata da " + senderUser.getName();
+                body = "Ciao " + receiverUser.getName() + "!\n"
+                        + senderUser.getName() + " " +  senderUser.getSurname() + " ha annullato la sua richiesta di adozione.\n";
+                break;
+        }
+
+        System.out.println(subject);
+        System.out.println(body);
+        sendEmail(receiverUser.getEmail(), subject, body);
     }
 
-    private void handleAdoptionAccept(MessageRabbitMQ message) {
+    private void handleAdoptionAccept(MessageRabbitMQDto message) {
         System.out.println("Accettazione adozione ricevuta: " + message);
-        // logica per accettazione
+
+        EmailResponseDto receiverUser = userServiceClient.getUser(message.getReceiverId());
+        EmailResponseDto senderUser = userServiceClient.getUser(message.getSenderId());
+
+        String subject = null;
+        String body = null;
+        switch (message.getMessage()){
+            case "accept":
+                subject = "Richiesta di adozione accettata da " + senderUser.getName();
+                body = "Ciao " + receiverUser.getName() + "!\n"
+                        + senderUser.getName() + " " +  senderUser.getSurname() + " ha accettato la tua richiesta di adozione.\n";
+                break;
+            case "reject":
+                subject = "Richiesta di adozione rifiutata da " + senderUser.getName();
+                body = "Ciao " + receiverUser.getName() + "!\n"
+                        + senderUser.getName() + " " +  senderUser.getSurname() + " ha rifiutato la tua richiesta di adozione.\n";
+                break;
+        }
+
+        System.out.println(subject);
+        System.out.println(body);
+        sendEmail(receiverUser.getEmail(), subject, body);
+    }
+
+
+    public void sendEmail(String toEmail, String subject, String body){
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("adottato.taass@gmail.com");
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(body);
+        mailSender.send(message);
+        System.out.println("Email sent successfully!");
     }
 }

@@ -15,5 +15,6 @@ public class AdoptionPostSearchDto {
     private Integer minAge;// in months
     private Integer maxAge;// in months
     private List<String> color;
+    private List<String> location;
     private Boolean activeOnly;
 }

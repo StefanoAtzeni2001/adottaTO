@@ -27,6 +27,7 @@ public class AdoptionPost {
     private String gender;
     private Integer age; // in months
     private String color;
+    private String location;
     private Long ownerId;
     private Boolean active;
     private Long adopterId;

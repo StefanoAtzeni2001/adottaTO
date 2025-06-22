@@ -6,8 +6,9 @@ import lombok.Data;
  * used in list views.
  */
 @Data
-public class AdoptionPostSummaryDto {
-    private Long id;
+public class AdoptionPostRabbitMQDto {
+    private Long userId;
+
     private String name;
     private String species;
     private String breed;
@@ -15,5 +16,4 @@ public class AdoptionPostSummaryDto {
     private String gender;
     private String color;
     private String location;
-    private Boolean active;
 }

@@ -52,6 +52,33 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
             : `/${pic.replace(/^\/+/, "")}`
     })()
 
+    const handleDelete = async () => {
+        const confirmDelete = window.confirm("Sei sicuro di voler eliminare questo annuncio?")
+        if (!confirmDelete) return
+
+        const token = localStorage.getItem("jwt")
+        if (!token) {
+            alert("Token non presente. Devi effettuare il login.")
+            return
+        }
+
+        try {
+            const res = await fetch(`http://localhost:8090/delete-by-id/${post.id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!res.ok) throw new Error("Errore durante l'eliminazione dell'annuncio")
+            alert("Annuncio eliminato con successo.")
+            onClose()
+        } catch (err) {
+            console.error("Errore:", err)
+            alert("Si è verificato un errore durante l'eliminazione.")
+        }
+    }
+
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex justify-center items-center z-50">
             <div className="relative bg-gray-100 rounded-3xl max-w-4xl w-full overflow-hidden">
@@ -112,8 +139,11 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                                     : `Proprietario #${post.ownerId}`}
                             </span>
                         </div>
-                        <button className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-full transition">
-                            Manda Proposta
+                        <button
+                            onClick={handleDelete}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-full transition"
+                        >
+                            Elimina Annuncio
                         </button>
                     </div>
                 </div>

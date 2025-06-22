@@ -17,17 +17,19 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
-rabbitmq:
-    host: ${SPRING_RABBITMQ_HOST:rabbitmq}
-    port: ${SPRING_RABBITMQ_PORT:5672}
-    username: ${SPRING_RABBITMQ_USERNAME}
-    password: ${SPRING_RABBITMQ_PASSWORD}
+  rabbitmq:
+      host: ${SPRING_RABBITMQ_HOST:rabbitmq}
+      port: ${SPRING_RABBITMQ_PORT:5672}
+      username: ${SPRING_RABBITMQ_USERNAME}
+      password: ${SPRING_RABBITMQ_PASSWORD}
 
 app:
   rabbitmq:
     exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
     routingkey:
       new-post: ${RABBITMQ_NEW_POST_ROUTING_KEY} #post.new
-
+      chat-request-accepted: ${RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY} # chat.request.accepted
+    queue:
+      chat-request-accepted: ${RABBITMQ_ADOPTION_POST_QUEUE_CHAT} # adoptionpost.queue.requestaccepted
 server:
   port: ${SERVER_PORT:8081}

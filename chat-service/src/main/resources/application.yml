@@ -27,7 +27,8 @@ app:
   rabbitmq:
     exchange: ${RABBITMQ_ADOTTATO_EXCHANGE} #adottato.exchange
     routingkey:
-      chat-notification: ${RABBITMQ_CHAT_ROUTING_KEY} #chat.notification
+      chat-notification: ${RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY} #chat.notification
+      chat-request-accepted: ${RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY} # chat.request.accepted
 
 server:
   port: ${SERVER_PORT:8082}
