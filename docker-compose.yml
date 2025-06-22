@@ -2,7 +2,7 @@ services:
   gateway-service:
     build:
       context: ./gateway-service
-    container_name: gatewayservice
+    image: adottato/gateway-service:latest
     restart: always
     ports:
       - "8090:8090"
@@ -16,12 +16,12 @@ services:
 
   adoption-post-service:
     build:
-      context: .  # root project
+      context: .
       dockerfile: adoption-post-service/Dockerfile
-    container_name: adoptionpostservice
+    image: adottato/adoption-post-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
       - "8081:8081"
     env_file:
@@ -35,10 +35,10 @@ services:
   chat-service:
     build:
       context: ./chat-service
-    container_name: chatservice
+    image: adottato/chat-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
       - "8082:8082"
     env_file:
@@ -59,10 +59,10 @@ services:
   user-service:
     build:
       context: ./user-service
-    container_name: userservice
+    image: adottato/user-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
       - "8083:8083"
     env_file:
@@ -75,12 +75,12 @@ services:
 
   saved-search-service:
     build:
-      context: .  # root project
+      context: .
       dockerfile: saved-search-service/Dockerfile
-    container_name: savedsearchservice
+    image: adottato/saved-search-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     ports:
       - "8084:8084"
     env_file:
@@ -95,10 +95,10 @@ services:
   email-service:
     build:
       context: ./email-service
-    container_name: emailservice
+    image: adottato/email-service:latest
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
       - rabbitmq
     ports:
       - "8085:8085"
@@ -114,21 +114,20 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: frontend
+    image: adottato/frontend:latest
     restart: always
     ports:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      INTERNAL_API_BASE: "http://user-service:8083"
+      INTERNAL_API_BASE: "http://gateway-service:8090"
     depends_on:
-      - user-service
+      - gateway-service
     networks:
       - app_network
 
-  postgres-db_adottato:
+  postgres-db-adottato:
     image: postgres:latest
-    container_name: postgres_db_adottato
     restart: always
     environment:
       POSTGRES_DB: postgres_db
@@ -142,17 +141,16 @@ services:
     networks:
       - app_network
 
-  pgadmin_adottato:
+  pgadmin-adottato:
     image: dpage/pgadmin4
-    container_name: pgadmin_adottato
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: password
     ports:
-      - "5051:80"
+      - "5051:5051"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - ./pgadmin-config/servers.json:/pgadmin4/servers.json:ro
@@ -162,7 +160,6 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.11-management
-    container_name: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
@@ -180,5 +177,3 @@ volumes:
 
 networks:
   app_network:
-
-

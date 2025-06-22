@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+  namespace: adottato
+  labels:
+    app: chat-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      containers:
+        - name: chat-service
+          image: adottato/chat-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: shared-config
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: rabbitmq-secret
+          env:
+            - name: RABBITMQ_CHAT_ROUTING_KEY
+              value: "chat.notification"
