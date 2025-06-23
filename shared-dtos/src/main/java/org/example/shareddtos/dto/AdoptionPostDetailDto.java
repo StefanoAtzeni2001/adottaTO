@@ -21,4 +21,5 @@ public class AdoptionPostDetailDto {
     private Long ownerId;
     private Boolean active;
     private Long adopterId;
+    private String imageBase64;
 }

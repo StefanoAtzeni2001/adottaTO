@@ -16,6 +16,7 @@ interface ExpandedAdoptionCardProps {
         publicationDate: string
         location: string
         ownerName?: string
+        imageBase64: string
     }
     onClose: () => void
 }
@@ -66,7 +67,11 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                 {/* Immagine animale */}
                 <div className="relative w-full h-72 sm:h-80 md:h-96 overflow-hidden">
                     <Image
-                        src="/default-pet.jpg"
+                        src={
+                            post.imageBase64
+                                ? `data:image/jpeg;base64,${post.imageBase64}`
+                                : "no_content.jpg"
+                        }
                         alt="Immagine animale"
                         fill
                         className="object-cover"

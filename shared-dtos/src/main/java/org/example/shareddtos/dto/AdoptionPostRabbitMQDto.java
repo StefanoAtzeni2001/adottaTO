@@ -8,7 +8,6 @@ import lombok.Data;
 @Data
 public class AdoptionPostRabbitMQDto {
     private Long userId;
-
     private String name;
     private String species;
     private String breed;

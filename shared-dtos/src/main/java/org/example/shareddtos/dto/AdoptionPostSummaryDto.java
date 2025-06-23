@@ -16,4 +16,5 @@ public class AdoptionPostSummaryDto {
     private String color;
     private String location;
     private Boolean active;
+    private String imageBase64;
 }

@@ -10,9 +10,14 @@ import static org.example.adoptionpostservice.constants.AdoptionPostEndPoints.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Base64;
 import java.util.NoSuchElementException;
 
 /**
@@ -76,10 +81,22 @@ public class AdoptionPostController {
      * @param userId [from header] the ID of the user creating the post
      * @return ResponseEntity containing the created adoption post with HTTP 201 status
      */
-    @PostMapping(CREATE_ADOPTION_POST)
-    public ResponseEntity<AdoptionPostDetailDto> createAdoptionPost(@Valid @RequestBody AdoptionPostDetailDto postDto, @RequestHeader("User-Id") Long userId) {
-        AdoptionPostDetailDto created = adoptionPostService.createPost(postDto, userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    @PostMapping(value = CREATE_ADOPTION_POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AdoptionPostDetailDto> createAdoptionPost(
+            @RequestPart("post") @Valid AdoptionPostDetailDto postDto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @RequestHeader("User-Id") Long userId) {
+        try {
+            String base64Image = null;
+            if (imageFile != null && !imageFile.isEmpty()) {
+                base64Image = Base64.getEncoder().encodeToString(imageFile.getBytes());
+            }
+            postDto.setImageBase64(base64Image);
+            AdoptionPostDetailDto created = adoptionPostService.createPost(postDto, userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**

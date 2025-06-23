@@ -97,6 +97,7 @@ public class AdoptionPostService {
                 .active(true)
                 .adopterId(null)
                 .publicationDate(LocalDateTime.now())
+                .imageBase64(dto.getImageBase64())
                 .build();
         AdoptionPost saved = repository.save(post); //saving in db
         rabbitMQService.sendNewPostEvent(toSummaryDto(post)); //sending message with rabbitMQ
@@ -198,6 +199,7 @@ public class AdoptionPostService {
         dto.setOwnerId(post.getOwnerId());
         dto.setActive(post.getActive());
         dto.setAdopterId(post.getAdopterId());
+        dto.setImageBase64(post.getImageBase64());
 
         return dto;
     }
@@ -219,6 +221,7 @@ public class AdoptionPostService {
         dto.setColor(post.getColor());
         dto.setLocation(post.getLocation());
         dto.setActive(post.getActive());
+        dto.setImageBase64(post.getImageBase64());
         return dto;
     }
 }
