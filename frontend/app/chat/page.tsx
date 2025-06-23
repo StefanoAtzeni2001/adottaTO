@@ -320,10 +320,6 @@ export default function ChatPage() {
                                             </div>
                                         </CardHeader>
 
-                                        <p>isOwner: {isOwner ? "true" : "false"}</p>
-                                        <p>requestSend: {chat.requestFlag ? "true" : "false"}</p>
-
-
                                         {/* Se l'utente NON è owner, mostra il pulsante "Invia richiesta" solo se request non è true */}
                                         {!isOwner && chat.requestFlag !== true && (
                                             <button

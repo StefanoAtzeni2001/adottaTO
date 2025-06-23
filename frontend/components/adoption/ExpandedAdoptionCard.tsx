@@ -44,6 +44,37 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
         fetchUserProfile()
     }, [post.ownerId])
 
+    const handleSendProposal = async () => {
+
+        const token = localStorage.getItem("jwt")
+        const userId = localStorage.getItem("userId")
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/send", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    senderId: userId,
+                    receiverId: post.ownerId,
+                    adoptionPostId: post.id,
+                    message: "Ciao! Mi piacerebbe adottare " + post.name + ".",
+                    type: "text"
+                })
+            })
+
+            if (!res.ok) throw new Error("Errore durante l'invio della proposta")
+
+            alert("Proposta inviata con successo!")
+        } catch (err) {
+            console.error("Errore invio proposta:", err)
+            alert("Errore durante l'invio della proposta.")
+        }
+    }
+
+
     const profileImg = (() => {
         const pic = userProfile?.profilePicture?.trim()
         if (!pic) return "/default-avatar.svg"
@@ -112,9 +143,13 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                                     : `Proprietario #${post.ownerId}`}
                             </span>
                         </div>
-                        <button className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-full transition">
+                        <button
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-full transition"
+                            onClick={handleSendProposal}
+                        >
                             Manda Proposta
                         </button>
+
                     </div>
                 </div>
             </div>
