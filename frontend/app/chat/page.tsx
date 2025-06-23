@@ -196,100 +196,113 @@ export default function ChatPage() {
     if (error) return <div>{error}</div>
 
     return (
-        <div className="container py-6">
-            <h1 className="text-3xl font-bold mb-6">Le mie chat</h1>
+        <div className="h-[calc(100vh-5rem)] px-4 py-6">
+            <h1 className="text-3xl font-bold mb-4">Le mie chat</h1>
             {chats.length === 0 ? (
                 <p>Non hai ancora chat attive.</p>
             ) : (
-                <div className="flex flex-col gap-4 max-w-md">
-                    {chats.map(chat => {
-                        const userId = Number(localStorage.getItem("userId"))
-                        const isOwner = userId === chat.ownerId
-                        const otherUserId = isOwner ? chat.adopterId : chat.ownerId
-                        const profile = profilesMap[otherUserId]
-                        const adoptionPost = adoptionPostsMap[chat.adoptionPostId]
+                <div className="flex h-full border rounded-lg overflow-hidden shadow-sm">
+                    {/* Lista chat a sinistra */}
+                    <div className="w-1/3 bg-white border-r overflow-y-auto">
+                        <div className="flex flex-col gap-2 p-4">
+                            {chats.map(chat => {
+                                const userId = Number(localStorage.getItem("userId"))
+                                const isOwner = userId === chat.ownerId
+                                const otherUserId = isOwner ? chat.adopterId : chat.ownerId
+                                const profile = profilesMap[otherUserId]
+                                const adoptionPost = adoptionPostsMap[chat.adoptionPostId]
 
-                        const profileImg = profile?.profilePicture?.trim()
-                            ? profile.profilePicture.startsWith("http")
-                                ? profile.profilePicture
-                                : `/${profile.profilePicture.replace(/^\/+/, "")}`
-                            : "/default-avatar.svg"
+                                const profileImg = profile?.profilePicture?.trim()
+                                    ? profile.profilePicture.startsWith("http")
+                                        ? profile.profilePicture
+                                        : `/${profile.profilePicture.replace(/^\/+/, "")}`
+                                    : "/default-avatar.svg"
 
-                        return (
-                            <Card
-                                key={chat.id}
-                                onClick={() => fetchChatMessages(chat.id)}
-                                className={`cursor-pointer hover:shadow-lg transition-shadow duration-200 ${
-                                    selectedChatId === chat.id ? "border-2 border-primary" : ""
-                                }`}
-                            >
-                                <CardHeader className="flex items-center space-x-4">
-                                    <img
-                                        src={profileImg}
-                                        alt={`${profile?.name ?? ""} ${profile?.surname ?? ""}`}
-                                        className="w-12 h-12 rounded-full object-cover"
-                                    />
-                                    <div>
-                                        <CardTitle className="text-lg">
-                                            {profile ? `${profile.name} ${profile.surname}` : "Utente sconosciuto"}
-                                        </CardTitle>
-                                        {adoptionPost && (
-                                            <p className="text-sm text-muted-foreground">
-                                                {adoptionPost.name} – {adoptionPost.species} ({adoptionPost.breed})
-                                            </p>
-                                        )}
-                                    </div>
-                                </CardHeader>
-                            </Card>
-                        )
-                    })}
-                </div>
-            )}
-
-            {selectedChatId && (
-                <div className="mt-8 px-6 py-4 bg-gray-50 rounded-md max-w-3xl mx-auto">
-                    <h2 className="text-xl font-semibold mb-4">Cronologia chat</h2>
-                    <div className="flex flex-col gap-4">
-                        {messages.map((msg) => {
-                            const isSender = localStorage.getItem("userId") === msg.senderId.toString()
-                            return (
-                                <div
-                                    key={msg.id}
-                                    className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                                        isSender ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
-                                    }`}
-                                >
-                                    {msg.message}
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        {new Date(msg.timeStamp).toLocaleString()}
-                                    </div>
-                                </div>
-                            )
-                        })}
+                                return (
+                                    <Card
+                                        key={chat.id}
+                                        onClick={() => fetchChatMessages(chat.id)}
+                                        className={`cursor-pointer hover:shadow transition duration-200 ${
+                                            selectedChatId === chat.id ? "border-2 border-primary" : ""
+                                        }`}
+                                    >
+                                        <CardHeader className="flex items-center space-x-4">
+                                            <img
+                                                src={profileImg}
+                                                alt={`${profile?.name ?? ""} ${profile?.surname ?? ""}`}
+                                                className="w-10 h-10 rounded-full object-cover"
+                                            />
+                                            <div>
+                                                <CardTitle className="text-base">
+                                                    {profile ? `${profile.name} ${profile.surname}` : "Utente sconosciuto"}
+                                                </CardTitle>
+                                                {adoptionPost && (
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {adoptionPost.name} – {adoptionPost.species} ({adoptionPost.breed})
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </CardHeader>
+                                    </Card>
+                                )
+                            })}
+                        </div>
                     </div>
 
-                    <form onSubmit={handleSendMessage} className="mt-6 relative w-full flex items-center gap-2">
-                        <input
-                            id="message"
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Scrivi un messaggio..."
-                            className="flex-1 h-10 rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-ring/50 transition-colors"
-                            autoComplete="off"
-                        />
-                        <button
-                            type="submit"
-                            className="size-9 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center hover:bg-primary/90"
-                        >
-                            <svg className="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path d="m5 12 7-7 7 7" />
-                                <path d="M12 19V5" />
-                            </svg>
-                            <span className="sr-only">Invia</span>
-                        </button>
-                    </form>
+                    {/* Conversazione a destra */}
+                    <div className="w-2/3 flex flex-col justify-between overflow-y-auto bg-gray-50 p-4">
+                        {selectedChatId ? (
+                            <>
+                                <div className="flex-1 overflow-y-auto pr-2 space-y-3">
+                                    <h2 className="text-xl font-semibold mb-2">Cronologia chat</h2>
+                                    {messages.map((msg) => {
+                                        const isSender = localStorage.getItem("userId") === msg.senderId.toString()
+                                        return (
+                                            <div
+                                                key={msg.id}
+                                                className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
+                                                    isSender ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
+                                                }`}
+                                            >
+                                                {msg.message}
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    {new Date(msg.timeStamp).toLocaleString()}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+
+                                <form onSubmit={handleSendMessage} className="mt-4 flex items-center gap-2">
+                                    <input
+                                        id="message"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        placeholder="Scrivi un messaggio..."
+                                        className="flex-1 h-10 rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-ring/50 transition-colors"
+                                        autoComplete="off"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="size-9 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center hover:bg-primary/90"
+                                    >
+                                        <svg className="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path d="m5 12 7-7 7 7" />
+                                            <path d="M12 19V5" />
+                                        </svg>
+                                        <span className="sr-only">Invia</span>
+                                    </button>
+                                </form>
+                            </>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center text-gray-500">
+                                Seleziona una chat per iniziare
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
     )
+
 }
