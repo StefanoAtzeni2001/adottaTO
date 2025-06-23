@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import ExpandedAdoptionCard from "@/components/user/ExpandedAdoptionCardUser"
 import EditProfile from "@/components/user/EditProfile"
 import PostAdoption from "@/components/user/CreateAdoptionPost"
+import Image from "next/image";
 
 interface UserProfile {
     name: string
@@ -31,6 +32,7 @@ interface AdoptionPostDetailDto {
     ownerId: number
     active: boolean
     adopterId: number | null
+    imageBase64: string
 }
 
 export default function UserPage() {
@@ -158,6 +160,15 @@ export default function UserPage() {
                             <CardTitle>{post.name}</CardTitle>
                             <CardDescription>{post.species} - {post.breed}</CardDescription>
                         </CardHeader>
+                        <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+                            <Image
+                                src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
+                                alt={`Immagine di ${post.name}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                            />
+                        </div>
                         <CardContent>
                             <p><strong>Provincia:</strong> {post.location}</p>
                             <p><strong>Età:</strong> {post.age} mesi</p>

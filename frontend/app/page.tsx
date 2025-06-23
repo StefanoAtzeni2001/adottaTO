@@ -96,10 +96,9 @@ export default function HomePage() {
                             <CardTitle>{post.name}</CardTitle>
                             <CardDescription>{post.species} - {post.breed}</CardDescription>
                         </CardHeader>
-                        {/* Aggiungi qui l'immagine base64 */}
                         <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
                             <Image
-                                src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/default-pet.jpg"}
+                                src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
                                 alt={`Immagine di ${post.name}`}
                                 fill
                                 className="object-cover"

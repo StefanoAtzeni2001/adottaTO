@@ -91,26 +91,18 @@ public class UserProfileController {
 
     @GetMapping("/api/profile/{id}")
     public ResponseEntity<?> getUserProfileById(@PathVariable Long id) {
-
-        System.out.println("ID richiesto: " + id);
-
-        return authService.findById(id)
-                .map(auth -> {
-                    UserProfile profile = authService.getUserProfileByEmail(auth.getEmail());
-                    if (profile == null) {
-                        return ResponseEntity.status(404).body("Profilo non trovato");
-                    }
-                    UserProfileDTO dto = new UserProfileDTO(
-                            profile.getName(),
-                            profile.getSurname(),
-                            profile.getEmail(),
-                            profile.getProfilePicture()
-                    );
-
-                    System.out.println("ID restituito: " + id + ", profile: " + profile.getId());
-                    return ResponseEntity.ok(dto);
-                })
-                .orElse(ResponseEntity.status(404).body("Utente non trovato"));
+        UserProfile profile = userProfileRepository.findById(id).orElse(null);
+        if (profile == null)
+            return ResponseEntity.status(404).body("User not found");
+        else{
+            UserProfileDTO dto = new UserProfileDTO(
+                    profile.getName(),
+                    profile.getSurname(),
+                    profile.getEmail(),
+                    profile.getProfilePicture()
+            );
+            return ResponseEntity.ok(dto);
+        }
     }
 
     //rotta per il servizio email
