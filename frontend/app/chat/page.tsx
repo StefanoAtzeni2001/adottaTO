@@ -9,6 +9,8 @@ interface Chat {
     ownerId: number
     adopterId: number
     adoptionPostId: number
+    requestSend?: boolean
+    requestAccepted?: boolean
 }
 
 interface AdoptionPostDetailDto {
@@ -33,6 +35,8 @@ interface Message {
     message: string
     timeStamp: string
     seen: boolean
+    type?: "text" | "request"  // messaggio normale o richiesta adozione
+    accepted?: boolean
 }
 
 export default function ChatPage() {
@@ -44,15 +48,18 @@ export default function ChatPage() {
     const [selectedChatId, setSelectedChatId] = useState<number | null>(null)
     const [messages, setMessages] = useState<Message[]>([])
     const [newMessage, setNewMessage] = useState("")
+    const [userId, setUserId] = useState<number | null>(null)
 
     const router = useRouter()
 
     useEffect(() => {
         const token = localStorage.getItem("jwt")
-        if (!token) {
+        const userIdStr = localStorage.getItem("userId")
+        if (!token || !userIdStr) {
             router.push("/login")
             return
         }
+        setUserId(Number(userIdStr))
 
         fetch("http://localhost:8090/chat/chats", {
             method: "POST",
@@ -135,9 +142,7 @@ export default function ChatPage() {
         e.preventDefault()
 
         const token = localStorage.getItem("jwt")
-        const senderId = localStorage.getItem("userId")
-
-        if (!token || !senderId || !selectedChatId) {
+        if (!token || !userId || !selectedChatId) {
             alert("Utente non autenticato o chat non selezionata")
             return
         }
@@ -153,14 +158,10 @@ export default function ChatPage() {
             return
         }
 
-        const senderIdNum = Number(senderId)
         let receiverId: number
-
-        if (senderIdNum === selectedChat.ownerId) {
-            receiverId = selectedChat.adopterId
-        } else if (senderIdNum === selectedChat.adopterId) {
-            receiverId = selectedChat.ownerId
-        } else {
+        if (userId === selectedChat.ownerId) receiverId = selectedChat.adopterId
+        else if (userId === selectedChat.adopterId) receiverId = selectedChat.ownerId
+        else {
             alert("Utente non coinvolto nella chat")
             return
         }
@@ -174,10 +175,11 @@ export default function ChatPage() {
                 },
                 body: JSON.stringify({
                     chatId: selectedChatId,
-                    senderId: senderIdNum,
+                    senderId: userId,
                     receiverId,
                     adoptionPostId: selectedChat.adoptionPostId,
                     message: newMessage.trim(),
+                    type: "text",
                 }),
             })
 
@@ -192,8 +194,81 @@ export default function ChatPage() {
         }
     }
 
+    const handleSendRequest = async (chat: Chat) => {
+        const token = localStorage.getItem("jwt")
+        if (!token || !userId) {
+            alert("Utente non autenticato")
+            return
+        }
+
+        if (userId === chat.ownerId) {
+            alert("Non puoi inviare una richiesta su un tuo annuncio")
+            return
+        }
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/sendRequest", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    chatId: chat.id,
+                    adopterId: userId,
+                }),
+            })
+
+            if (!res.ok) throw new Error("Errore nell'invio della richiesta")
+
+            setChats((prev) =>
+                prev.map((c) =>
+                    c.id === chat.id ? { ...c, requestSend: false } : c
+                )
+            )
+
+            alert("Richiesta inviata con successo!")
+        } catch (err) {
+            console.error("Errore invio richiesta:", err)
+            alert("Errore durante l'invio della richiesta")
+        }
+    }
+
+    const handleRespondRequest = async (chatId: number, accept: boolean) => {
+        const token = localStorage.getItem("jwt")
+        if (!token || !userId) return
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/acceptRequest", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    chatId,
+                    accept
+                }),
+            })
+
+            if (!res.ok) throw new Error("Errore durante la risposta alla richiesta")
+
+            setChats((prev) =>
+                prev.map((c) =>
+                    c.id === chatId ? { ...c, requestSend: accept } : c
+                )
+            )
+
+            alert(`Richiesta ${accept ? "accettata" : "rifiutata"}!`)
+        } catch (err) {
+            console.error(err)
+            alert("Errore durante la risposta alla richiesta")
+        }
+    }
+
     if (loading) return <div>Caricamento chat...</div>
     if (error) return <div>{error}</div>
+
 
     return (
         <div className="h-[calc(100vh-5rem)] px-4 py-6">
@@ -206,7 +281,7 @@ export default function ChatPage() {
                     <div className="w-1/3 bg-white border-r overflow-y-auto">
                         <div className="flex flex-col gap-2 p-4">
                             {chats.map(chat => {
-                                const userId = Number(localStorage.getItem("userId"))
+                                if (!userId) return null
                                 const isOwner = userId === chat.ownerId
                                 const otherUserId = isOwner ? chat.adopterId : chat.ownerId
                                 const profile = profilesMap[otherUserId]
@@ -243,6 +318,31 @@ export default function ChatPage() {
                                                 )}
                                             </div>
                                         </CardHeader>
+
+                                        {/* Se l'utente NON è owner, mostra il pulsante "Invia richiesta" solo se accepted non è true */}
+                                        {!isOwner && chat.requestSend !== true && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleSendRequest(chat)
+                                                }}
+                                                className="mt-2 w-full bg-green-600 text-white py-1 rounded hover:bg-green-700 transition"
+                                            >
+                                                Invia richiesta adozione
+                                            </button>
+                                        )}
+
+                                        {/* Mostra stato richiesta */}
+                                        {chat.requestSend === true && (
+                                            <div className="mt-2 px-3 py-1 text-sm bg-green-100 text-green-800 rounded">
+                                                Richiesta accettata
+                                            </div>
+                                        )}
+                                        {chat.requestSend === false && (
+                                            <div className="mt-2 px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded">
+                                                Richiesta in attesa di risposta
+                                            </div>
+                                        )}
                                     </Card>
                                 )
                             })}
@@ -256,7 +356,44 @@ export default function ChatPage() {
                                 <div className="flex-1 overflow-y-auto pr-2 space-y-3">
                                     <h2 className="text-xl font-semibold mb-2">Cronologia chat</h2>
                                     {messages.map((msg) => {
-                                        const isSender = localStorage.getItem("userId") === msg.senderId.toString()
+                                        if (!userId) return null
+                                        const isSender = userId === msg.senderId
+
+                                        if (msg.type === "request") {
+                                            const isOwner = chats.find(c => c.id === selectedChatId)?.ownerId === userId
+                                            return (
+                                                <div
+                                                    key={msg.id}
+                                                    className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
+                                                        isSender ? "bg-primary text-primary-foreground ml-auto" : "bg-yellow-200"
+                                                    }`}
+                                                >
+                                                    <strong>Richiesta di adozione</strong>
+                                                    <div>Stato: {msg.accepted === true ? "Accettata" : msg.accepted === false ? "In attesa o rifiutata" : "Non definita"}</div>
+                                                    <div className="text-xs text-gray-500 mt-1">
+                                                        {new Date(msg.timeStamp).toLocaleString()}
+                                                    </div>
+                                                    {/* Se sono owner e la richiesta non è ancora accettata (accepted !== true), mostra pulsanti */}
+                                                    {isOwner && msg.accepted !== true && (
+                                                        <div className="mt-2 flex gap-2">
+                                                            <button
+                                                                onClick={() => handleRespondRequest(selectedChatId, true)}
+                                                                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                                                            >
+                                                                Accetta
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleRespondRequest(selectedChatId, false)}
+                                                                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                                            >
+                                                                Rifiuta
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )
+                                        }
+
                                         return (
                                             <div
                                                 key={msg.id}
@@ -273,36 +410,28 @@ export default function ChatPage() {
                                     })}
                                 </div>
 
-                                <form onSubmit={handleSendMessage} className="mt-4 flex items-center gap-2">
+                                <form onSubmit={handleSendMessage} className="mt-4 flex gap-2">
                                     <input
-                                        id="message"
+                                        type="text"
+                                        className="flex-grow border rounded px-3 py-2"
+                                        placeholder="Scrivi un messaggio..."
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Scrivi un messaggio..."
-                                        className="flex-1 h-10 rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-ring/50 transition-colors"
-                                        autoComplete="off"
                                     />
                                     <button
                                         type="submit"
-                                        className="size-9 rounded-full bg-primary text-primary-foreground inline-flex items-center justify-center hover:bg-primary/90"
+                                        className="bg-primary text-primary-foreground px-4 rounded hover:bg-primary/90"
                                     >
-                                        <svg className="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path d="m5 12 7-7 7 7" />
-                                            <path d="M12 19V5" />
-                                        </svg>
-                                        <span className="sr-only">Invia</span>
+                                        Invia
                                     </button>
                                 </form>
                             </>
                         ) : (
-                            <div className="flex-1 flex items-center justify-center text-gray-500">
-                                Seleziona una chat per iniziare
-                            </div>
+                            <p>Seleziona una chat per visualizzare i messaggi.</p>
                         )}
                     </div>
                 </div>
             )}
         </div>
     )
-
 }
