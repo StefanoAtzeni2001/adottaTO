@@ -50,6 +50,7 @@ public class UserProfileController {
 
         UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
         UserProfileDTO dto = new UserProfileDTO(
+                profile.getId(),
                 profile.getName(),
                 profile.getSurname(),
                 profile.getEmail(),
@@ -105,6 +106,7 @@ public class UserProfileController {
                         return ResponseEntity.status(404).body("Profilo non trovato");
                     }
                     UserProfileDTO dto = new UserProfileDTO(
+                            profile.getId(),
                             profile.getName(),
                             profile.getSurname(),
                             profile.getEmail(),

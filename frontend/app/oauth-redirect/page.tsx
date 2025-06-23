@@ -25,6 +25,7 @@ export default function OAuthRedirectPage() {
                 const data = await res.json()
 
                 localStorage.setItem("jwt", data.token)
+                localStorage.setItem("userId", data.userId.toString());
                 router.push("/userpage")
             } catch (err) {
                 console.error("Errore connessione:", err)

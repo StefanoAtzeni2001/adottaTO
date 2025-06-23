@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 interface Chat {
     id: number
     ownerId: number
+    adopterId: number
     adoptionPostId: number
 }
 
@@ -18,6 +19,7 @@ interface AdoptionPostDetailDto {
 }
 
 interface UserProfile {
+    id: number
     name: string
     surname: string
     email: string
@@ -66,23 +68,23 @@ export default function ChatPage() {
                 setChats(data)
                 setLoading(false)
 
-                const uniqueOwnerIds = Array.from(new Set(data.map(chat => chat.ownerId)))
+                const uniqueUserIds = Array.from(new Set(data.flatMap(chat => [chat.ownerId, chat.adopterId])))
                 const uniquePostIds = Array.from(new Set(data.map(chat => chat.adoptionPostId)))
 
                 Promise.all(
-                    uniqueOwnerIds.map(async (id) => {
+                    uniqueUserIds.map(async (id) => {
                         const res = await fetch(`http://localhost:8090/api/profile/${id}`)
-                        if (!res.ok) throw new Error(`Errore fetch profilo ownerId ${id}`)
+                        if (!res.ok) throw new Error(`Errore fetch profilo userId ${id}`)
                         return res.json()
                     })
                 ).then((profiles: UserProfile[]) => {
                     const map: Record<number, UserProfile> = {}
-                    uniqueOwnerIds.forEach((id, idx) => {
+                    uniqueUserIds.forEach((id, idx) => {
                         map[id] = profiles[idx]
                     })
                     setProfilesMap(map)
                 }).catch((err) => {
-                    console.error("Errore caricamento profili owner:", err)
+                    console.error("Errore caricamento profili:", err)
                 })
 
                 Promise.all(
@@ -130,49 +132,37 @@ export default function ChatPage() {
     }
 
     const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        console.log("Invio messaggio triggered");
+        e.preventDefault()
 
-        const token = localStorage.getItem("jwt");
-        const senderId = localStorage.getItem("userId");
+        const token = localStorage.getItem("jwt")
+        const senderId = localStorage.getItem("userId")
 
-
-        console.log("token:", token);
-        console.log("senderId:", senderId);
-        console.log("selectedChatId:", selectedChatId);
-
-        if (!token || !selectedChatId) {
-            alert("Utente non autenticato o chat non selezionata");
-            return;
+        if (!token || !senderId || !selectedChatId) {
+            alert("Utente non autenticato o chat non selezionata")
+            return
         }
 
         if (!newMessage.trim()) {
-            alert("Inserisci un messaggio");
-            return;
+            alert("Inserisci un messaggio")
+            return
         }
 
-        // Trova la chat selezionata per ricavare ownerId e adoptionPostId
-        const selectedChat = chats.find((chat) => chat.id === selectedChatId);
+        const selectedChat = chats.find((chat) => chat.id === selectedChatId)
         if (!selectedChat) {
-            alert("Chat non trovata");
-            return;
+            alert("Chat non trovata")
+            return
         }
 
-        // Definisci receiverId in base a chi è owner o adopter:
-        // Se sender è owner, receiver è adopter, e viceversa.
-        // Qui assumo senderId è adopterId (in base al backend) - modificalo se serve.
-        const senderIdNum = Number(senderId);
-        let receiverId: number;
+        const senderIdNum = Number(senderId)
+        let receiverId: number
 
         if (senderIdNum === selectedChat.ownerId) {
-            // Se il sender è owner, il receiver è l'adopter
-            // Nel tuo modello manca adopterId, forse il sender è adopter
-            // Qui devi avere adopterId da qualche parte, o ricavarlo
-            alert("Impossibile determinare receiverId (manca adopterId nel modello)");
-            return;
+            receiverId = selectedChat.adopterId
+        } else if (senderIdNum === selectedChat.adopterId) {
+            receiverId = selectedChat.ownerId
         } else {
-            // Sender è adopter, receiver è owner
-            receiverId = selectedChat.ownerId;
+            alert("Utente non coinvolto nella chat")
+            return
         }
 
         try {
@@ -185,22 +175,22 @@ export default function ChatPage() {
                 body: JSON.stringify({
                     chatId: selectedChatId,
                     senderId: senderIdNum,
-                    receiverId: receiverId,
+                    receiverId,
                     adoptionPostId: selectedChat.adoptionPostId,
                     message: newMessage.trim(),
                 }),
-            });
+            })
 
-            if (!res.ok) throw new Error("Errore invio messaggio");
+            if (!res.ok) throw new Error("Errore invio messaggio")
 
-            const savedMessage = await res.json();
-            setMessages((prev) => [...prev, savedMessage]);
-            setNewMessage("");
+            const savedMessage = await res.json()
+            setMessages((prev) => [...prev, savedMessage])
+            setNewMessage("")
         } catch (err) {
-            console.error("Errore fetch:", err);
-            alert("Errore durante l'invio del messaggio");
+            console.error("Errore invio messaggio:", err)
+            alert("Errore durante l'invio del messaggio")
         }
-    };
+    }
 
     if (loading) return <div>Caricamento chat...</div>
     if (error) return <div>{error}</div>
@@ -213,7 +203,10 @@ export default function ChatPage() {
             ) : (
                 <div className="flex flex-col gap-4 max-w-md">
                     {chats.map(chat => {
-                        const profile = profilesMap[chat.ownerId]
+                        const userId = Number(localStorage.getItem("userId"))
+                        const isOwner = userId === chat.ownerId
+                        const otherUserId = isOwner ? chat.adopterId : chat.ownerId
+                        const profile = profilesMap[otherUserId]
                         const adoptionPost = adoptionPostsMap[chat.adoptionPostId]
 
                         const profileImg = profile?.profilePicture?.trim()
@@ -253,18 +246,17 @@ export default function ChatPage() {
                 </div>
             )}
 
-            {/* Sezione messaggi */}
             {selectedChatId && (
                 <div className="mt-8 px-6 py-4 bg-gray-50 rounded-md max-w-3xl mx-auto">
                     <h2 className="text-xl font-semibold mb-4">Cronologia chat</h2>
                     <div className="flex flex-col gap-4">
                         {messages.map((msg) => {
-                            const isOwn = localStorage.getItem("userId") === msg.senderId.toString()
+                            const isSender = localStorage.getItem("userId") === msg.senderId.toString()
                             return (
                                 <div
                                     key={msg.id}
                                     className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                                        isOwn ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
+                                        isSender ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
                                     }`}
                                 >
                                     {msg.message}
@@ -276,7 +268,6 @@ export default function ChatPage() {
                         })}
                     </div>
 
-                    {/* Footer con input */}
                     <form onSubmit={handleSendMessage} className="mt-6 relative w-full flex items-center gap-2">
                         <input
                             id="message"

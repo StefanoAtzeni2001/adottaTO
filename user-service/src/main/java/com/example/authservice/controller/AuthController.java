@@ -100,6 +100,6 @@ public class AuthController {
         }
 
         String token = jwtService.generateToken(String.valueOf(userAuth.getId()));
-        return ResponseEntity.ok(new JwtResponseDTO(token));
+        return ResponseEntity.ok(new JwtResponseDTO(token, userAuth.getId()));
     }
 }

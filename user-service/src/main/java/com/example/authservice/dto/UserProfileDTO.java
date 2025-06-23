@@ -1,6 +1,7 @@
 package com.example.authservice.dto;
 
 public class UserProfileDTO {
+    private Long id;
     private String name;
     private String surname;
     private String email;
@@ -9,11 +10,20 @@ public class UserProfileDTO {
     public UserProfileDTO() {
     }
 
-    public UserProfileDTO(String name, String surname, String email, String profilePicture) {
+    public UserProfileDTO(Long id, String name, String surname, String email, String profilePicture) {
+        this.id = id;
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.profilePicture = profilePicture;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -48,4 +58,3 @@ public class UserProfileDTO {
         this.profilePicture = profilePicture;
     }
 }
-

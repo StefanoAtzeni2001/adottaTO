@@ -96,6 +96,7 @@ export default function UserPage() {
 
     const handleLogout = () => {
         localStorage.removeItem("jwt")
+        localStorage.removeItem("userId")
         router.push("/login")
     }
 
