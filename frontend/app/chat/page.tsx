@@ -9,8 +9,8 @@ interface Chat {
     ownerId: number
     adopterId: number
     adoptionPostId: number
-    requestSend?: boolean
-    requestAccepted?: boolean
+    requestFlag?: boolean
+    acceptedFlag?: boolean
 }
 
 interface AdoptionPostDetailDto {
@@ -223,7 +223,7 @@ export default function ChatPage() {
 
             setChats((prev) =>
                 prev.map((c) =>
-                    c.id === chat.id ? { ...c, requestSend: false } : c
+                    c.id === chat.id ? { ...c, requestFlag: false } : c
                 )
             )
 
@@ -239,23 +239,24 @@ export default function ChatPage() {
         if (!token || !userId) return
 
         try {
-            const res = await fetch("http://localhost:8090/chat/acceptRequest", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    chatId,
-                    accept
-                }),
-            })
+            const res = await fetch(
+                accept ? "http://localhost:8090/chat/acceptRequest" : "http://localhost:8090/chat/rejectRequest",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ chatId }),
+                }
+            )
+
 
             if (!res.ok) throw new Error("Errore durante la risposta alla richiesta")
 
             setChats((prev) =>
                 prev.map((c) =>
-                    c.id === chatId ? { ...c, requestSend: accept } : c
+                    c.id === chatId ? { ...c, requestFlag: accept } : c
                 )
             )
 
@@ -319,8 +320,12 @@ export default function ChatPage() {
                                             </div>
                                         </CardHeader>
 
-                                        {/* Se l'utente NON è owner, mostra il pulsante "Invia richiesta" solo se accepted non è true */}
-                                        {!isOwner && chat.requestSend !== true && (
+                                        <p>isOwner: {isOwner ? "true" : "false"}</p>
+                                        <p>requestSend: {chat.requestFlag ? "true" : "false"}</p>
+
+
+                                        {/* Se l'utente NON è owner, mostra il pulsante "Invia richiesta" solo se request non è true */}
+                                        {!isOwner && chat.requestFlag !== true && (
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation()
@@ -332,13 +337,39 @@ export default function ChatPage() {
                                             </button>
                                         )}
 
+                                        {/* Se l'utente è owner, mostra il pulsante "Accetta/Rifiuta richiesta"*/}
+                                        {isOwner && chat.requestFlag === true && (
+                                            <div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        handleRespondRequest(chat.id, true)
+                                                    }}
+                                                    className="mt-2 w-full bg-green-600 text-white py-1 rounded hover:bg-green-700 transition"
+                                                >
+                                                    Accetta richiesta adozione
+                                                </button>
+
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        handleRespondRequest(chat.id, false)
+                                                    }}
+                                                    className="mt-2 w-full bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                                >
+                                                    Rifiuta richiesta adozione
+                                                </button>
+                                            </div>
+                                        )}
+
+
                                         {/* Mostra stato richiesta */}
-                                        {chat.requestSend === true && (
+                                        {chat.acceptedFlag === true && (
                                             <div className="mt-2 px-3 py-1 text-sm bg-green-100 text-green-800 rounded">
                                                 Richiesta accettata
                                             </div>
                                         )}
-                                        {chat.requestSend === false && (
+                                        {chat.requestFlag === true && chat.acceptedFlag === false && (
                                             <div className="mt-2 px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded">
                                                 Richiesta in attesa di risposta
                                             </div>
@@ -374,7 +405,7 @@ export default function ChatPage() {
                                                         {new Date(msg.timeStamp).toLocaleString()}
                                                     </div>
                                                     {/* Se sono owner e la richiesta non è ancora accettata (accepted !== true), mostra pulsanti */}
-                                                    {isOwner && msg.accepted !== true && (
+                                                    {isOwner && (
                                                         <div className="mt-2 flex gap-2">
                                                             <button
                                                                 onClick={() => handleRespondRequest(selectedChatId, true)}
