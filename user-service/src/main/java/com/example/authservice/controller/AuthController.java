@@ -8,14 +8,18 @@ import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Map;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.example.authservice.constants.AuthEndpoints.*;
 
@@ -48,14 +52,24 @@ public class AuthController {
         return ResponseEntity.ok().body(Map.of("redirectUrl", "http://localhost:3000/oauth-redirect"));
     }
 
-    @PostMapping(API_REGISTER)
+    @PostMapping(value = API_REGISTER, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public ResponseEntity<?> registerViaApi(@RequestBody AuthRegisterRequestDTO request) {
+    public ResponseEntity<?> registerViaApi(
+            @RequestPart("request") @Valid AuthRegisterRequestDTO request,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         try {
+            String base64Image = null;
+            if (imageFile != null && !imageFile.isEmpty()) {
+                base64Image = Base64.getEncoder().encodeToString(imageFile.getBytes());
+                System.out.println(base64Image);
+                request.setProfilePicture(base64Image);
+            }
             authService.register(request);
             return ResponseEntity.ok("Utente registrato con successo");
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email già registrata");
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Errore durante l'elaborazione dell'immagine");
         }
     }
 

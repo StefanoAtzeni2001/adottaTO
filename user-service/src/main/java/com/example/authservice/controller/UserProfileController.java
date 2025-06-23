@@ -1,5 +1,6 @@
 package com.example.authservice.controller;
 
+import com.example.authservice.dto.AuthRegisterRequestDTO;
 import com.example.authservice.dto.EmailRequestDTO;
 import com.example.authservice.dto.EmailResponseDTO;
 import com.example.authservice.dto.UserProfileDTO;
@@ -8,10 +9,18 @@ import com.example.authservice.model.UserProfile;
 import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
+import com.example.authservice.service.ProfileService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Base64;
 
 import static com.example.authservice.constants.AuthEndpoints.*;
 
@@ -23,14 +32,16 @@ public class UserProfileController {
 
     private final UserProfileRepository userProfileRepository;
     private final AuthService authService;
+    private final ProfileService profileService;
     private final JwtService jwtService;
 
     public UserProfileController(JwtService jwtService,
                                  AuthService authService,
-                                 UserProfileRepository userProfileRepository) {
+                                 UserProfileRepository userProfileRepository, ProfileService profileService) {
         this.jwtService = jwtService;
         this.authService = authService;
         this.userProfileRepository = userProfileRepository;
+        this.profileService = profileService;
     }
 
     @GetMapping(PROFILE)
@@ -58,39 +69,24 @@ public class UserProfileController {
         return ResponseEntity.ok(dto);
     }
 
-
-    @PostMapping(API_PROFILE_UPDATE)
+    @PostMapping(value = API_PROFILE_UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<?> updateUserProfileViaApi(
-            @RequestHeader(value = "Authorization", required = false) String authHeader,
-            @RequestBody UserProfileDTO updateRequest) {
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body("Token mancante o malformato");
+            @RequestPart("request") @Valid UserProfileDTO updateRequest,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @RequestHeader("User-Id") Long userId) {
+        try {
+            String base64Image = null;
+            if (imageFile != null && !imageFile.isEmpty()) {
+                base64Image = Base64.getEncoder().encodeToString(imageFile.getBytes());
+                System.out.println(base64Image);
+                updateRequest.setProfilePicture(base64Image);
+            }
+            profileService.update(updateRequest,userId);
+            return ResponseEntity.ok("Profilo aggiornato con successo");
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Errore durante l'elaborazione dell'immagine");
         }
-
-        String token = authHeader.substring(7);
-        if (!jwtService.isTokenValid(token)) {
-            return ResponseEntity.status(401).body("Token non valido");
-        }
-
-        // 👇 Usa correttamente l'ID per trovare l'utente
-        Long userId = Long.parseLong(jwtService.extractUserId(token));
-        Auth user = authService.findById(userId).orElse(null);
-        if (user == null) return ResponseEntity.status(404).body("Utente non trovato");
-
-        UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
-        if (profile == null) {
-            return ResponseEntity.status(404).body("Profilo non trovato");
-        }
-
-        profile.setName(updateRequest.getName());
-        profile.setSurname(updateRequest.getSurname());
-        profile.setProfilePicture(updateRequest.getProfilePicture()); // opzionale
-
-        userProfileRepository.save(profile);
-
-        return ResponseEntity.ok("Profilo aggiornato con successo");
     }
 
     @GetMapping("/api/profile/{id}")

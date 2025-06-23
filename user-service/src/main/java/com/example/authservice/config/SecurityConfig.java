@@ -35,13 +35,16 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth.requestMatchers(
                         HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(API_LOGIN, API_REGISTER, API_OAUTH_JWT, PROFILE, API_PROFILE_UPDATE, PROFILE_EMAIL, "api/profile/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers(API_LOGIN, API_REGISTER, API_OAUTH_JWT).permitAll()
+//                        .requestMatchers("api/profile/**").authenticated()
+                        .anyRequest().permitAll()
                 );
 
         configureOAuth2Login(http);
 
-        http.csrf(AbstractHttpConfigurer::disable);
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable);
 
         return http.build();
     }

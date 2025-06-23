@@ -18,4 +18,5 @@ public class AuthRegisterRequestDTO {
     private String password; // User's plain text password (will be encoded)
     private String name;     // User's first name
     private String surname;  // User's last name
+    private String profilePicture;
 }

@@ -75,20 +75,29 @@ export default function UserPage() {
             .catch(err => console.error("Errore caricamento annunci:", err))
     }, [router])
 
-    const handleProfileUpdate = async (name: string, surname: string) => {
+    const handleProfileUpdate = async (name: string, surname: string,imageFile?: File) => {
         const token = localStorage.getItem("jwt")
+        const formData = new FormData()
+        formData.append("request", new Blob([JSON.stringify({ name, surname })], { type: "application/json" }))
+        if (imageFile) {
+            formData.append("image", imageFile)
+        }
         const res = await fetch("http://localhost:8090/api/profile/update", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ name, surname })
+            body: formData
         })
 
         if (res.ok) {
             alert("Profilo aggiornato con successo")
-            setProfile(prev => prev ? { ...prev, name, surname } : null)
+            // Re-fetch the updated profile from backend
+            const updatedProfile = await fetch("http://localhost:8090/profile", {
+                headers: { Authorization: `Bearer ${token}` }
+            }).then(res => res.json())
+
+            setProfile(updatedProfile)
         } else {
             alert("Errore durante l'aggiornamento del profilo")
         }
@@ -119,7 +128,11 @@ export default function UserPage() {
         <div className="container py-6">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="w-32 h-32">
-                    <AvatarImage src={profile.profilePicture ?? "/default-avatar.svg"} />
+                    <AvatarImage
+                        src={profile.profilePicture
+                            ? `data:image/jpeg;base64,${profile.profilePicture}`
+                            : "/default-avatar.svg"}
+                    />
                     <AvatarFallback>{profile.name[0]}{profile.surname[0]}</AvatarFallback>
                 </Avatar>
 
