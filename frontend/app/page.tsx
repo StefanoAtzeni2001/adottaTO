@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import ExpandedAdoptionCard from "@/components/adoption/ExpandedAdoptionCard"
 import SearchFilters from "@/components/adoption/SearchFilters"
-import { Button } from "@/components/ui/button"
 
 interface AdoptionPost {
     id: number

@@ -4,6 +4,7 @@ package org.example.savedsearchservice.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.example.savedsearchservice.model.SavedSearch;
 import org.example.savedsearchservice.repository.SavedSearchRepository;
+import org.example.shareddtos.dto.AdoptionPostSavedSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,9 +49,9 @@ public class SavedSearchService {
         repository.delete(savedSearch);
     }
 
-    public List<AdoptionPostSearchDto> getSavedSearchesByUser(Long userId) {
+    public List<AdoptionPostSavedSearchDto> getSavedSearchesByUser(Long userId) {
         return repository.findByUserId(userId).stream()
-                .map(this::toSearchDto)
+                .map(this::toSavedSearchDto)
                 .collect(Collectors.toList());
     }
 
@@ -65,6 +66,19 @@ public class SavedSearchService {
         dto.setColor(savedSearch.getColor());
         dto.setLocation(savedSearch.getLocation());
 
+        return dto;
+    }
+
+    private AdoptionPostSavedSearchDto toSavedSearchDto(SavedSearch savedSearch) {
+        AdoptionPostSavedSearchDto dto = new AdoptionPostSavedSearchDto();
+        dto.setId(savedSearch.getId());
+        dto.setSpecies(savedSearch.getSpecies());
+        dto.setBreed(savedSearch.getBreed());
+        dto.setGender(savedSearch.getGender());
+        dto.setMinAge(savedSearch.getMinAge());
+        dto.setMaxAge(savedSearch.getMaxAge());
+        dto.setColor(savedSearch.getColor());
+        dto.setLocation(savedSearch.getLocation());
         return dto;
     }
 }

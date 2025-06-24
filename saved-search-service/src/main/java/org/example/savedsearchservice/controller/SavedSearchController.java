@@ -2,6 +2,7 @@ package org.example.savedsearchservice.controller;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.example.savedsearchservice.service.SavedSearchService;
+import org.example.shareddtos.dto.AdoptionPostSavedSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +39,8 @@ public class SavedSearchController {
     }
 
     @GetMapping("/get-my-saved-search")
-    public ResponseEntity<List<AdoptionPostSearchDto>> getMySavedSearches(@RequestHeader("User-Id") Long userId) {
-        List<AdoptionPostSearchDto> searches = savedSearchService.getSavedSearchesByUser(userId);
+    public ResponseEntity<List<AdoptionPostSavedSearchDto>> getMySavedSearches(@RequestHeader("User-Id") Long userId) {
+        List<AdoptionPostSavedSearchDto> searches = savedSearchService.getSavedSearchesByUser(userId);
         return ResponseEntity.ok(searches);
     }
 
