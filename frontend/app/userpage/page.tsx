@@ -5,11 +5,22 @@ import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle
+} from "@/components/ui/card"
 import ExpandedAdoptionCard from "@/components/user/ExpandedAdoptionCardUser"
 import EditProfile from "@/components/user/EditProfile"
 import PostAdoption from "@/components/user/CreateAdoptionPost"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger
+} from "@/components/ui/tabs"
 
 interface UserProfile {
     name: string
@@ -73,7 +84,6 @@ export default function UserPage() {
                 router.push("/login")
             })
 
-        // Carica gli ID dei post, poi recupera i dettagli
         fetch("http://localhost:8090/get-my-owned-posts", {
             headers: { Authorization: `Bearer ${token}` }
         })
@@ -88,7 +98,6 @@ export default function UserPage() {
             })
             .catch(err => console.error("Errore caricamento annunci:", err))
 
-        // Carica le ricerche salvate
         if (userId) {
             fetch("http://localhost:8090/get-my-saved-search", {
                 headers: {
@@ -145,6 +154,32 @@ export default function UserPage() {
         }
     }
 
+    const handleDeleteSearch = async (searchId: number) => {
+        const token = localStorage.getItem("jwt")
+        const userId = localStorage.getItem("userId")
+        if (!token || !userId) return
+
+        const confirmed = confirm("Sei sicuro di voler eliminare questa ricerca salvata?")
+        if (!confirmed) return
+
+        try {
+            const res = await fetch(`http://localhost:8090/delete-saved-search/${searchId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "User-Id": userId
+                }
+            })
+            if (res.ok) {
+                setSavedSearches(prev => prev.filter(s => s.id !== searchId))
+            } else {
+                alert("Errore durante l'eliminazione della ricerca")
+            }
+        } catch (err) {
+            console.error("Errore nella cancellazione:", err)
+        }
+    }
+
     if (!profile) return <div>Caricamento...</div>
 
     return (
@@ -166,7 +201,7 @@ export default function UserPage() {
                     <Button
                         onClick={handleGoChat}
                         className="bg-red-600 text-white">
-                        Le  mie chat
+                        Le mie chat
                     </Button>
                 </div>
             </div>
@@ -178,9 +213,9 @@ export default function UserPage() {
                     <TabsTrigger value="Annunci">Annunci</TabsTrigger>
                     <TabsTrigger value="RicercaSalvata">Ricerca Salvata</TabsTrigger>
                 </TabsList>
+
                 <TabsContent value="Annunci">
                     <h1 className="text-4xl font-bold mb-4">I miei annunci:</h1>
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
                         {posts.map(post => (
                             <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
@@ -197,36 +232,41 @@ export default function UserPage() {
                             </Card>
                         ))}
                     </div>
-
                     {selectedPost && (
                         <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
                     )}
                 </TabsContent>
+
                 <TabsContent value="RicercaSalvata">
                     <h1 className="text-4xl font-bold mb-4">Le mie ricerche salvate:</h1>
-
                     <ul className="space-y-4">
                         {savedSearches.map(search => (
                             <li
                                 key={search.id}
-                                className="border rounded p-4 hover:shadow cursor-pointer w-full"
+                                className="border rounded p-4 hover:shadow w-full flex justify-between items-start gap-4"
                             >
-                                <h2 className="font-semibold text-lg mb-2">Ricerca #{search.id}</h2>
-
-                                <div className="flex flex-nowrap gap-6 overflow-x-auto text-sm text-gray-700">
-                                    <span><strong>Specie:</strong> {search.species.join(", ") || "Nessuna"}</span>
-                                    <span><strong>Razza:</strong> {search.breed.join(", ") || "Nessuna"}</span>
-                                    <span><strong>Età:</strong> {search.minAge} - {search.maxAge} mesi</span>
-                                    <span><strong>Sesso:</strong> {search.gender === "M" ? "Maschio" : search.gender === "F" ? "Femmina" : "Indifferente"}</span>
-                                    <span><strong>Colore:</strong> {search.color.join(", ") || "Nessuno"}</span>
-                                    <span><strong>Provincia:</strong> {search.location.join(", ") || "Nessuna"}</span>
+                                <div>
+                                    <h2 className="font-semibold text-lg mb-2">Ricerca #{search.id}</h2>
+                                    <div className="flex flex-nowrap gap-6 overflow-x-auto text-sm text-gray-700">
+                                        <span><strong>Specie:</strong> {search.species.join(", ") || "Nessuna"}</span>
+                                        <span><strong>Razza:</strong> {search.breed.join(", ") || "Nessuna"}</span>
+                                        <span><strong>Età:</strong> {search.minAge} - {search.maxAge} mesi</span>
+                                        <span><strong>Sesso:</strong> {search.gender === "M" ? "Maschio" : search.gender === "F" ? "Femmina" : "Indifferente"}</span>
+                                        <span><strong>Colore:</strong> {search.color.join(", ") || "Nessuno"}</span>
+                                        <span><strong>Provincia:</strong> {search.location.join(", ") || "Nessuna"}</span>
+                                    </div>
                                 </div>
+
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => handleDeleteSearch(search.id)}
+                                >
+                                    Elimina
+                                </Button>
                             </li>
                         ))}
                     </ul>
                 </TabsContent>
-
-
             </Tabs>
         </div>
     )
