@@ -1,22 +1,18 @@
 "use client"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import {
-    CardContent,
-    CardFooter,
-    CardHeader,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {Separator} from "@/components/ui/separator";
+import { Button } from "@/components/ui/button"
+import { CardHeader, CardContent, CardFooter } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 export default function Page() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [name, setName] = useState("")
     const [surname, setSurname] = useState("")
+    const [imageFile, setImageFile] = useState<File | null>(null)
 
     const router = useRouter()
 
@@ -24,12 +20,21 @@ export default function Page() {
         e.preventDefault()
 
         try {
+            const formData = new FormData()
+            const requestPayload = {
+                email,
+                password,
+                name,
+                surname
+            }
+            formData.append("request", new Blob([JSON.stringify(requestPayload)], { type: "application/json" }))
+            if (imageFile) {
+                formData.append("image", imageFile)
+            }
+
             const res = await fetch("http://localhost:8090/api/register", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ email, password, name, surname })
+                body: formData
             })
 
             if (res.ok) {
@@ -45,7 +50,6 @@ export default function Page() {
         }
     }
 
-
     return (
         <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
             <div className="w-full max-w-sm">
@@ -58,7 +62,7 @@ export default function Page() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleRegister}>
+                    <form onSubmit={handleRegister} encType="multipart/form-data">
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
@@ -72,9 +76,7 @@ export default function Page() {
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                </div>
+                                <Label htmlFor="password">Password</Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -84,9 +86,7 @@ export default function Page() {
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="name">Name</Label>
-                                </div>
+                                <Label htmlFor="name">Name</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -96,9 +96,7 @@ export default function Page() {
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="surname">Surname</Label>
-                                </div>
+                                <Label htmlFor="surname">Surname</Label>
                                 <Input
                                     id="surname"
                                     type="text"
@@ -107,15 +105,27 @@ export default function Page() {
                                     required
                                 />
                             </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="image">Immagine</Label>
+                                <Input
+                                    id="image"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        if (e.target.files?.[0]) {
+                                            setImageFile(e.target.files[0])
+                                        }
+                                    }}
+                                />
+                            </div>
                         </div>
+                        <Button type="submit" className="w-full mt-6">
+                            Registrati
+                        </Button>
                     </form>
                 </CardContent>
-                <Separator  className="my-4" />
+                <Separator className="my-4" />
                 <CardFooter className="flex-col gap-2">
-                    <Button type="submit" className="w-full" onClick={handleRegister}>
-                        Registrati
-                    </Button>
-
                     <div className="text-center text-sm">
                         Hai un account?{" "}
                         <a href="/login" className="underline underline-offset-4">
@@ -126,5 +136,5 @@ export default function Page() {
             </div>
         </div>
     )
-
 }
+

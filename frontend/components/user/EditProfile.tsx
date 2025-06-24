@@ -17,14 +17,18 @@ import {
 
 interface Props {
     profile: { name: string; surname: string }
-    onUpdateAction: (name: string, surname: string) => Promise<void>
+    onUpdateAction: (name: string, surname: string, imageFile?: File) => Promise<void>
 }
 
 export default function EditProfile({ profile, onUpdateAction }: Props) {
     const [edited, setEdited] = useState(profile)
+    const [imageFile, setImageFile] = useState<File | undefined>(undefined)
 
     return (
-        <Sheet onOpenChange={() => setEdited(profile)}>
+        <Sheet onOpenChange={() => {
+            setEdited(profile)
+            setImageFile(undefined)
+        }}>
             <SheetTrigger asChild>
                 <Button variant="outline">Modifica profilo</Button>
             </SheetTrigger>
@@ -32,7 +36,7 @@ export default function EditProfile({ profile, onUpdateAction }: Props) {
                 <SheetHeader>
                     <SheetTitle>Modifica il tuo Profilo</SheetTitle>
                     <SheetDescription>
-                        Modifica il tuo nome o cognome. Clicca su Salva le modifiche per confermare.
+                        Modifica il tuo nome, cognome o immagine del profilo.
                     </SheetDescription>
                 </SheetHeader>
                 <div className="grid gap-6 px-4 py-4">
@@ -50,9 +54,25 @@ export default function EditProfile({ profile, onUpdateAction }: Props) {
                             onChange={(e) => setEdited({ ...edited, surname: e.target.value })}
                         />
                     </div>
+                    <div>
+                        <Label>Immagine del profilo</Label>
+                        <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                    setImageFile(e.target.files[0])
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
-                <SheetFooter>
-                    <Button onClick={() => onUpdateAction(edited.name, edited.surname)}>Salva le modifiche</Button>
+                <SheetFooter className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                        onClick={() => onUpdateAction(edited.name, edited.surname, imageFile)}
+                    >
+                        Salva le modifiche
+                    </Button>
                     <SheetClose asChild>
                         <Button variant="outline">Chiudi</Button>
                     </SheetClose>

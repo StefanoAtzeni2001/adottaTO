@@ -49,6 +49,6 @@ public class UserProfile {
     @Column(nullable = false)
     private String surname;
 
-    @Column(nullable = true)
+    @Column(columnDefinition = "TEXT")
     private String profilePicture;
 }

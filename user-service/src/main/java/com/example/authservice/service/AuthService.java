@@ -10,6 +10,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -87,6 +91,7 @@ public class AuthService {
         profile.setEmail(request.getEmail());
         profile.setName(request.getName());
         profile.setSurname(request.getSurname());
+        profile.setProfilePicture(request.getProfilePicture());
         userProfileRepository.save(profile);
     }
 
@@ -100,13 +105,22 @@ public class AuthService {
         });
     }
 
-    private UserProfile saveGoogleUserProfile(Auth auth, String email, String name, String surname, String picture) {
+    private UserProfile saveGoogleUserProfile(Auth auth, String email, String name, String surname, String pictureUrl) {
         UserProfile profile = new UserProfile();
         profile.setAuth(auth);
         profile.setEmail(email);
         profile.setName(name);
         profile.setSurname(surname);
-        profile.setProfilePicture(picture);
+
+        if (pictureUrl != null && !pictureUrl.isEmpty()) {
+            try (InputStream in = new URL(pictureUrl).openStream()) {
+                String base64Image = Base64.getEncoder().encodeToString(in.readAllBytes());
+                profile.setProfilePicture(base64Image);
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
         return userProfileRepository.save(profile);
     }
 }

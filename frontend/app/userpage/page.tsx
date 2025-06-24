@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import ExpandedAdoptionCard from "@/components/user/ExpandedAdoptionCardUser"
 import EditProfile from "@/components/user/EditProfile"
 import PostAdoption from "@/components/user/CreateAdoptionPost"
+import Image from "next/image";
 
 interface UserProfile {
     name: string
@@ -31,6 +32,7 @@ interface AdoptionPostDetailDto {
     ownerId: number
     active: boolean
     adopterId: number | null
+    imageBase64: string
 }
 
 export default function UserPage() {
@@ -75,20 +77,29 @@ export default function UserPage() {
             .catch(err => console.error("Errore caricamento annunci:", err))
     }, [router])
 
-    const handleProfileUpdate = async (name: string, surname: string) => {
+    const handleProfileUpdate = async (name: string, surname: string,imageFile?: File) => {
         const token = localStorage.getItem("jwt")
-        const res = await fetch("http://localhost:8090/api/profile/update", {
+        const formData = new FormData()
+        formData.append("request", new Blob([JSON.stringify({ name, surname })], { type: "application/json" }))
+        if (imageFile) {
+            formData.append("image", imageFile)
+        }
+        const res = await fetch("http://localhost:8090/api/profile-update", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ name, surname })
+            body: formData
         })
 
         if (res.ok) {
             alert("Profilo aggiornato con successo")
-            setProfile(prev => prev ? { ...prev, name, surname } : null)
+            // Re-fetch the updated profile from backend
+            const updatedProfile = await fetch("http://localhost:8090/profile", {
+                headers: { Authorization: `Bearer ${token}` }
+            }).then(res => res.json())
+
+            setProfile(updatedProfile)
         } else {
             alert("Errore durante l'aggiornamento del profilo")
         }
@@ -119,7 +130,11 @@ export default function UserPage() {
         <div className="container py-6">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="w-32 h-32">
-                    <AvatarImage src={profile.profilePicture ?? "/default-avatar.svg"} />
+                    <AvatarImage
+                        src={profile.profilePicture
+                            ? `data:image/jpeg;base64,${profile.profilePicture}`
+                            : "/default-avatar.svg"}
+                    />
                     <AvatarFallback>{profile.name[0]}{profile.surname[0]}</AvatarFallback>
                 </Avatar>
 
@@ -145,6 +160,15 @@ export default function UserPage() {
                             <CardTitle>{post.name}</CardTitle>
                             <CardDescription>{post.species} - {post.breed}</CardDescription>
                         </CardHeader>
+                        <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+                            <Image
+                                src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
+                                alt={`Immagine di ${post.name}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                            />
+                        </div>
                         <CardContent>
                             <p><strong>Provincia:</strong> {post.location}</p>
                             <p><strong>Età:</strong> {post.age} mesi</p>

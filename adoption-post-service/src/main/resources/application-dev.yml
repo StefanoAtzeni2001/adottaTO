@@ -23,11 +23,15 @@ spring:
     username: user
     password: password
 
+
 app:
   rabbitmq:
-    exchange: adottato.exchange
+    exchange: ${RABBITMQ_ADOTTATO_EXCHANGE:adottato.exchange} #adottato.exchange
     routingkey:
-      new-post: post.new
+      new-post: ${RABBITMQ_NEW_POST_ROUTING_KEY:post.new} #post.new
+      chat-request-accepted: ${RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY:chat.request.accepted} # chat.request.accepted
+    queue:
+      chat-request-accepted: ${RABBITMQ_ADOPTION_POST_QUEUE_CHAT:adoptionpost.queue.requestaccepted} # adoptionpost.queue.requestaccepted
 
 server:
   port: 8081
