@@ -82,20 +82,6 @@ public class AuthService {
     }
 
     /**
-     * Retrieves the UserProfile associated with a given email.
-     *
-     * @param email the email of the user
-     * @return the corresponding UserProfile
-     * @throws RuntimeException if user or profile is not found
-     */
-    public UserProfile getUserProfileByEmail(String email) {
-        Auth auth = authRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utente non trovato: " + email));
-        return userProfileRepository.findById(auth.getId())
-                .orElseThrow(() -> new RuntimeException("Profilo non trovato per utente: " + email));
-    }
-
-    /**
      * Verifies whether the raw password matches the encoded one.
      *
      * @param rawPassword     the plain password input
