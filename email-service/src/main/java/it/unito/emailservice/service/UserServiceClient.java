@@ -1,6 +1,5 @@
 package it.unito.emailservice.service;
 
-import org.example.shareddtos.dto.EmailRequestDto;
 import org.example.shareddtos.dto.EmailResponseDto;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -24,17 +23,12 @@ public class UserServiceClient {
 
     /**
      * Sends a POST request to the user-service
-     *
      * @param userId the ID of the user whose info is needed
      * @return an EmailResponseDto containing name, surname, and email of the user
      */
     public EmailResponseDto getUser(Long userId) {
-
-        EmailRequestDto request = new EmailRequestDto(userId);
-
-        return webClient.post()
-                .uri("/profile-email")
-                .bodyValue(request)
+        return webClient.get()
+                .uri("/profile-email/" + userId)
                 .retrieve()
                 .bodyToMono(EmailResponseDto.class)
                 .block();

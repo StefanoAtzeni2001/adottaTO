@@ -18,7 +18,7 @@ public final class AuthEndpoints {
     public static final String PROFILE = "/profile";
 
     /** URL to retrieve the user's info to send emails */
-    public static final String PROFILE_EMAIL = "/profile-email";
+    public static final String PROFILE_EMAIL = "/profile-email/{id}";
 
     /** URL to update user profile data. */
     public static final String API_PROFILE_UPDATE = "/api/profile-update";
