@@ -3,7 +3,7 @@
     "1": {
       "Name": "PostgreSQL App DB",
       "Group": "Docker",
-      "Host": "postgres-db_adottato",
+      "Host": "postgres-db-adottato",
       "Port": 5432,
       "MaintenanceDB": "postgres_db",
       "Username": "app_user",

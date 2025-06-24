@@ -1,15 +1,15 @@
 package com.example.authservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@Builder
+/**
+ * Data Transfer Object used to send a JWT
+ */
+@AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
+@Builder
 public class JwtResponseDTO {
     private String token;
-    public JwtResponseDTO(String token) { this.token = token; }
-    public String getToken() { return token; }
 }

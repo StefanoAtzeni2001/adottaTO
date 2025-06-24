@@ -12,8 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 
-//CONFIGURAZIONE RECIVER
-//(deve occuparsi della queue e del binding)
+//RECEIVER CONFIGURATION
 @Configuration
 public class RabbitMQConfig {
 
@@ -48,7 +47,6 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(chatQueue).to(exchange).with(chatRoutingKey);
     }
 
-    // === SAVED SEARCH QUEUE CONFIGURATION ===
     @Bean
     public Queue savedSearchQueue() {
         return new Queue(savedSearchQueue, true);
@@ -58,7 +56,6 @@ public class RabbitMQConfig {
     public Binding savedSearchBinding(Queue savedSearchQueue, DirectExchange exchange) {
         return BindingBuilder.bind(savedSearchQueue).to(exchange).with(savedSearchRoutingKey);
     }
-
 
     @Bean
     public MessageConverter messageConverter(ObjectMapper objectMapper) {

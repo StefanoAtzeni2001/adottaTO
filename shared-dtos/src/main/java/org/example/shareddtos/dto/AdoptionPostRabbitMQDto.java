@@ -1,11 +1,13 @@
 package org.example.shareddtos.dto;
-import lombok.Data;
+import lombok.*;
 
 /**
- * DTO used to transfer summary information of an AdoptionPost.
- * used in list views.
+ * DTO used to transfer summary information of an AdoptionPost and userId who owns saved search via RabbitMQ
  */
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class AdoptionPostRabbitMQDto {
     private Long userId;
 

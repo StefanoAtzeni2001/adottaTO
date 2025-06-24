@@ -94,3 +94,4 @@ k8s/*.yaml
 # Environments / config
 env/.env.secret
 .idea
+/k8s/secret/app-secret.yml

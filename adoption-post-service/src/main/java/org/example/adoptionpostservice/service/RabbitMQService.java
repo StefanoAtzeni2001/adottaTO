@@ -1,6 +1,6 @@
 package org.example.adoptionpostservice.service;
 
-import org.example.adoptionpostservice.dto.RequestAcceptedMessageRabbitMQDto;
+import org.example.shareddtos.dto.RequestAcceptedMessageRabbitMQDto;
 import org.example.adoptionpostservice.model.AdoptionPost;
 import org.example.adoptionpostservice.repository.AdoptionPostRepository;
 import org.example.shareddtos.dto.AdoptionPostSummaryDto;
@@ -9,6 +9,10 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * Service responsible for interacting with RabbitMQ.
+ * It sends events when a new adoption post is created and handles messages when an adoption request is accepted.
+ */
 @Component
 public class RabbitMQService {
 
@@ -27,10 +31,21 @@ public class RabbitMQService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
+    /**
+     * Sends a new adoption post event to the specified RabbitMQ exchange using the routing key
+     *
+     * @param dto the adoption post summary data to send
+     */
     public void sendNewPostEvent(AdoptionPostSummaryDto dto) {
         rabbitTemplate.convertAndSend(adottatoExchange, newPostRoutingKey, dto);
     }
 
+    /**
+     * Handles incoming RabbitMQ messages when an adoption request is accepted.
+     * It sets the adopter ID on the corresponding adoption post
+     *
+     * @param message the message containing the adoption post ID and adopter ID
+     */
     @RabbitListener(queues = "${app.rabbitmq.queue.chat-request-accepted}")
     public void handleAcceptedRequest(RequestAcceptedMessageRabbitMQDto message) {
         System.out.println("Ricevuto messaggio chat.request.accepted:" + message.getAdoptionPostId() + " " + message.getAdopterId());
@@ -40,10 +55,7 @@ public class RabbitMQService {
         System.out.println("Ricevuta richiesta accettata!!");
         if(post != null) {
             post.setAdopterId(message.getAdopterId());
-
             repository.save(post);
         }
-
     }
-
 }

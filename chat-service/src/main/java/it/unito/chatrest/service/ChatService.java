@@ -5,42 +5,62 @@ import it.unito.chatrest.model.Chat;
 import it.unito.chatrest.model.Message;
 import it.unito.chatrest.repository.ChatRepository;
 import it.unito.chatrest.repository.MessageRepository;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Service class responsible for managing chat interactions between users,
+ * including message exchange, chat creation, request handling (send, cancel, accept, reject),
+ * and marking messages as seen.
+ */
 @Service
 public class ChatService {
+    private final ChatRepository chatRepository;
+    private final MessageRepository messageRepository;
+    private final SenderRabbitMQService senderRabbitMQService;
 
-    @Autowired
-    private ChatRepository chatRepository;
+    /**
+     * Constructs a new ChatService with the required dependencies.
+     *
+     * @param chatRepository          repository for managing chat data
+     * @param messageRepository       repository for managing message data
+     * @param senderRabbitMQService   service for sending events and notifications via RabbitMQ
+     */
+    public ChatService(ChatRepository chatRepository,
+                         MessageRepository messageRepository,
+                         SenderRabbitMQService senderRabbitMQService) {
+        this.chatRepository = chatRepository;
+        this.messageRepository = messageRepository;
+        this.senderRabbitMQService = senderRabbitMQService;
+    }
 
-    @Autowired
-    private MessageRepository messageRepository;
-
-    @Autowired
-    private SenderRabbitMQService senderRabbitMQService;
-
+    /**
+     * Sends a new message in an existing or new chat and notifying the receiver
+     *
+     * @param request the message send request
+     * @param userId  the ID of the user performing the operation
+     * @return the saved {@link Message} entity
+     * @throws IllegalArgumentException if the sender does not match the user or if the chat or adoption post is not found
+     */
     public Message sendMessage(MessageSendRequest request, Long userId) {
 
         Chat chat;
 
         if(!request.getSenderId().equals(userId)) {
-            throw new IllegalArgumentException("Sender non corrispondente a userId loggato");
+            throw new IllegalArgumentException("No sender match"); //errore 403
         }
 
         if (request.getChatId() != null) {
             //recover the chat
             chat = chatRepository.findById(request.getChatId())
-                    .orElseThrow(() -> new IllegalArgumentException("Chat " + request.getChatId() + " not found"));
+                    .orElseThrow(() -> new IllegalArgumentException("Chat not found")); //404
         } else {
 
             if (request.getAdoptionPostId() == null) {
-                throw new IllegalArgumentException("Adoption post not found");
+                throw new IllegalArgumentException("Adoption post not found"); //400
             }
 
             chat = chatRepository.findByAdopterIdAndOwnerIdAndAdoptionPostId(
@@ -74,7 +94,12 @@ public class ChatService {
         return messageRepository.save(message);
     }
 
-
+    /**
+     * Retrieves all chats involving the given user and sorts them by most recent message
+     *
+     * @param userId the ID of the user
+     * @return a list of {@link Chat} objects sorted by last activity
+     */
     public List<Chat> getChatsForUser(Long userId) {
         List<Chat> chats = chatRepository.findByOwnerIdOrAdopterId(userId, userId);
 
@@ -94,7 +119,13 @@ public class ChatService {
         return chats;
     }
 
-
+    /**
+     * Retrieves all messages in a chat and marks all unread messages received by the user as seen
+     *
+     * @param chatId the ID of the chat
+     * @param userId the ID of the user
+     * @return list of {@link Message} ordered by timestamp ascending
+     */
     public List<Message> getChatMessagesAndMarkSeen(Long chatId, Long userId) {
         // 1. Find unread received messages
         List<Message> unreadMessages = messageRepository.findByChatIdAndReceiverIdAndSeenFalse(chatId, userId);
@@ -111,7 +142,13 @@ public class ChatService {
         return messageRepository.findByChatIdOrderByTimeStampAsc(chatId);
     }
 
-
+    /**
+     * Retrieves all unread messages in a chat received by the user and marks them as seen
+     *
+     * @param chatId the ID of the chat
+     * @param userId the ID of the receiver
+     * @return list of unread {@link Message} objects ordered by timestamp ascending
+     */
     public List<Message> getUnreadMessagesAndMarkSeen(Long chatId, Long userId) {
         //Find unread received messages
         List<Message> unreadMessages = messageRepository.findByChatIdAndReceiverIdAndSeenFalseOrderByTimeStampAsc(
@@ -126,16 +163,20 @@ public class ChatService {
         return unreadMessages;
     }
 
+    /**
+     * Sends an adoption request by setting a flag on the chat and notifying the receiver
+     *
+     * @param chatId    the ID of the chat
+     * @param adopterId the ID of the adopter sending the request
+     * @throws IllegalArgumentException if chat not found or user is not the adopter
+     */
+    public void sendRequest(Long chatId, Long adopterId) {
 
-    public String sendRequest(Long chatId, Long adopterId) {
-        Chat chat = chatRepository.findById(chatId).orElse(null);
-
-        if (chat == null) {
-            return "Chat non trovata";
-        }
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat not found")); // 404
 
         if (!chat.getAdopterId().equals(adopterId)) {
-            return "Solo l'adopter può inviare la proposta";
+            throw new IllegalArgumentException("Only adopter can send request"); // 403
         }
 
         chat.setRequestFlag(true);
@@ -143,23 +184,26 @@ public class ChatService {
 
         senderRabbitMQService.sendRequestEmail(chat.getOwnerId(), adopterId, "send");
 
-        return null;
     }
 
+    /**
+     * Cancels a previously sent adoption request.
+     *
+     * @param chatId    the ID of the chat
+     * @param adopterId the ID of the adopter
+     * @throws IllegalArgumentException if chat not found, user is not the adopter, or request not sent yet
+     */
+    public void cancelRequest(Long chatId, Long adopterId) {
 
-    public String cancelRequest(Long chatId, Long adopterId) {
-        Chat chat = chatRepository.findById(chatId).orElse(null);
-
-        if (chat == null) {
-            return "Chat non trovata";
-        }
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat not found")); // 404
 
         if (!chat.getAdopterId().equals(adopterId)) {
-            return "Solo l'adopter può ritirare la proposta";
+            throw new IllegalArgumentException("Only adopter can cancel request"); // 403
         }
 
         if (!chat.isRequestFlag()) {
-            return "Proposta non ancora inviata";
+            throw new IllegalArgumentException("Request not yet sent"); // 405
         }
 
         chat.setRequestFlag(false);
@@ -167,61 +211,58 @@ public class ChatService {
 
         senderRabbitMQService.sendRequestEmail(chat.getOwnerId(), adopterId, "cancel");
 
-        return null;
     }
 
+    /**
+     * Accepts a received adoption request.
+     *
+     * @param chatId  the ID of the chat
+     * @param ownerId the ID of the owner
+     * @throws IllegalArgumentException if chat not found, user is not the owner, or request not sent yet
+     */
+    public void acceptRequest(Long chatId, Long ownerId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat not found")); // 404
 
-    public String acceptRequest(Long chatId, Long ownerId) {
-        try{
-            Chat chat = chatRepository.findById(chatId)
-                    .orElseThrow(() -> new EntityNotFoundException("Chat non trovata"));
-
-            if (!chat.getOwnerId().equals(ownerId)) {
-                return "Solo l'owner può accettare la proposta";
-            }
-
-            if (!chat.isRequestFlag()) {
-                return "Proposta non ancora inviata";
-            }
-
-            chat.setAcceptedFlag(true);
-            chatRepository.save(chat);
-
-            senderRabbitMQService.sendRequestAccepted(chat.getAdoptionPostId(), chat.getAdopterId());
-            senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "accept");
-
-            return null;
-        }catch (EntityNotFoundException e){
-            return "Chat non trovata";
+        if (!chat.getOwnerId().equals(ownerId)) {
+            throw new IllegalArgumentException("Only owner can accept request"); // 403
         }
 
+        if (!chat.isRequestFlag()) {
+            throw new IllegalArgumentException("Request not yet sent"); // 405
+        }
 
+        chat.setAcceptedFlag(true);
+        chatRepository.save(chat);
+
+        senderRabbitMQService.sendRequestAccepted(chat.getAdoptionPostId(), chat.getAdopterId());
+        senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "accept");
 
     }
 
+    /**
+     * Rejects a received adoption request.
+     *
+     * @param chatId  the ID of the chat
+     * @param ownerId the ID of the owner
+     * @throws IllegalArgumentException if chat not found, user is not the owner, or request not sent yet
+     */
+    public void rejectRequest(Long chatId, Long ownerId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat not found")); // 404
 
-    public String rejectRequest(Long chatId, Long ownerId) {
-        try{
-            Chat chat = chatRepository.findById(chatId)
-                    .orElseThrow(() -> new EntityNotFoundException("Chat non trovata"));
-
-            if (!chat.getOwnerId().equals(ownerId)) {
-                return "Solo l'owner può rifiutare la proposta";
-            }
-
-            if (!chat.isRequestFlag()) {
-                return "Proposta non ancora inviata";
-            }
-
-            chat.setRequestFlag(false);
-            chatRepository.save(chat);
-
-            senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "reject");
-
-            return null;
-        }catch (EntityNotFoundException e){
-            return "Chat non trovata";
+        if (!chat.getOwnerId().equals(ownerId)) {
+            throw new IllegalArgumentException("Only owner can reject request"); // 403
         }
+
+        if (!chat.isRequestFlag()) {
+            throw new IllegalArgumentException("Request not yet sent"); // 405
+        }
+
+        chat.setRequestFlag(false);
+        chatRepository.save(chat);
+
+        senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "reject");
 
     }
 

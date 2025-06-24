@@ -3,7 +3,6 @@ package org.example.adoptionpostservice.config;
 
 import org.example.adoptionpostservice.model.AdoptionPost;
 import org.example.adoptionpostservice.repository.AdoptionPostRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -14,8 +13,11 @@ import java.time.LocalDateTime;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private AdoptionPostRepository adoptionPostRepository;
+    private final AdoptionPostRepository adoptionPostRepository;
+
+    DataInitializer(AdoptionPostRepository adoptionPostRepository) {
+        this.adoptionPostRepository = adoptionPostRepository;
+    }
 
     @Override
     public void run(String... args) {

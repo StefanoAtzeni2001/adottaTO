@@ -1,13 +1,16 @@
 package org.example.shareddtos.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 /**
  * DTO used to request a filtered list of AdoptionPost entities.
  * Contains optional filtering criteria.
  */
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class AdoptionPostSearchDto {
     private List<String> species;
     private List<String> breed;

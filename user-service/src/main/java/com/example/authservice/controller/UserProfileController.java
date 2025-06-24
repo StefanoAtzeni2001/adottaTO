@@ -1,22 +1,21 @@
 package com.example.authservice.controller;
 
-import com.example.authservice.dto.EmailRequestDTO;
-import com.example.authservice.dto.EmailResponseDTO;
+import org.example.shareddtos.dto.EmailRequestDto;
 import com.example.authservice.dto.UserProfileDTO;
 import com.example.authservice.model.Auth;
 import com.example.authservice.model.UserProfile;
 import com.example.authservice.repository.UserProfileRepository;
 import com.example.authservice.service.AuthService;
 import com.example.authservice.service.JwtService;
+import org.example.shareddtos.dto.EmailResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
 import static com.example.authservice.constants.AuthEndpoints.*;
 
 /**
- * Controller per visualizzare e modificare il profilo dell'utente autenticato.
+ * Controller responsible for retrieving and updating the authenticated user's profile.
  */
 @Controller
 public class UserProfileController {
@@ -33,6 +32,12 @@ public class UserProfileController {
         this.userProfileRepository = userProfileRepository;
     }
 
+    /**
+     * Returns the profile of the currently authenticated user using a JWT in the Authorization header.
+     *
+     * @param authHeader Bearer token (JWT)
+     * @return user's profile data or appropriate error
+     */
     @GetMapping(PROFILE)
     public ResponseEntity<?> getUserProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -58,7 +63,13 @@ public class UserProfileController {
         return ResponseEntity.ok(dto);
     }
 
-
+    /**
+     * Updates the user's profile
+     *
+     * @param authHeader    Bearer token (JWT)
+     * @param updateRequest data to update (name, surname, profile picture)
+     * @return success or error response
+     */
     @PostMapping(API_PROFILE_UPDATE)
     @Transactional
     public ResponseEntity<?> updateUserProfileViaApi(
@@ -93,7 +104,13 @@ public class UserProfileController {
         return ResponseEntity.ok("Profilo aggiornato con successo");
     }
 
-    @GetMapping("/api/profile/{id}")
+    /**
+     * Returns a user profile by user ID.
+     *
+     * @param id user ID
+     * @return profile data or 404 if not found
+     */
+    @GetMapping(GET_USER_BY_ID)
     public ResponseEntity<?> getUserProfileById(@PathVariable Long id) {
 
         System.out.println("ID richiesto: " + id);
@@ -117,22 +134,28 @@ public class UserProfileController {
                 .orElse(ResponseEntity.status(404).body("Utente non trovato"));
     }
 
-    //rotta per il servizio email
+    /**
+     * Provides user profile data (name, surname, email) by user ID,
+     * for use by external services like the email service.
+     *
+     * @param request contains the user ID
+     * @return basic profile information, or 404 if not found
+     */
     @PostMapping(PROFILE_EMAIL)
-    public ResponseEntity<?> getUserProfileNoToken(@RequestBody EmailRequestDTO request) {
+    public ResponseEntity<?> getUserProfileNoToken(@RequestBody EmailRequestDto request) {
 
         UserProfile profile = userProfileRepository.findById(request.getUserId()).orElse(null);
         //if (profile == null) return ResponseEntity.status(404).body("User not found");
-        EmailResponseDTO dto;
+        EmailResponseDto dto;
         if (profile == null) {
-            dto = new EmailResponseDTO(
+            dto = new EmailResponseDto(
                     "Eva",
                     "Fiori",
                     "evina2.ef@gmail.com"
             );
         }
         else{
-            dto = new EmailResponseDTO(
+            dto = new EmailResponseDto(
                     profile.getName(),
                     profile.getSurname(),
                     profile.getEmail()

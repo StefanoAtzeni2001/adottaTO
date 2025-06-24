@@ -5,7 +5,7 @@ import jakarta.validation.Valid;
 import org.example.adoptionpostservice.model.AdoptionPost;
 import org.example.adoptionpostservice.repository.AdoptionPostRepository;
 import org.example.adoptionpostservice.repository.AdoptionPostSpecification;
-import org.example.shareddtos.dto.AdoptionPostDetailDto;
+import org.example.adoptionpostservice.dto.AdoptionPostDetailDto;
 import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSummaryDto;
 import org.springframework.data.domain.Page;
