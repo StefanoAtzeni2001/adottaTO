@@ -113,6 +113,7 @@ public class UserProfileController {
             return ResponseEntity.status(404).body("User not found");
         else{
             UserProfileDTO dto = new UserProfileDTO(
+                    profile.getId(),
                     profile.getName(),
                     profile.getSurname(),
                     profile.getEmail(),
