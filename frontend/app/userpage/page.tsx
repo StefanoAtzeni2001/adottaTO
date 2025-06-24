@@ -234,12 +234,20 @@ export default function UserPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
                         {posts.map(post => (
-                            <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
+                            <Card
+                                key={post.id}
+                                className={`cursor-pointer transition-opacity ${!post.active ? "opacity-50 grayscale" : ""}`}
+                                onClick={() => handleCardClick(post.id)}
+                            >
                                 <CardHeader>
                                     <CardTitle>{post.name}</CardTitle>
-                                    <CardDescription>{post.species} - {post.breed}</CardDescription>
+                                    <CardDescription>
+                                        {post.species} - {post.breed}
+                                        {!post.active && <span className="text-red-500 ml-2">(Adottato)</span>}
+                                    </CardDescription>
                                 </CardHeader>
-                                <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+
+                                <div className="relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
                                     <Image
                                         src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
                                         alt={`Immagine di ${post.name}`}
@@ -248,6 +256,7 @@ export default function UserPage() {
                                         unoptimized
                                     />
                                 </div>
+
                                 <CardContent>
                                     <p><strong>Provincia:</strong> {post.location}</p>
                                     <p><strong>Età:</strong> {post.age} mesi</p>
@@ -257,10 +266,12 @@ export default function UserPage() {
                             </Card>
                         ))}
                     </div>
+
                     {selectedPost && (
                         <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
                     )}
                 </TabsContent>
+
 
                 <TabsContent value="RicercaSalvata">
                     <h1 className="text-4xl font-bold mb-4">Le mie ricerche salvate:</h1>
