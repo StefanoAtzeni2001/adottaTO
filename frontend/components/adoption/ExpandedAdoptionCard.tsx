@@ -46,6 +46,36 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
         fetchUserProfile()
     }, [post.ownerId])
 
+    const handleSendProposal = async () => {
+
+        const token = localStorage.getItem("jwt")
+        const userId = localStorage.getItem("userId")
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/send", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    senderId: userId,
+                    receiverId: post.ownerId,
+                    adoptionPostId: post.id,
+                    message: "Ciao! Mi piacerebbe adottare " + post.name + ".",
+                    type: "text"
+                })
+            })
+
+            if (!res.ok) throw new Error("Errore durante l'invio della proposta")
+
+            alert("Proposta inviata con successo!")
+        } catch (err) {
+            console.error("Errore invio proposta:", err)
+            alert("Errore durante l'invio della proposta.")
+        }
+    }
+        
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex justify-center items-center z-50">
             <div className="relative bg-gray-100 rounded-3xl max-w-4xl w-full overflow-hidden">
@@ -116,9 +146,13 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                                     : `Proprietario #${post.ownerId}`}
                             </span>
                         </div>
-                        <button className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-full transition">
+                        <button
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-full transition"
+                            onClick={handleSendProposal}
+                        >
                             Manda Proposta
                         </button>
+
                     </div>
                 </div>
             </div>

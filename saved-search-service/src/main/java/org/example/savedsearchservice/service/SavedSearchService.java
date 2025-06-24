@@ -4,6 +4,7 @@ package org.example.savedsearchservice.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.example.savedsearchservice.model.SavedSearch;
 import org.example.savedsearchservice.repository.SavedSearchRepository;
+import org.example.shareddtos.dto.AdoptionPostSavedSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class SavedSearchService {
                 .minAge(search.getMinAge())
                 .maxAge(search.getMaxAge())
                 .color(search.getColor())
+                .location(search.getLocation())
                 .build();
         SavedSearch saved = repository.save(savedSearch);
         return toSearchDto(saved);
@@ -80,9 +82,9 @@ public class SavedSearchService {
      * @param userId the ID of the user
      * @return list of saved searches in DTO format
      */
-    public List<AdoptionPostSearchDto> getSavedSearchesByUser(Long userId) {
+    public List<AdoptionPostSavedSearchDto> getSavedSearchesByUser(Long userId) {
         return repository.findByUserId(userId).stream()
-                .map(this::toSearchDto)
+                .map(this::toSavedSearchDto)
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +104,21 @@ public class SavedSearchService {
         dto.setMinAge(savedSearch.getMinAge());
         dto.setMaxAge(savedSearch.getMaxAge());
         dto.setColor(savedSearch.getColor());
+        dto.setLocation(savedSearch.getLocation());
 
+        return dto;
+    }
+
+    private AdoptionPostSavedSearchDto toSavedSearchDto(SavedSearch savedSearch) {
+        AdoptionPostSavedSearchDto dto = new AdoptionPostSavedSearchDto();
+        dto.setId(savedSearch.getId());
+        dto.setSpecies(savedSearch.getSpecies());
+        dto.setBreed(savedSearch.getBreed());
+        dto.setGender(savedSearch.getGender());
+        dto.setMinAge(savedSearch.getMinAge());
+        dto.setMaxAge(savedSearch.getMaxAge());
+        dto.setColor(savedSearch.getColor());
+        dto.setLocation(savedSearch.getLocation());
         return dto;
     }
 }

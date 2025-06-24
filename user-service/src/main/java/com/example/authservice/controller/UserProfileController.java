@@ -64,6 +64,7 @@ public class UserProfileController {
 
         UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
         UserProfileDTO dto = new UserProfileDTO(
+                profile.getId(),
                 profile.getName(),
                 profile.getSurname(),
                 profile.getEmail(),
@@ -106,6 +107,7 @@ public class UserProfileController {
      */
     @GetMapping(GET_USER_BY_ID)
     public ResponseEntity<?> getUserProfileById(@PathVariable Long id) {
+      
         UserProfile profile = userProfileRepository.findById(id).orElse(null);
         if (profile == null)
             return ResponseEntity.status(404).body("User not found");
@@ -137,7 +139,8 @@ public class UserProfileController {
             dto = new EmailResponseDto(
                     "Eva",
                     "Fiori",
-                    "evina2.ef@gmail.com"
+                    //"evina2.ef@gmail.com"*
+                    "prova@prova.com"
             );
         }
         else{

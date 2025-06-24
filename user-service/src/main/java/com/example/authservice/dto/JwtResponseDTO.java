@@ -12,4 +12,5 @@ import lombok.*;
 @Builder
 public class JwtResponseDTO {
     private String token;
+    private Long userId;
 }

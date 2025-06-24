@@ -5,10 +5,22 @@ import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle
+} from "@/components/ui/card"
 import ExpandedAdoptionCard from "@/components/user/ExpandedAdoptionCardUser"
 import EditProfile from "@/components/user/EditProfile"
 import PostAdoption from "@/components/user/CreateAdoptionPost"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger
+} from "@/components/ui/tabs"
 import Image from "next/image";
 
 interface UserProfile {
@@ -35,14 +47,27 @@ interface AdoptionPostDetailDto {
     imageBase64: string
 }
 
+interface AdoptionPostSavedSearchDto {
+    id: number
+    species: string[]
+    breed: string[]
+    gender: string
+    minAge: number
+    maxAge: number
+    color: string[]
+    location: string[]
+}
+
 export default function UserPage() {
     const [profile, setProfile] = useState<UserProfile | null>(null)
     const [posts, setPosts] = useState<AdoptionPostDetailDto[]>([])
     const [selectedPost, setSelectedPost] = useState<AdoptionPostDetailDto | null>(null)
+    const [savedSearches, setSavedSearches] = useState<AdoptionPostSavedSearchDto[]>([])
     const router = useRouter()
 
     useEffect(() => {
         const token = localStorage.getItem("jwt")
+        const userId = localStorage.getItem("userId")
         if (!token) {
             router.push("/login")
             return
@@ -61,7 +86,6 @@ export default function UserPage() {
                 router.push("/login")
             })
 
-        // Carica gli ID dei post, poi recupera i dettagli
         fetch("http://localhost:8090/get-my-owned-posts", {
             headers: { Authorization: `Bearer ${token}` }
         })
@@ -75,6 +99,18 @@ export default function UserPage() {
                 setPosts(details)
             })
             .catch(err => console.error("Errore caricamento annunci:", err))
+
+        if (userId) {
+            fetch("http://localhost:8090/get-my-saved-search", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "User-Id": userId
+                }
+            })
+                .then(res => res.ok ? res.json() : Promise.reject("Errore nelle ricerche salvate"))
+                .then(setSavedSearches)
+                .catch(err => console.error("Errore nel caricamento delle ricerche salvate:", err))
+        }
     }, [router])
 
     const handleProfileUpdate = async (name: string, surname: string,imageFile?: File) => {
@@ -107,7 +143,12 @@ export default function UserPage() {
 
     const handleLogout = () => {
         localStorage.removeItem("jwt")
+        localStorage.removeItem("userId")
         router.push("/login")
+    }
+
+    const handleGoChat = () => {
+        router.push("/chat")
     }
 
     const handleCardClick = async (postId: number) => {
@@ -121,6 +162,32 @@ export default function UserPage() {
             setSelectedPost(detail)
         } catch (err) {
             console.error("Errore nel caricamento dettagli:", err)
+        }
+    }
+
+    const handleDeleteSearch = async (searchId: number) => {
+        const token = localStorage.getItem("jwt")
+        const userId = localStorage.getItem("userId")
+        if (!token || !userId) return
+
+        const confirmed = confirm("Sei sicuro di voler eliminare questa ricerca salvata?")
+        if (!confirmed) return
+
+        try {
+            const res = await fetch(`http://localhost:8090/delete-saved-search/${searchId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "User-Id": userId
+                }
+            })
+            if (res.ok) {
+                setSavedSearches(prev => prev.filter(s => s.id !== searchId))
+            } else {
+                alert("Errore durante l'eliminazione della ricerca")
+            }
+        } catch (err) {
+            console.error("Errore nella cancellazione:", err)
         }
     }
 
@@ -146,42 +213,86 @@ export default function UserPage() {
                     </div>
                     <p className="text-lg text-gray-600">{profile.email}</p>
                     <PostAdoption />
+                    <Button
+                        onClick={handleGoChat}
+                        className="bg-red-600 text-white">
+                        Le mie chat
+                    </Button>
                 </div>
             </div>
 
             <Separator className="my-8" />
 
-            <h1 className="text-4xl font-bold mb-4">I miei annunci:</h1>
+            <Tabs defaultValue="Annunci" className="w-full">
+                <TabsList>
+                    <TabsTrigger value="Annunci">Annunci</TabsTrigger>
+                    <TabsTrigger value="RicercaSalvata">Ricerca Salvata</TabsTrigger>
+                </TabsList>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-                {posts.map(post => (
-                    <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
-                        <CardHeader>
-                            <CardTitle>{post.name}</CardTitle>
-                            <CardDescription>{post.species} - {post.breed}</CardDescription>
-                        </CardHeader>
-                        <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
-                            <Image
-                                src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
-                                alt={`Immagine di ${post.name}`}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                            />
-                        </div>
-                        <CardContent>
-                            <p><strong>Provincia:</strong> {post.location}</p>
-                            <p><strong>Età:</strong> {post.age} mesi</p>
-                            <p><strong>Colore:</strong> {post.color}</p>
-                            <p><strong>Sesso:</strong> {post.gender === "M" ? "Maschio" : "Femmina"}</p>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+                <TabsContent value="Annunci">
+                    <h1 className="text-4xl font-bold mb-4">I miei annunci:</h1>
 
-            {selectedPost && (
-                <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
-            )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+                        {posts.map(post => (
+                            <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
+                                <CardHeader>
+                                    <CardTitle>{post.name}</CardTitle>
+                                    <CardDescription>{post.species} - {post.breed}</CardDescription>
+                                </CardHeader>
+                                <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+                                    <Image
+                                        src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
+                                        alt={`Immagine di ${post.name}`}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                </div>
+                                <CardContent>
+                                    <p><strong>Provincia:</strong> {post.location}</p>
+                                    <p><strong>Età:</strong> {post.age} mesi</p>
+                                    <p><strong>Colore:</strong> {post.color}</p>
+                                    <p><strong>Sesso:</strong> {post.gender === "M" ? "Maschio" : "Femmina"}</p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    {selectedPost && (
+                        <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
+                    )}
+                </TabsContent>
+
+                <TabsContent value="RicercaSalvata">
+                    <h1 className="text-4xl font-bold mb-4">Le mie ricerche salvate:</h1>
+                    <ul className="space-y-4">
+                        {savedSearches.map(search => (
+                            <li
+                                key={search.id}
+                                className="border rounded p-4 hover:shadow w-full flex justify-between items-start gap-4"
+                            >
+                                <div>
+                                    <h2 className="font-semibold text-lg mb-2">Ricerca #{search.id}</h2>
+                                    <div className="flex flex-nowrap gap-6 overflow-x-auto text-sm text-gray-700">
+                                        <span><strong>Specie:</strong> {search.species.join(", ") || "Nessuna"}</span>
+                                        <span><strong>Razza:</strong> {search.breed.join(", ") || "Nessuna"}</span>
+                                        <span><strong>Età:</strong> {search.minAge} - {search.maxAge} mesi</span>
+                                        <span><strong>Sesso:</strong> {search.gender === "M" ? "Maschio" : search.gender === "F" ? "Femmina" : "Indifferente"}</span>
+                                        <span><strong>Colore:</strong> {search.color.join(", ") || "Nessuno"}</span>
+                                        <span><strong>Provincia:</strong> {search.location.join(", ") || "Nessuna"}</span>
+                                    </div>
+                                </div>
+
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => handleDeleteSearch(search.id)}
+                                >
+                                    Elimina
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                </TabsContent>
+            </Tabs>
         </div>
     )
 }
