@@ -123,15 +123,11 @@ export default function HomePage() {
 
     return (
         <div className="flex flex-col items-center gap-6 p-6">
-            <SearchFilters onSearchAction={handleSearch} />
-
-            <Button
-                onClick={handleSaveSearch}
-                className="mt-4 self-center"
-                disabled={!lastFilters}
-            >
-                Salva ricerca
-            </Button>
+            <SearchFilters
+                onSearchAction={handleSearch}
+                onSaveSearch={handleSaveSearch}
+                canSaveSearch={!!lastFilters}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-6">
                 {results.map(post => (

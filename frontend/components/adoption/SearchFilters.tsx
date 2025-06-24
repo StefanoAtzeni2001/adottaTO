@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import Select from "react-select"
 import { Input } from "@/components/ui/input"
@@ -21,9 +23,11 @@ interface Filters {
 
 interface SearchFiltersProps {
     onSearchAction: (filters: Filters) => void
+    onSaveSearch: () => void
+    canSaveSearch: boolean
 }
 
-export default function SearchFilters({ onSearchAction }: SearchFiltersProps) {
+export default function SearchFilters({ onSearchAction, onSaveSearch, canSaveSearch }: SearchFiltersProps) {
     const [species, setSpecies] = useState<Option[]>([])
     const [breed, setBreed] = useState<Option[]>([])
     const [breeds, setBreeds] = useState<Option[]>([])
@@ -60,7 +64,7 @@ export default function SearchFilters({ onSearchAction }: SearchFiltersProps) {
         onSearchAction({
             species: species.map(s => s.value),
             breed: breed.map(b => b.value),
-            gender: gender ? gender.value : undefined,  // <-- stringa singola o undefined
+            gender: gender ? gender.value : undefined,
             color: color.map(c => c.value),
             location: location.map(l => l.value),
             minAge,
@@ -130,9 +134,20 @@ export default function SearchFilters({ onSearchAction }: SearchFiltersProps) {
                 />
             </div>
 
-            <div className="flex gap-4 mt-4">
-                <Button onClick={handleClear} variant="outline">Elimina i filtri</Button>
-                <Button onClick={handleSearchClick} variant="default" className="bg-red-600 text-white">Ricerca!</Button>
+            <div className="flex flex-wrap gap-4 mt-4 justify-center">
+                <Button onClick={handleClear} variant="outline">
+                    Elimina i filtri
+                </Button>
+                <Button onClick={handleSearchClick} className="bg-red-600 text-white">
+                    Ricerca!
+                </Button>
+                <Button
+                    onClick={onSaveSearch}
+                    disabled={!canSaveSearch}
+                    className="bg-red-500 text-white"
+                >
+                    Salva ricerca
+                </Button>
             </div>
         </>
     )
