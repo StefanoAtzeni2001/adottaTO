@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.authservice.constants.AuthEndpoints.*;
+import static com.example.authservice.constants.UserEndpoints.*;
 
 /**
  * Configuration class for Spring Security.
@@ -73,11 +73,11 @@ public class SecurityConfig {
      */
     private void configureOAuth2Login(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
-                .loginPage(API_LOGIN)
+                .loginPage(LOGIN)
                 .authorizationEndpoint(endpoint -> endpoint
                         .authorizationRequestResolver(customAuthorizationRequestResolver())
                 )
-                .defaultSuccessUrl(GOOGLE_REGISTRATION, true)
+                .defaultSuccessUrl("/auth/google-registration", true)
         );
     }
 

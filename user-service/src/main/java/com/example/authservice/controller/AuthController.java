@@ -16,12 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import static com.example.authservice.constants.AuthEndpoints.*;
+import static com.example.authservice.constants.UserEndpoints.*;
 
 /**
  * Controller responsible for handling authentication-related operations:
@@ -29,7 +28,8 @@ import static com.example.authservice.constants.AuthEndpoints.*;
  * - Manual registration
  * - Google OAuth2 registration
  */
-@Controller
+@RestController
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -47,7 +47,7 @@ public class AuthController {
      * @param response servlet response used to set cookies
      * @return a redirect URL if login is successful, otherwise 401 Unauthorized
      */
-    @PostMapping(API_LOGIN)
+    @PostMapping(LOGIN)
     @ResponseBody
     public ResponseEntity<?> apiLogin(@RequestBody LoginRequestDTO request, HttpServletResponse response) {
         Auth userAuth = authService.findByEmail(request.getEmail()).orElse(null);
@@ -65,7 +65,7 @@ public class AuthController {
      * @param request registration data (email, password, etc.)
      * @return a success message or 409 Conflict if email is already in use
      */
-    @PostMapping(value = API_REGISTER, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = REGISTER, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public ResponseEntity<?> registerViaApi(
             @RequestPart("request") @Valid AuthRegisterRequestDTO request,
@@ -121,7 +121,7 @@ public class AuthController {
      * @param userId user ID from the `oauth_user_id` cookie
      * @return JWT token or appropriate error response
      */
-    @GetMapping(API_OAUTH_JWT)
+    @GetMapping(OAUTH_JWT)
     @ResponseBody
     public ResponseEntity<?> getJwtFromOauthCookie(@CookieValue(value = "oauth_user_id", required = false) String userId) {
         if (userId == null) {

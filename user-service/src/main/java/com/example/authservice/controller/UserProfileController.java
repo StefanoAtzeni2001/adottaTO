@@ -7,18 +7,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.example.shareddtos.dto.EmailResponseDto;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.NoSuchElementException;
-import static com.example.authservice.constants.AuthEndpoints.*;
+import static com.example.authservice.constants.UserEndpoints.*;
 /**
  * Controller responsible for retrieving and updating the authenticated user's profile.
  */
-@Controller
+@RestController
+@RequestMapping("/user")
 public class UserProfileController {
 
     private final ProfileService profileService;
@@ -38,8 +38,8 @@ public class UserProfileController {
      * @param userId the ID of the authenticated user, passed in the request header
      * @return the user's profile information, or 404 if not found
      */
-    @GetMapping(PROFILE)
-    public ResponseEntity<?> getMyUserProfile(@RequestHeader("User-Id") Long userId) {
+    @GetMapping(GET_MY_PROFILE)
+    public ResponseEntity<UserProfileDTO> getMyUserProfile(@RequestHeader("User-Id") Long userId) {
         try {
             UserProfileDTO dto = profileService.getUserById(userId);
             return ResponseEntity.ok(dto);
@@ -55,7 +55,7 @@ public class UserProfileController {
      * @return the user's profile information, or 404 if not found
      */
     @GetMapping(GET_USER_BY_ID)
-    public ResponseEntity<?> getUserProfileById(@PathVariable Long id) {
+    public ResponseEntity<UserProfileDTO> getUserProfileById(@PathVariable Long id) {
         try {
             UserProfileDTO dto = profileService.getUserById(id);
             return ResponseEntity.ok(dto);
@@ -72,7 +72,7 @@ public class UserProfileController {
      * @param userId the ID of the authenticated user, passed in the request header
      * @return a success message if the update is successful, or an error message otherwise
      */
-    @PostMapping(value = API_PROFILE_UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = UPDATE_PROFILE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<?> updateUserProfile(
             @RequestPart("request") @Valid UserProfileDTO updateRequest,
@@ -98,8 +98,8 @@ public class UserProfileController {
      * @param id the ID of the user to retrieve the email for
      * @return the user's email address, or 404 if not found
      */
-    @GetMapping(PROFILE_EMAIL)
-    public ResponseEntity<?> getEmailProfileById(@PathVariable Long id) {
+    @GetMapping(GET_PROFILE_EMAIL)
+    public ResponseEntity<EmailResponseDto> getEmailProfileById(@PathVariable Long id) {
         try {
             EmailResponseDto dto = profileService.getEmailById(id);
             return ResponseEntity.ok(dto);

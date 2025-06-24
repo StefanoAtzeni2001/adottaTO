@@ -9,7 +9,7 @@ export default function OAuthRedirectPage() {
     useEffect(() => {
         const fetchJwt = async () => {
             try {
-                const res = await fetch("http://localhost:8090/api/oauth-jwt", {
+                const res = await fetch("http://localhost:8090/auth/oauth-jwt", {
                     credentials: "include", // manda i cookie HttpOnly
                 })
 

@@ -28,7 +28,7 @@ public class UserServiceClient {
      */
     public EmailResponseDto getUser(Long userId) {
         return webClient.get()
-                .uri("/profile-email/" + userId)
+                .uri("/user/get/email/" + userId)
                 .retrieve()
                 .bodyToMono(EmailResponseDto.class)
                 .block();

@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: ${SERVER_PORT:8090}
 
 spring:
   application:
@@ -8,21 +8,44 @@ spring:
   cloud:
     gateway:
       forwarded:
-        enabled: true        # <-- aggiunto per abilitare X-Forwarded headers
+        enabled: true
       routes:
         # ADOPTION POST SERVICE: public
         - id: adoptionpost_route_public
           uri: http://localhost:8081
           predicates:
-            - Path=/get-list,/get-list-filtered,/get-by-id/**
+            - Path=/adoption/get/**
 
         # ADOPTION POST SERVICE: private
         - id: adoptionpost_route_auth
           uri: http://localhost:8081
           predicates:
-            - Path=/create-adoption-post,/delete-by-id/**,/update-by-id/**,/get-my-owned-posts,/get-my-adopted-posts
+            - Path=/adoption/post/**,/adoption/my/**
           filters:
             - JwtUserIdHeaderFilter
+
+        # SAVED SEARCH SERVICE: private
+        - id: savedsearch_route_auth
+          uri: http://localhost:8084
+          predicates:
+            - Path=/search/**
+          filters:
+            - JwtUserIdHeaderFilter
+
+        # USER SERVICE: private
+        - id: user_route_auth
+          uri: http://localhost:8083
+          predicates:
+            - Path=/user/my-profile/**
+          filters:
+            - JwtUserIdHeaderFilter
+
+        # USER SERVICE: public
+        - id: user_route_public
+          uri: http://localhost:8083
+          predicates:
+            - Path=/auth/**,/user/get/**,/oauth2/**,/login/oauth2/**
+
         # CHAT SERVICE: private
         - id: chat_route_auth
           uri: http://localhost:8082
@@ -31,27 +54,5 @@ spring:
           filters:
             - JwtUserIdHeaderFilter
 
-        # USER SERVICE: public
-        - id: user_route_public
-          uri: http://localhost:8083
-          predicates:
-            - Path=/login/oauth2/**,/api/login,/google-registration,/api/register,/api/oauth-jwt,/oauth2/authorization/**,/api/profile/**
-
-        # USER SERVICE: private
-        - id: user_route_auth
-          uri: http://localhost:8083
-          predicates:
-            - Path=/profile,/api/profile-update
-          filters:
-            - JwtUserIdHeaderFilter
-
-        # SAVED SEARCH SERVICE: private
-        - id: savedsearch_route_auth
-          uri: http://localhost:8084
-          predicates:
-            - Path=/get-my-saved-search,/delete-saved-search/**,/save-search
-          filters:
-            - JwtUserIdHeaderFilter
 jwt:
   secret: ${JWT_SECRET}
-
