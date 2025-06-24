@@ -69,7 +69,7 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<?> registerViaApi(
             @RequestPart("request") @Valid AuthRegisterRequestDTO request,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+            @RequestPart(value = "images", required = false) MultipartFile imageFile) {
         try {
             String base64Image = null;
             if (imageFile != null && !imageFile.isEmpty()) {

@@ -27,7 +27,7 @@ export const dogBreeds = [
 
 export const catBreeds = [
     "Meticcio", "Persiano", "Maine Coon", "Exotic Shorthair", "Abissino", "Siamese", "Ragdoll",
-    "Sphynx", "Birmano", "Bengala", "British Shorthair", "Norvegese delle Foreste", "Siberiano"
+    "Sphynx", "Birmano", "Bengala", "British Shorthair", "Norvegese delle Foreste", "Siberiano", "Soriano"
 ]
 
 export const birdBreeds = [
@@ -47,7 +47,7 @@ export const fishBreeds = [
 
 
 export const colors = [
-    "Bianco", "Nero", "Marrone", "Grigio", "Arancione", "Tigrato", "Maculato", "Beige", "Dorato", "Tricolore"
+    "Bianco", "Nero", "Marrone", "Grigio", "Arancione", "Tigrato", "Maculato", "Beige", "Dorato", "Tricolore", "Verde"
 ]
 
 export const genderOptions = [

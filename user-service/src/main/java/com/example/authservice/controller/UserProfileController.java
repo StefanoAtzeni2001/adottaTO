@@ -83,7 +83,7 @@ public class UserProfileController {
     @Transactional
     public ResponseEntity<?> updateUserProfileViaApi(
             @RequestPart("request") @Valid UserProfileDTO updateRequest,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @RequestPart(value = "images", required = false) MultipartFile imageFile,
             @RequestHeader("User-Id") Long userId) {
         try {
             String base64Image = null;

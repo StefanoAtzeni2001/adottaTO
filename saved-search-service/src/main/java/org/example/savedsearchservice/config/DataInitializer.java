@@ -28,7 +28,7 @@ public class DataInitializer implements CommandLineRunner {
                             .gender(null)
                             .minAge(null)
                             .maxAge(36)
-                            .color(List.of("Rosso"))
+                            .color(List.of("Arancione"))
                             .build()
             );
 

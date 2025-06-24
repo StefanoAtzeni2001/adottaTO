@@ -1,22 +1,26 @@
 package it.unito.chatrest.config;
 
 import it.unito.chatrest.dto.MessageSendRequest;
+import it.unito.chatrest.repository.ChatRepository;
 import it.unito.chatrest.service.ChatService;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataInitializer {
+public class DataInitializer implements CommandLineRunner {
 
+    private final ChatRepository chatRepository;
     private final ChatService chatService;
 
-    public DataInitializer(ChatService chatService) {
+    public DataInitializer(ChatRepository chatRepository, ChatService chatService) {
+        this.chatRepository = chatRepository;
         this.chatService = chatService;
     }
 
-    @PostConstruct
-    public void init() {
-        try {
+    @Override
+    public void run(String... args) throws Exception {
+        if (chatRepository.count() == 0) {
+
             // Chat tra utente 1 e 2
             MessageSendRequest msg1 = new MessageSendRequest();
             msg1.setSenderId(1L);
@@ -28,7 +32,7 @@ public class DataInitializer {
             MessageSendRequest msg2 = new MessageSendRequest();
             msg2.setSenderId(2L);
             msg2.setReceiverId(1L);
-            msg2.setChatId(1L); // verifica che sia corretto
+            msg2.setChatId(1L);
             msg2.setMessage("Ciao! L'annuncio è ancora disponibile.");
             chatService.sendMessage(msg2, 2L);
 
@@ -43,12 +47,11 @@ public class DataInitializer {
             MessageSendRequest msg4 = new MessageSendRequest();
             msg4.setSenderId(3L);
             msg4.setReceiverId(1L);
-            msg4.setChatId(2L); // verifica che sia corretto
+            msg4.setChatId(2L);
             msg4.setMessage("Salve! Possiamo parlarne meglio qui.");
             chatService.sendMessage(msg4, 3L);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(">>> Chat DB initialized");
         }
     }
 }
