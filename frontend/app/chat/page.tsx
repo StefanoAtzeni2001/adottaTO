@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface Chat {
     id: number
@@ -288,12 +289,6 @@ export default function ChatPage() {
                                 const profile = profilesMap[otherUserId]
                                 const adoptionPost = adoptionPostsMap[chat.adoptionPostId]
 
-                                const profileImg = profile?.profilePicture?.trim()
-                                    ? profile.profilePicture.startsWith("http")
-                                        ? profile.profilePicture
-                                        : `/${profile.profilePicture.replace(/^\/+/, "")}`
-                                    : "/default-avatar.svg"
-
                                 return (
                                     <Card
                                         key={chat.id}
@@ -303,11 +298,21 @@ export default function ChatPage() {
                                         }`}
                                     >
                                         <CardHeader className="flex items-center space-x-4">
-                                            <img
-                                                src={profileImg}
-                                                alt={`${profile?.name ?? ""} ${profile?.surname ?? ""}`}
-                                                className="w-10 h-10 rounded-full object-cover"
-                                            />
+                                            <Avatar className="w-12 h-12">
+                                                <AvatarImage
+                                                    src={
+                                                        profile?.profilePicture
+                                                            ? `data:image/jpeg;base64,${profile.profilePicture}`
+                                                            : "/default-avatar.svg"
+                                                    }
+                                                    alt={`${profile?.name ?? ""} ${profile?.surname ?? ""}`}
+                                                />
+                                                <AvatarFallback>
+                                                    {profile?.name?.[0] ?? "U"}
+                                                    {profile?.surname?.[0] ?? ""}
+                                                </AvatarFallback>
+                                            </Avatar>
+
                                             <div>
                                                 <CardTitle className="text-base">
                                                     {profile ? `${profile.name} ${profile.surname}` : "Utente sconosciuto"}
