@@ -126,15 +126,27 @@ public class AdoptionPostController {
      * @param userId [from header] the ID of the user requesting the update
      * @return ResponseEntity containing the updated adoption post or HTTP 403 (Forbidden) if unauthorized
      */
-    @PutMapping(UPDATE_ADOPTION_POST_BY_ID)
-    public ResponseEntity<AdoptionPostDetailDto> updateAdoptionPost(@RequestBody AdoptionPostDetailDto postDto, @PathVariable Long postId, @RequestHeader("User-Id") Long userId) {
+    @PutMapping(value = UPDATE_ADOPTION_POST_BY_ID, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AdoptionPostDetailDto> updateAdoptionPost(
+            @RequestPart("post") @Valid AdoptionPostDetailDto postDto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile,
+            @PathVariable Long postId,
+            @RequestHeader("User-Id") Long userId) {
         try {
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String base64Image = Base64.getEncoder().encodeToString(imageFile.getBytes());
+                postDto.setImageBase64(base64Image);
+            }
+
             AdoptionPostDetailDto updated = adoptionPostService.updatePost(postDto, postId, userId);
             return ResponseEntity.ok(updated);
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     /**
      * Retrieves adoption posts owned by the user.
