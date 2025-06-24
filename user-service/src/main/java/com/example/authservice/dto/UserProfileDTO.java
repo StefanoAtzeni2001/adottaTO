@@ -1,9 +1,14 @@
 package com.example.authservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
+
+/**
+ * Data Transfer Object used to encapsulate user profile data.
+ */
 @AllArgsConstructor
-@Data
+@NoArgsConstructor
+@Getter
+@Setter
 public class UserProfileDTO {
     private String name;
     private String surname;

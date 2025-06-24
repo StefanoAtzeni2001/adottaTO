@@ -1,11 +1,15 @@
 package it.unito.emailservice.service;
 
-import it.unito.emailservice.dto.EmailRequestDto;
-import it.unito.emailservice.dto.EmailResponseDto;
+import org.example.shareddtos.dto.EmailRequestDto;
+import org.example.shareddtos.dto.EmailResponseDto;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.beans.factory.annotation.Value;
 
+/**
+ * Component responsible for communicating with user-service
+ * to retrieve user information (email, name, surname) using a WebClient
+ */
 @Component
 public class UserServiceClient {
 
@@ -18,6 +22,12 @@ public class UserServiceClient {
                 .build();
     }
 
+    /**
+     * Sends a POST request to the user-service
+     *
+     * @param userId the ID of the user whose info is needed
+     * @return an EmailResponseDto containing name, surname, and email of the user
+     */
     public EmailResponseDto getUser(Long userId) {
 
         EmailRequestDto request = new EmailRequestDto(userId);

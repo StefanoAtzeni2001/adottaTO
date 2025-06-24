@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Component responsible for handling new adoption post events received from RabbitMQ.
+ */
 @Component
 public class NewPostListener {
 
@@ -29,6 +32,13 @@ public class NewPostListener {
         this.repository = repository;
     }
 
+    /**
+     * Listener method that is triggered when a new adoption post is received from RabbitMQ
+     * It queries the database for users whose saved searches match the given post attributes and
+     * sends a notification event for each matching user.
+     *
+     * @param post the adoption post received from the queue
+     */
     @RabbitListener(queues = "${app.rabbitmq.queue}")
     public void handleNewAdoptionPost(AdoptionPostSummaryDto post) {
         List<Long> userIds = repository.findMatchingUserIds(
@@ -54,13 +64,9 @@ public class NewPostListener {
 
         for(Long userId : userIds) {
             postUserId.setUserId(userId);
-            sendNewAdoptionPostEvent(postUserId);
+            rabbitTemplate.convertAndSend(adottatoExchange, savedSearchMatchRoutingKey, postUserId);
         }
 
         System.out.println("Inviato messaggio per notifica email");
-    }
-
-    public void sendNewAdoptionPostEvent(AdoptionPostRabbitMQDto post) {
-        rabbitTemplate.convertAndSend(adottatoExchange, savedSearchMatchRoutingKey, post);
     }
 }

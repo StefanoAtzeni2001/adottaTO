@@ -2,7 +2,7 @@ package org.example.adoptionpostservice.controller;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
-import org.example.shareddtos.dto.AdoptionPostDetailDto;
+import org.example.adoptionpostservice.dto.AdoptionPostDetailDto;
 import org.example.shareddtos.dto.AdoptionPostSearchDto;
 import org.example.shareddtos.dto.AdoptionPostSummaryDto;
 import org.example.adoptionpostservice.service.AdoptionPostService;

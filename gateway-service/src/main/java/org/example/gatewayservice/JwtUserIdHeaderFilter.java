@@ -19,12 +19,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-//filtro che controlla il token jwt, estrae il nome utente e lo inserisce nell'header
+/**
+ * A custom Spring Cloud Gateway filter that:
+ * - Intercepts incoming HTTP requests
+ * - Parses and validates a JWT token from the Authorization header
+ * - Extracts the userId from the token
+ * - Adds the userId to the request headers as "User-Id"
+ * If the token is invalid or missing, the filter stops the request and returns a 401 Unauthorized response.
+ */
 @Component
 public class JwtUserIdHeaderFilter extends AbstractGatewayFilterFactory<JwtUserIdHeaderFilter.Config> {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUserIdHeaderFilter.class);
 
+    /** The secret key used to sign and verify JWT tokens.  */
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -32,6 +40,12 @@ public class JwtUserIdHeaderFilter extends AbstractGatewayFilterFactory<JwtUserI
         super(Config.class);
     }
 
+    /**
+     * Applies the filter logic to the incoming request. Validates the JWT and injects userId into headers.
+     *
+     * @param config Configuration object (unused in this filter)
+     * @return A GatewayFilter that validates JWT and add the userId to the header
+     */
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
@@ -75,7 +89,13 @@ public class JwtUserIdHeaderFilter extends AbstractGatewayFilterFactory<JwtUserI
             }
         };
     }
-    //handle errors with token, block routing and return 401
+
+    /**
+     * Handles unauthorized requests by setting the HTTP status to 401 and completing the response.
+     *
+     * @param exchange The current server exchange
+     * @return A Mono that completes the response
+     */
     private Mono<Void> handleUnauthorized(ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);

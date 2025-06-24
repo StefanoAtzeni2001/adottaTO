@@ -11,15 +11,13 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 
-//CONFIGURAZIONE SENDER
-//(gli basta creare solo l'exchange)
+//SENDER CONFIGURATION
 @Configuration
 public class RabbitMQConfig {
 
     @Value("${app.rabbitmq.exchange}")
     private String exchange;
 
-    //Definizione dell'exchange (dove i messaggi vengono spediti)
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchange, true, false);
@@ -30,7 +28,6 @@ public class RabbitMQConfig {
         return new Jackson2JsonMessageConverter(objectMapper);
     }
 
-    //oggetto usato per connettersi a rabbitMQ, convertire e inviare messaggi all reciver
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory,
                                          MessageConverter converter) {

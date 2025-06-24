@@ -1,14 +1,15 @@
 package com.example.authservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@Builder
+/**
+ * Data Transfer Object used to encapsulate user authentication data.
+ */
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
+@Builder
 public class LoginRequestDTO {
     private String email;
     private String password;
