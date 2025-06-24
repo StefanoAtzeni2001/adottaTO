@@ -139,6 +139,16 @@ export default function ChatPage() {
         }
     }
 
+    useEffect(() => {
+        if (!selectedChatId) return;
+
+        const interval = setInterval(() => {
+            fetchChatMessages(selectedChatId);
+        }, 30000); // ogni 30 secondi
+
+        return () => clearInterval(interval); // cleanup al cambio chat o unmount
+    }, [selectedChatId]);
+
     const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
