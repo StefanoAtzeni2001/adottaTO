@@ -19,7 +19,17 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 
-import { catBreeds, dogBreeds, colors, province } from "@/data/constants"
+import {
+    province,
+    species,
+    dogBreeds,
+    catBreeds,
+    birdBreeds,
+    turtleBreeds,
+    fishBreeds,
+    colors,
+    genderOptions
+} from "@/data/constants"
 
 interface Props {
     post: {
@@ -52,7 +62,18 @@ export default function EditAdoptionPost({ post, onClose, onUpdated }: Props) {
     })
 
     const originalSpecies = post.species
-    const breedOptions = formData.species === "Cane" ? dogBreeds : catBreeds
+
+    // Mappa specie -> array di razze
+    const breedsMap: Record<string, string[]> = {
+        Cane: dogBreeds,
+        Gatto: catBreeds,
+        Uccello: birdBreeds,
+        Tartaruga: turtleBreeds,
+        Pesce: fishBreeds,
+    }
+
+    const breedOptions = breedsMap[formData.species] || []
+
     const speciesChanged = formData.species !== originalSpecies
     const breedValid = breedOptions.includes(formData.breed)
     const canSubmit = !speciesChanged || (speciesChanged && breedValid)
@@ -149,8 +170,11 @@ export default function EditAdoptionPost({ post, onClose, onUpdated }: Props) {
                             <SelectValue placeholder="Specie" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="Cane">Cane</SelectItem>
-                            <SelectItem value="Gatto">Gatto</SelectItem>
+                            {species.map(s => (
+                                <SelectItem key={s} value={s}>
+                                    {s}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
 
@@ -178,8 +202,11 @@ export default function EditAdoptionPost({ post, onClose, onUpdated }: Props) {
                             <SelectValue placeholder="Sesso" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="M">Maschio</SelectItem>
-                            <SelectItem value="F">Femmina</SelectItem>
+                            {genderOptions.map(g => (
+                                <SelectItem key={g.value} value={g.value}>
+                                    {g.label}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
 

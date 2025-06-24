@@ -4,7 +4,16 @@ import { useEffect, useState } from "react"
 import Select from "react-select"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { province, dogBreeds, catBreeds, colors, genderOptions } from "@/data/constants"
+import {
+    province,
+    dogBreeds,
+    catBreeds,
+    colors,
+    genderOptions,
+    birdBreeds,
+    turtleBreeds,
+    fishBreeds
+} from "@/data/constants"
 
 interface Option {
     label: string
@@ -39,21 +48,33 @@ export default function SearchFilters({ onSearchAction, onSaveSearch, canSaveSea
 
     const speciesOptions: Option[] = [
         { value: "Cane", label: "Cane" },
-        { value: "Gatto", label: "Gatto" }
+        { value: "Gatto", label: "Gatto" },
+        { value: "Uccello", label: "Uccello" },
+        { value: "Tartaruga", label: "Tartaruga" },
+        { value: "Pesce", label: "Pesce" }
     ]
+
+    const breedsBySpecies: Record<string, string[]> = {
+        Cane: dogBreeds,
+        Gatto: catBreeds,
+        Uccello: birdBreeds,
+        Tartaruga: turtleBreeds,
+        Pesce: fishBreeds
+    }
 
     const genderOpts: Option[] = genderOptions.map(g => ({ value: g.value, label: g.label }))
     const colorOpts: Option[] = colors.map(c => ({ value: c, label: c }))
     const provinceOpts: Option[] = province.map(p => ({ value: p, label: p }))
 
     useEffect(() => {
-        const selectedSpecies = species.map(s => s.value)
-        if (selectedSpecies.includes("Cane") && selectedSpecies.includes("Gatto")) {
-            setBreeds([...dogBreeds, ...catBreeds].map(b => ({ value: b, label: b })))
-        } else if (selectedSpecies.includes("Cane")) {
-            setBreeds(dogBreeds.map(b => ({ value: b, label: b })))
-        } else if (selectedSpecies.includes("Gatto")) {
-            setBreeds(catBreeds.map(b => ({ value: b, label: b })))
+        if (species.length === 1) {
+            const s = species[0].value
+            if (breedsBySpecies[s]) {
+                setBreeds(breedsBySpecies[s].map(b => ({ label: b, value: b })))
+            } else {
+                setBreeds([])
+            }
+            setBreed([])
         } else {
             setBreeds([])
             setBreed([])
@@ -105,6 +126,7 @@ export default function SearchFilters({ onSearchAction, onSaveSearch, canSaveSea
                     value={gender}
                     onChange={(val) => setGender(val as Option | null)}
                     options={genderOpts}
+                    isClearable
                 />
                 <Select
                     isMulti
@@ -125,12 +147,14 @@ export default function SearchFilters({ onSearchAction, onSaveSearch, canSaveSea
                     placeholder="Età min (mesi)"
                     value={minAge}
                     onChange={(e) => setMinAge(e.target.value)}
+                    min={0}
                 />
                 <Input
                     type="number"
                     placeholder="Età max (mesi)"
                     value={maxAge}
                     onChange={(e) => setMaxAge(e.target.value)}
+                    min={0}
                 />
             </div>
 

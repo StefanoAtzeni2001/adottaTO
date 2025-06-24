@@ -13,6 +13,10 @@ export const province = [
     "Vercelli", "Verona", "Vibo Valentia", "Vicenza", "Viterbo"
 ]
 
+export const species = [
+    "Cane", "Gatto", "Uccello", "Tartaruga", "Pesce"
+]
+
 export const dogBreeds = [
     "Meticcio", "Labrador Retriever", "Golden Retriever", "German Shepherd", "Cane Corso", "Maltese",
     "Lagotto Romagnolo", "Bolognese", "Bracco Italiano", "Mastino Napoletano",
@@ -25,6 +29,22 @@ export const catBreeds = [
     "Meticcio", "Persiano", "Maine Coon", "Exotic Shorthair", "Abissino", "Siamese", "Ragdoll",
     "Sphynx", "Birmano", "Bengala", "British Shorthair", "Norvegese delle Foreste", "Siberiano"
 ]
+
+export const birdBreeds = [
+    "Canarino", "Pappagallo", "Cocorita", "Calopsitta", "Inseparabile", "Diamante mandarino",
+    "Ara", "Cacatua", "Pappagallo del Senegal"
+]
+
+export const turtleBreeds = [
+    "Testuggine di Hermann", "Testuggine Marginata", "Testuggine Greca",
+    "Tartaruga dalle Orecchie Rosse", "Tartaruga Florida", "Tartaruga del Caspio"
+]
+
+export const fishBreeds = [
+    "Pesce Rosso", "Betta Splendens (Pesce Combattente)", "Guppy", "Neon", "Platy", "Molly",
+    "Ciclide", "Corydoras", "Discus", "Scalare"
+]
+
 
 export const colors = [
     "Bianco", "Nero", "Marrone", "Grigio", "Arancione", "Tigrato", "Maculato", "Beige", "Dorato", "Tricolore"

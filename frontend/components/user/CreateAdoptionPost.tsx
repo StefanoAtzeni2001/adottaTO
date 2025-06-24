@@ -9,9 +9,20 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
-import { catBreeds, dogBreeds, colors, province, genderOptions } from "@/data/constants"
+import {
+    catBreeds, dogBreeds, colors, province, genderOptions,
+    birdBreeds, turtleBreeds, fishBreeds
+} from "@/data/constants"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
+
+const breedsBySpecies: Record<string, string[]> = {
+    Cane: dogBreeds,
+    Gatto: catBreeds,
+    Uccello: birdBreeds,
+    Tartaruga: turtleBreeds,
+    Pesce: fishBreeds
+}
 
 export default function CreateAdoptionPost() {
     const [petName, setPetName] = useState("")
@@ -26,9 +37,12 @@ export default function CreateAdoptionPost() {
     const [breeds, setBreeds] = useState<string[]>([])
 
     useEffect(() => {
-        if (species === "Cane") setBreeds(dogBreeds)
-        else if (species === "Gatto") setBreeds(catBreeds)
-        else setBreeds([])
+        if (species && breedsBySpecies[species]) {
+            setBreeds(breedsBySpecies[species])
+        } else {
+            setBreeds([])
+        }
+        setBreed(undefined) // reset razza quando cambia specie
     }, [species])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -108,13 +122,16 @@ export default function CreateAdoptionPost() {
                                     <SelectContent>
                                         <SelectItem value="Cane">Cane</SelectItem>
                                         <SelectItem value="Gatto">Gatto</SelectItem>
+                                        <SelectItem value="Uccello">Uccello</SelectItem>
+                                        <SelectItem value="Tartaruga">Tartaruga</SelectItem>
+                                        <SelectItem value="Pesce">Pesce</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             <div className="flex flex-col gap-2">
                                 <Label>Razza</Label>
-                                <Select value={breed} onValueChange={setBreed}>
+                                <Select value={breed} onValueChange={setBreed} disabled={breeds.length === 0}>
                                     <SelectTrigger><SelectValue placeholder="Razza" /></SelectTrigger>
                                     <SelectContent>
                                         {breeds.map(b => (
@@ -162,7 +179,12 @@ export default function CreateAdoptionPost() {
 
                             <div className="flex flex-col gap-2">
                                 <Label>Età (in mesi)</Label>
-                                <Input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="Età in mesi" />
+                                <Input
+                                    type="number"
+                                    value={age}
+                                    onChange={(e) => setAge(e.target.value)}
+                                    placeholder="Età in mesi"
+                                />
                             </div>
 
                             <div className="md:col-span-2 flex flex-col gap-2">
