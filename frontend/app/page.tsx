@@ -42,6 +42,7 @@ interface Filters {
     location?: string[]
     minAge?: string
     maxAge?: string
+    activeOnly?: boolean
 }
 
 export default function HomePage() {
@@ -65,7 +66,7 @@ export default function HomePage() {
                     params.append(key, value)
                 }
             })
-
+            params.append("activeOnly", "True")
             const res = await fetch(`http://localhost:8090/get-list-filtered?${params.toString()}`)
             if (!res.ok) throw new Error("Errore nella richiesta")
             const data = await res.json()
