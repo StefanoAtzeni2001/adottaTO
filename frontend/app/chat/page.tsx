@@ -36,7 +36,7 @@ interface Message {
     message: string
     timeStamp: string
     seen: boolean
-    type?: "text" | "request"  // messaggio normale o richiesta adozione
+    type?: "text" | "request"
     accepted?: boolean
 }
 
@@ -53,7 +53,7 @@ export default function ChatPage() {
 
     const router = useRouter()
 
-    useEffect(() => {
+    const fetchChatsAndDetails = () => {
         const token = localStorage.getItem("jwt")
         const userIdStr = localStorage.getItem("userId")
         if (!token || !userIdStr) {
@@ -116,6 +116,10 @@ export default function ChatPage() {
                 setError("Errore durante il caricamento delle chat")
                 setLoading(false)
             })
+    }
+
+    useEffect(() => {
+        fetchChatsAndDetails()
     }, [router])
 
     const fetchChatMessages = async (chatId: number) => {
@@ -144,10 +148,75 @@ export default function ChatPage() {
 
         const interval = setInterval(() => {
             fetchChatMessages(selectedChatId);
-        }, 30000); // ogni 30 secondi
+        }, 30000);
 
-        return () => clearInterval(interval); // cleanup al cambio chat o unmount
+        return () => clearInterval(interval);
     }, [selectedChatId]);
+
+    const handleSendRequest = async (chat: Chat) => {
+        const token = localStorage.getItem("jwt")
+        if (!token || !userId) {
+            alert("Utente non autenticato")
+            return
+        }
+
+        if (userId === chat.ownerId) {
+            alert("Non puoi inviare una richiesta su un tuo annuncio")
+            return
+        }
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/sendRequest", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    chatId: chat.id,
+                    adopterId: userId,
+                }),
+            })
+
+            if (!res.ok) throw new Error("Errore nell'invio della richiesta")
+
+            fetchChatsAndDetails()
+
+            alert("Richiesta inviata con successo!")
+        } catch (err) {
+            console.error("Errore invio richiesta:", err)
+            alert("Errore durante l'invio della richiesta")
+        }
+    }
+
+    const handleRespondRequest = async (chatId: number, accept: boolean) => {
+        const token = localStorage.getItem("jwt")
+        if (!token || !userId) return
+
+        try {
+            const res = await fetch(
+                accept ? "http://localhost:8090/chat/acceptRequest" : "http://localhost:8090/chat/rejectRequest",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ chatId }),
+                }
+            )
+
+            if (!res.ok) throw new Error("Errore durante la risposta alla richiesta")
+
+            fetchChatsAndDetails()
+            fetchChatMessages(chatId)
+
+            alert(`Richiesta ${accept ? "accettata" : "rifiutata"}!`)
+        } catch (err) {
+            console.error(err)
+            alert("Errore durante la risposta alla richiesta")
+        }
+    }
 
     const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -202,79 +271,6 @@ export default function ChatPage() {
         } catch (err) {
             console.error("Errore invio messaggio:", err)
             alert("Errore durante l'invio del messaggio")
-        }
-    }
-
-    const handleSendRequest = async (chat: Chat) => {
-        const token = localStorage.getItem("jwt")
-        if (!token || !userId) {
-            alert("Utente non autenticato")
-            return
-        }
-
-        if (userId === chat.ownerId) {
-            alert("Non puoi inviare una richiesta su un tuo annuncio")
-            return
-        }
-
-        try {
-            const res = await fetch("http://localhost:8090/chat/sendRequest", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    chatId: chat.id,
-                    adopterId: userId,
-                }),
-            })
-
-            if (!res.ok) throw new Error("Errore nell'invio della richiesta")
-
-            setChats((prev) =>
-                prev.map((c) =>
-                    c.id === chat.id ? { ...c, requestFlag: false } : c
-                )
-            )
-
-            alert("Richiesta inviata con successo!")
-        } catch (err) {
-            console.error("Errore invio richiesta:", err)
-            alert("Errore durante l'invio della richiesta")
-        }
-    }
-
-    const handleRespondRequest = async (chatId: number, accept: boolean) => {
-        const token = localStorage.getItem("jwt")
-        if (!token || !userId) return
-
-        try {
-            const res = await fetch(
-                accept ? "http://localhost:8090/chat/acceptRequest" : "http://localhost:8090/chat/rejectRequest",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ chatId }),
-                }
-            )
-
-
-            if (!res.ok) throw new Error("Errore durante la risposta alla richiesta")
-
-            setChats((prev) =>
-                prev.map((c) =>
-                    c.id === chatId ? { ...c, requestFlag: accept } : c
-                )
-            )
-
-            alert(`Richiesta ${accept ? "accettata" : "rifiutata"}!`)
-        } catch (err) {
-            console.error(err)
-            alert("Errore durante la risposta alla richiesta")
         }
     }
 
