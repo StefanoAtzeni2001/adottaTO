@@ -42,7 +42,7 @@ spring:
         - id: user_route_auth
           uri: http://user-service:8083
           predicates:
-            - Path=/profile,/api/profile/update
+            - Path=/profile,/api/profile-update
           filters:
             - JwtUserIdHeaderFilter
 

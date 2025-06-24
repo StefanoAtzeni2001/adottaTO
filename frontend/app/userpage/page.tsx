@@ -84,7 +84,7 @@ export default function UserPage() {
         if (imageFile) {
             formData.append("image", imageFile)
         }
-        const res = await fetch("http://localhost:8090/api/profile/update", {
+        const res = await fetch("http://localhost:8090/api/profile-update", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`
