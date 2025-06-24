@@ -334,7 +334,7 @@ export default function ChatPage() {
                                         )}
 
                                         {/* Se l'utente è owner, mostra il pulsante "Accetta/Rifiuta richiesta"*/}
-                                        {isOwner && chat.requestFlag === true && (
+                                        {isOwner && chat.requestFlag === true && chat.acceptedFlag === false && (
                                             <div>
                                                 <button
                                                     onClick={(e) => {
