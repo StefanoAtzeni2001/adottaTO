@@ -5,14 +5,14 @@ WORKDIR /app
 # Copy the shared-dtos module into the build context
 COPY shared-dtos /app/shared-dtos
 
-# Copy the adoption-post-service module's pom.xml and source code
+# Copy the user-service module's pom.xml and source code
 COPY user-service/pom.xml /app/user-service/pom.xml
 COPY user-service/src /app/user-service/src
 
 # Install the shared-dtos module first,
 RUN mvn -f /app/shared-dtos/pom.xml clean install -DskipTests
 
-# Build the adoption-post-service module, now that shared-dtos dependency is installed
+# Build the user-service module, now that shared-dtos dependency is installed
 RUN mvn -f /app/user-service/pom.xml clean package -DskipTests
 
 

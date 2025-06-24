@@ -55,19 +55,19 @@ public class EmailService {
             body += "\nSpecie: " + adoptionPostRabbitMQDto.getSpecies();
         }
         if(adoptionPostRabbitMQDto.getBreed() != null) {
-            body += "\nBreed: " + adoptionPostRabbitMQDto.getBreed();
+            body += "\nRazza: " + adoptionPostRabbitMQDto.getBreed();
         }
         if(adoptionPostRabbitMQDto.getAge() != null) {
-            body += "\nAge: " + adoptionPostRabbitMQDto.getAge();
+            body += "\nEtà: " + adoptionPostRabbitMQDto.getAge();
         }
         if(adoptionPostRabbitMQDto.getGender() != null) {
-            body += "\nGender: " + adoptionPostRabbitMQDto.getGender();
+            body += "\nGenere: " + adoptionPostRabbitMQDto.getGender();
         }
         if(adoptionPostRabbitMQDto.getColor() != null) {
-            body += "\nColor: " + adoptionPostRabbitMQDto.getColor();
+            body += "\nColore: " + adoptionPostRabbitMQDto.getColor();
         }
         if(adoptionPostRabbitMQDto.getLocation() != null) {
-            body += "\nLocation: " + adoptionPostRabbitMQDto.getLocation();
+            body += "\nPosizione: " + adoptionPostRabbitMQDto.getLocation();
         }
 
         System.out.println(subject);

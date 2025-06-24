@@ -5,14 +5,14 @@ WORKDIR /app
 # Copy the shared-dtos module into the build context
 COPY shared-dtos /app/shared-dtos
 
-# Copy the adoption-post-service module's pom.xml and source code
+# Copy the email-service module's pom.xml and source code
 COPY email-service/pom.xml /app/email-service/pom.xml
 COPY email-service/src /app/email-service/src
 
 # Install the shared-dtos module first,
 RUN mvn -f /app/shared-dtos/pom.xml clean install -DskipTests
 
-# Build the adoption-post-service module, now that shared-dtos dependency is installed
+# Build the email-service module, now that shared-dtos dependency is installed
 RUN mvn -f /app/email-service/pom.xml clean package -DskipTests
 
 
