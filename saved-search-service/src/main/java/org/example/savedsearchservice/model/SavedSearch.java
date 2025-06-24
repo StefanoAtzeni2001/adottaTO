@@ -43,4 +43,9 @@ public class SavedSearch {
     @Column(name = "color")
     private List<String> color;
 
+    @ElementCollection
+    @CollectionTable(name = "saved_search_locations", joinColumns = @JoinColumn(name = "saved_search_id"))
+    @Column(name = "location")
+    private List<String> location;
+
 }

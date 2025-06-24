@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import ExpandedAdoptionCard from "@/components/adoption/ExpandedAdoptionCard"
 import SearchFilters from "@/components/adoption/SearchFilters"
+import { Button } from "@/components/ui/button"
 
 interface AdoptionPost {
     id: number
@@ -31,11 +32,10 @@ interface AdoptionPostDetail {
     ownerName: string
 }
 
-// Tipi dei filtri con array di stringhe per quelli multipli
 interface Filters {
     species?: string[]
     breed?: string[]
-    gender?: string[]
+    gender?: string     // gender è stringa singola
     color?: string[]
     location?: string[]
     minAge?: string
@@ -45,17 +45,21 @@ interface Filters {
 export default function HomePage() {
     const [results, setResults] = useState<AdoptionPost[]>([])
     const [selectedPost, setSelectedPost] = useState<AdoptionPostDetail | null>(null)
+    const [lastFilters, setLastFilters] = useState<Filters | null>(null)
 
     const handleSearch = async (filters: Filters) => {
+        setLastFilters(filters)
+
         try {
             const params = new URLSearchParams()
 
             Object.entries(filters).forEach(([key, value]) => {
                 if (!value) return
-
+                // Se il valore è un array (species, breed, etc.), aggiungo tutti i valori
                 if (Array.isArray(value)) {
                     value.forEach(v => params.append(key, v))
                 } else {
+                    // Altrimenti aggiungo il valore singolo (gender e minAge, maxAge)
                     params.append(key, value)
                 }
             })
@@ -66,6 +70,43 @@ export default function HomePage() {
             setResults(data.content)
         } catch (err) {
             console.error("Errore durante la ricerca:", err)
+        }
+    }
+
+    const handleSaveSearch = async () => {
+        const token = localStorage.getItem("jwt")
+
+        if (!lastFilters) {
+            alert("Effettua prima una ricerca per poterla salvare.")
+            return
+        }
+
+        const dto = {
+            species: lastFilters.species || [],
+            breed: lastFilters.breed || [],
+            gender: lastFilters.gender || "",  // stringa singola qui
+            color: lastFilters.color || [],
+            location: lastFilters.location || [],
+            minAge: lastFilters.minAge ? parseInt(lastFilters.minAge) : null,
+            maxAge: lastFilters.maxAge ? parseInt(lastFilters.maxAge) : null,
+            activeOnly: true
+        }
+
+        try {
+            const res = await fetch("http://localhost:8090/save-search", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(dto)
+            })
+
+            if (!res.ok) throw new Error("Errore nel salvataggio della ricerca")
+            alert("Ricerca salvata con successo!")
+        } catch (err) {
+            console.error("Errore durante il salvataggio della ricerca:", err)
+            alert("Errore durante il salvataggio della ricerca.")
         }
     }
 
@@ -83,6 +124,14 @@ export default function HomePage() {
     return (
         <div className="flex flex-col items-center gap-6 p-6">
             <SearchFilters onSearchAction={handleSearch} />
+
+            <Button
+                onClick={handleSaveSearch}
+                className="mt-4 self-center"
+                disabled={!lastFilters}
+            >
+                Salva ricerca
+            </Button>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-6">
                 {results.map(post => (

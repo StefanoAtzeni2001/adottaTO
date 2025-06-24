@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import Select from "react-select"
 import { Input } from "@/components/ui/input"
@@ -11,16 +9,18 @@ interface Option {
     value: string
 }
 
+interface Filters {
+    species?: string[]
+    breed?: string[]
+    gender?: string
+    color?: string[]
+    location?: string[]
+    minAge?: string
+    maxAge?: string
+}
+
 interface SearchFiltersProps {
-    onSearchAction: (filters: {
-        species?: string[]
-        breed?: string[]
-        gender?: string[]
-        color?: string[]
-        location?: string[]
-        minAge?: string
-        maxAge?: string
-    }) => void
+    onSearchAction: (filters: Filters) => void
 }
 
 export default function SearchFilters({ onSearchAction }: SearchFiltersProps) {
@@ -60,7 +60,7 @@ export default function SearchFilters({ onSearchAction }: SearchFiltersProps) {
         onSearchAction({
             species: species.map(s => s.value),
             breed: breed.map(b => b.value),
-            gender: gender ? [gender.value] : [],
+            gender: gender ? gender.value : undefined,  // <-- stringa singola o undefined
             color: color.map(c => c.value),
             location: location.map(l => l.value),
             minAge,

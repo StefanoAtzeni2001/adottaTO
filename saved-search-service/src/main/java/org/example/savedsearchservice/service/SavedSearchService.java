@@ -30,6 +30,7 @@ public class SavedSearchService {
                 .minAge(search.getMinAge())
                 .maxAge(search.getMaxAge())
                 .color(search.getColor())
+                .location(search.getLocation())
                 .build();
         SavedSearch saved = repository.save(savedSearch);
         return toSearchDto(saved);
@@ -62,6 +63,7 @@ public class SavedSearchService {
         dto.setMinAge(savedSearch.getMinAge());
         dto.setMaxAge(savedSearch.getMaxAge());
         dto.setColor(savedSearch.getColor());
+        dto.setLocation(savedSearch.getLocation());
 
         return dto;
     }
