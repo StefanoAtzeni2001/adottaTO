@@ -32,4 +32,7 @@ public class AdoptionPost {
     private Boolean active;
     private Long adopterId;
 
+    @Column(columnDefinition = "TEXT")
+    private String imageBase64;
+
 }

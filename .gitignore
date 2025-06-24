@@ -34,7 +34,7 @@ build/
 /.idea
 
 ### env file con Credenziali ###
-.env
+env/.env.secret
 =======
 # ------------------------
 # Maven
@@ -92,5 +92,6 @@ docker-compose.override.yml
 k8s/*.yaml
 
 # Environments / config
-.env
+env/.env.secret
 .idea
+/k8s/secret/app-secret.yml

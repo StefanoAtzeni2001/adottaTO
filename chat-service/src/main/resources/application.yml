@@ -3,7 +3,7 @@ spring:
     name: chat-service
 
   datasource:
-    url: jdbc:postgresql://postgres-db_adottato:5432/postgres_db
+    url: jdbc:postgresql://postgres-db-adottato:5432/postgres_db
     username: ${DB_USER:app_user}
     password: ${DB_PASSWORD:app_password}
     driver-class-name: org.postgresql.Driver
@@ -31,4 +31,4 @@ app:
       chat-request-accepted: ${RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY} # chat.request.accepted
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8082}

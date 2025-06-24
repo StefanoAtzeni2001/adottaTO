@@ -1,32 +1,42 @@
 package it.unito.emailservice.service;
 
-import it.unito.emailservice.dto.EmailRequestDTO;
-import it.unito.emailservice.dto.EmailResponseDTO;
-import org.springframework.http.HttpStatus;
+import org.example.shareddtos.dto.EmailRequestDto;
+import org.example.shareddtos.dto.EmailResponseDto;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.beans.factory.annotation.Value;
 
+/**
+ * Component responsible for communicating with user-service
+ * to retrieve user information (email, name, surname) using a WebClient
+ */
 @Component
 public class UserServiceClient {
 
     private final WebClient webClient;
 
-    public UserServiceClient(WebClient.Builder builder) {
+    public UserServiceClient(WebClient.Builder builder,
+                             @Value("${app.webclient.userservice}") String userServiceBaseUrl) {
         this.webClient = builder
-                .baseUrl("http://userservice:8080")
+                .baseUrl(userServiceBaseUrl) //"http://user-service:8083"
                 .build();
     }
 
-    public EmailResponseDTO getUser(Long userId) {
+    /**
+     * Sends a POST request to the user-service
+     *
+     * @param userId the ID of the user whose info is needed
+     * @return an EmailResponseDto containing name, surname, and email of the user
+     */
+    public EmailResponseDto getUser(Long userId) {
 
-        EmailRequestDTO request = new EmailRequestDTO(userId);
+        EmailRequestDto request = new EmailRequestDto(userId);
 
         return webClient.post()
                 .uri("/profile-email")
                 .bodyValue(request)
                 .retrieve()
-                .bodyToMono(EmailResponseDTO.class)
+                .bodyToMono(EmailResponseDto.class)
                 .block();
     }
 }

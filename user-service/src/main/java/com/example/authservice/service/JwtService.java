@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
 
 /**
@@ -20,8 +19,18 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
+    /**
+     * Expiration time for JWT tokens in milliseconds.
+     * Currently set to 24 hours (86400000 ms).
+     */
     private static final long EXPIRATION_TIME = 86400000;
 
+    /**
+     * Generates a JWT token containing the given user ID as the subject
+     *
+     * @param userId the user ID to encode in the token's subject claim
+     * @return the generated JWT token as a compact String
+     */
     public String generateToken(String userId) {
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 
@@ -35,6 +44,13 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Extracts the user ID from the given JWT token.
+     *
+     * @param token the JWT token to parse
+     * @return the user ID stored in the token's subject claim
+     * @throws JwtException if the token is invalid or cannot be parsed
+     */
     public String extractUserId(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.parserBuilder()
@@ -45,6 +61,12 @@ public class JwtService {
                 .getSubject();
     }
 
+    /**
+     * Validates the given JWT token.
+     *
+     * @param token the JWT token to validate
+     * @return true if the token is valid, false otherwise
+     */
     public boolean isTokenValid(String token) {
         try {
             return extractUserId(token) != null && !isTokenExpired(token);
@@ -53,6 +75,12 @@ public class JwtService {
         }
     }
 
+    /**
+     * Checks whether the given JWT token is expired.
+     *
+     * @param token the JWT token to check
+     * @return true if the token is expired, false otherwise
+     */
     private boolean isTokenExpired(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.parserBuilder()

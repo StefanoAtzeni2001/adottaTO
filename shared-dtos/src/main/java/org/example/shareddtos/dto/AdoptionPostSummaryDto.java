@@ -1,11 +1,14 @@
 package org.example.shareddtos.dto;
-import lombok.Data;
+import lombok.*;
 
 /**
  * DTO used to transfer summary information of an AdoptionPost.
  * used in list views.
  */
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class AdoptionPostSummaryDto {
     private Long id;
     private String name;
@@ -16,4 +19,5 @@ public class AdoptionPostSummaryDto {
     private String color;
     private String location;
     private Boolean active;
+    private String imageBase64;
 }

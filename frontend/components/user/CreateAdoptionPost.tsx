@@ -22,6 +22,7 @@ export default function CreateAdoptionPost() {
     const [location, setLocation] = useState<string | undefined>()
     const [color, setColor] = useState<string | undefined>()
     const [age, setAge] = useState("")
+    const [imageFile, setImageFile] = useState<File | null>(null)
     const [breeds, setBreeds] = useState<string[]>([])
 
     useEffect(() => {
@@ -40,22 +41,29 @@ export default function CreateAdoptionPost() {
         const token = localStorage.getItem("jwt")
         if (!token) return alert("Effettua il login.")
 
+        const post = {
+            name: petName,
+            description,
+            species,
+            breed,
+            gender,
+            age: parseInt(age, 10),
+            color,
+            location
+        }
+
+        const formData = new FormData()
+        formData.append("post", new Blob([JSON.stringify(post)], { type: "application/json" }))
+        if (imageFile) {
+            formData.append("image", imageFile)
+        }
+
         const res = await fetch("http://localhost:8090/create-adoption-post", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({
-                name: petName,
-                description,
-                species,
-                breed,
-                gender,
-                age: parseInt(age, 10),
-                color,
-                location
-            }),
+            body: formData
         })
 
         if (res.ok) {
@@ -68,6 +76,7 @@ export default function CreateAdoptionPost() {
             setColor(undefined)
             setLocation(undefined)
             setAge("")
+            setImageFile(null)
         } else {
             const err = await res.json()
             alert(`Errore: ${err.message || res.statusText}`)
@@ -163,6 +172,19 @@ export default function CreateAdoptionPost() {
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="Inserisci una descrizione"
                                     rows={4}
+                                />
+                            </div>
+
+                            <div className="md:col-span-2 flex flex-col gap-2">
+                                <Label>Immagine</Label>
+                                <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        if (e.target.files?.[0]) {
+                                            setImageFile(e.target.files[0])
+                                        }
+                                    }}
                                 />
                             </div>
                         </div>

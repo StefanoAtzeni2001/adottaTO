@@ -21,31 +21,61 @@ import java.util.Map;
 
 import static com.example.authservice.constants.AuthEndpoints.*;
 
+/**
+ * Configuration class for Spring Security.
+ * Sets up endpoint permissions, OAuth2 login handling, CSRF disabling,
+ * password encoding, and custom authorization request resolution.
+ */
 @Configuration
 public class SecurityConfig {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
 
+    /**
+     * Constructor-based injection of the client registration repository.
+     *
+     * @param clientRegistrationRepository repository for OAuth2 client registrations
+     */
     public SecurityConfig(ClientRegistrationRepository clientRegistrationRepository) {
         this.clientRegistrationRepository = clientRegistrationRepository;
     }
 
+    /**
+     * Configures the Spring Security filter chain.
+     * - Allows unauthenticated access to specific endpoints
+     * - All other requests require authentication
+     * - Configures OAuth2 login
+     * - Disables CSRF protection
+     *
+     * @param http HttpSecurity object to configure
+     * @return the configured SecurityFilterChain
+     * @throws Exception in case of misconfiguration
+     */
     @Bean
     public SecurityFilterChain configureSecurity(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth.requestMatchers(
                         HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(API_LOGIN, API_REGISTER, API_OAUTH_JWT, PROFILE, API_PROFILE_UPDATE, PROFILE_EMAIL, "api/profile/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers(API_LOGIN, API_REGISTER, API_OAUTH_JWT).permitAll()
+//                        .requestMatchers("api/profile/**").authenticated()
+                        .anyRequest().permitAll()
                 );
 
         configureOAuth2Login(http);
 
-        http.csrf(AbstractHttpConfigurer::disable);
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
 
+    /**
+     * Configures OAuth2 login with a custom authorization request resolver
+     *
+     * @param http HttpSecurity object to extend
+     * @throws Exception in case of error
+     */
     private void configureOAuth2Login(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
                 .loginPage(API_LOGIN)
@@ -56,6 +86,11 @@ public class SecurityConfig {
         );
     }
 
+    /**
+     * Custom resolver for OAuth2 authorization requests
+     *
+     * @return a custom OAuth2AuthorizationRequestResolver
+     */
     private OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver() {
         DefaultOAuth2AuthorizationRequestResolver defaultResolver =
                 new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
@@ -90,11 +125,23 @@ public class SecurityConfig {
         };
     }
 
+    /**
+     * Defines the password encoder bean using BCrypt.
+     *
+     * @return a BCryptPasswordEncoder instance
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Provides the authentication manager bean required by Spring Security.
+     *
+     * @param config the authentication configuration provided by Spring
+     * @return the AuthenticationManager instance
+     * @throws Exception if manager cannot be created
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

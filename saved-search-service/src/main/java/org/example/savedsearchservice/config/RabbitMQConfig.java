@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-//RECIVER CONFIGURATION
+//RECEIVER CONFIGURATION
 @Configuration
 public class RabbitMQConfig {
 

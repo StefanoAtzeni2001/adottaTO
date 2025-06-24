@@ -21,6 +21,7 @@ import {
     TabsList,
     TabsTrigger
 } from "@/components/ui/tabs"
+import Image from "next/image";
 
 interface UserProfile {
     name: string
@@ -43,6 +44,7 @@ interface AdoptionPostDetailDto {
     ownerId: number
     active: boolean
     adopterId: number | null
+    imageBase64: string
 }
 
 interface AdoptionPostSavedSearchDto {
@@ -111,20 +113,29 @@ export default function UserPage() {
         }
     }, [router])
 
-    const handleProfileUpdate = async (name: string, surname: string) => {
+    const handleProfileUpdate = async (name: string, surname: string,imageFile?: File) => {
         const token = localStorage.getItem("jwt")
-        const res = await fetch("http://localhost:8090/api/profile/update", {
+        const formData = new FormData()
+        formData.append("request", new Blob([JSON.stringify({ name, surname })], { type: "application/json" }))
+        if (imageFile) {
+            formData.append("image", imageFile)
+        }
+        const res = await fetch("http://localhost:8090/api/profile-update", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
-            body: JSON.stringify({ name, surname })
+            body: formData
         })
 
         if (res.ok) {
             alert("Profilo aggiornato con successo")
-            setProfile(prev => prev ? { ...prev, name, surname } : null)
+            // Re-fetch the updated profile from backend
+            const updatedProfile = await fetch("http://localhost:8090/profile", {
+                headers: { Authorization: `Bearer ${token}` }
+            }).then(res => res.json())
+
+            setProfile(updatedProfile)
         } else {
             alert("Errore durante l'aggiornamento del profilo")
         }
@@ -186,7 +197,11 @@ export default function UserPage() {
         <div className="container py-6">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <Avatar className="w-32 h-32">
-                    <AvatarImage src={profile.profilePicture ?? "/default-avatar.svg"} />
+                    <AvatarImage
+                        src={profile.profilePicture
+                            ? `data:image/jpeg;base64,${profile.profilePicture}`
+                            : "/default-avatar.svg"}
+                    />
                     <AvatarFallback>{profile.name[0]}{profile.surname[0]}</AvatarFallback>
                 </Avatar>
 
@@ -216,6 +231,7 @@ export default function UserPage() {
 
                 <TabsContent value="Annunci">
                     <h1 className="text-4xl font-bold mb-4">I miei annunci:</h1>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
                         {posts.map(post => (
                             <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
@@ -223,6 +239,15 @@ export default function UserPage() {
                                     <CardTitle>{post.name}</CardTitle>
                                     <CardDescription>{post.species} - {post.breed}</CardDescription>
                                 </CardHeader>
+                                <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+                                    <Image
+                                        src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
+                                        alt={`Immagine di ${post.name}`}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                </div>
                                 <CardContent>
                                     <p><strong>Provincia:</strong> {post.location}</p>
                                     <p><strong>Età:</strong> {post.age} mesi</p>

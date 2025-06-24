@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adoption-post-service
+  namespace: adottato
+  labels:
+    app: adoption-post-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adoption-post-service
+  template:
+    metadata:
+      labels:
+        app: adoption-post-service
+    spec:
+      containers:
+        - name: adoption-post-service
+          image: adottato/adoption-post-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: shared-config
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: rabbitmq-secret
+          env:
+            - name: RABBITMQ_NEW_POST_ROUTING_KEY
+              value: "post.new"
+            - name: RABBITMQ_CHAT_REQUEST_ACCEPTED_ROUTING_KEY
+              value: "chat.request.accepted"
+            - name: RABBITMQ_ADOPTION_POST_QUEUE_CHAT
+              value: "adoptionpost.queue.requestaccepted"
+
+

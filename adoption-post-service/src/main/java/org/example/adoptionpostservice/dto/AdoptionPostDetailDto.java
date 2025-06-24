@@ -1,12 +1,17 @@
-package org.example.shareddtos.dto;
+package org.example.adoptionpostservice.dto;
 
-import lombok.Data;
+import lombok.*;
+
 import java.time.LocalDateTime;
+
 /**
  * DTO used to transfer full details of an AdoptionPost.
  * Used for create, update, and detail views.
  */
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class AdoptionPostDetailDto {
     private Long id;
     private String name;
@@ -21,4 +26,5 @@ public class AdoptionPostDetailDto {
     private Long ownerId;
     private Boolean active;
     private Long adopterId;
+    private String imageBase64;
 }

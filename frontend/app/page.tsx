@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import ExpandedAdoptionCard from "@/components/adoption/ExpandedAdoptionCard"
 import SearchFilters from "@/components/adoption/SearchFilters"
+import Image from "next/image"
 
 interface AdoptionPost {
     id: number
@@ -14,6 +15,7 @@ interface AdoptionPost {
     age: number
     color: string
     location: string
+    imageBase64: string
 }
 
 interface AdoptionPostDetail {
@@ -29,6 +31,7 @@ interface AdoptionPostDetail {
     location: string
     ownerId: number
     ownerName: string
+    imageBase64: string
 }
 
 interface Filters {
@@ -67,6 +70,7 @@ export default function HomePage() {
             if (!res.ok) throw new Error("Errore nella richiesta")
             const data = await res.json()
             setResults(data.content)
+            console.log(results)
         } catch (err) {
             console.error("Errore durante la ricerca:", err)
         }
@@ -115,6 +119,7 @@ export default function HomePage() {
             if (!res.ok) throw new Error("Errore nel recupero dettagli")
             const detail = await res.json()
             setSelectedPost(detail)
+            console.log(selectedPost)
         } catch (err) {
             console.error("Errore nel caricamento dettagli:", err)
         }
@@ -135,7 +140,16 @@ export default function HomePage() {
                             <CardTitle>{post.name}</CardTitle>
                             <CardDescription>{post.species} - {post.breed}</CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+                            <Image
+                                src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
+                                alt={`Immagine di ${post.name}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                            />
+                        </div>
+                        <CardContent >
                             <p><strong>Provincia:</strong> {post.location}</p>
                             <p><strong>Età:</strong> {post.age} mesi</p>
                             <p><strong>Colore:</strong> {post.color}</p>
@@ -149,5 +163,6 @@ export default function HomePage() {
                 <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
             )}
         </div>
+
     )
 }

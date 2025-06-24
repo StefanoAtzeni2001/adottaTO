@@ -1,6 +1,7 @@
 import { X } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 
 interface ExpandedAdoptionCardProps {
     post: {
@@ -16,6 +17,7 @@ interface ExpandedAdoptionCardProps {
         publicationDate: string
         location: string
         ownerName?: string
+        imageBase64: string
     }
     onClose: () => void
 }
@@ -73,16 +75,7 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
             alert("Errore durante l'invio della proposta.")
         }
     }
-
-
-    const profileImg = (() => {
-        const pic = userProfile?.profilePicture?.trim()
-        if (!pic) return "/default-avatar.svg"
-        return pic.startsWith("http")
-            ? pic
-            : `/${pic.replace(/^\/+/, "")}`
-    })()
-
+        
     return (
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex justify-center items-center z-50">
             <div className="relative bg-gray-100 rounded-3xl max-w-4xl w-full overflow-hidden">
@@ -97,7 +90,11 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                 {/* Immagine animale */}
                 <div className="relative w-full h-72 sm:h-80 md:h-96 overflow-hidden">
                     <Image
-                        src="/default-pet.jpg"
+                        src={
+                            post.imageBase64
+                                ? `data:image/jpeg;base64,${post.imageBase64}`
+                                : "no_content.jpg"
+                        }
                         alt="Immagine animale"
                         fill
                         className="object-cover"
@@ -129,14 +126,20 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                     {/* Proprietario + bottone */}
                     <div className="flex items-center justify-between mt-8">
                         <div className="flex items-center gap-3">
-                            <Image
-                                src={profileImg}
-                                alt="Foto profilo"
-                                width={48}
-                                height={48}
-                                className="rounded-full object-cover"
-                                unoptimized
-                            />
+                            <Avatar className="w-12 h-12">
+                                <AvatarImage
+                                    src={
+                                        userProfile?.profilePicture
+                                            ? `data:image/jpeg;base64,${userProfile.profilePicture}`
+                                            : "/default-avatar.svg"
+                                    }
+                                    alt="Foto profilo"
+                                />
+                                <AvatarFallback>
+                                    {userProfile?.name?.[0] ?? "U"}
+                                    {userProfile?.surname?.[0] ?? ""}
+                                </AvatarFallback>
+                            </Avatar>
                             <span className="text-lg font-bold text-gray-800">
                                 {userProfile
                                     ? `${userProfile.name} ${userProfile.surname}`

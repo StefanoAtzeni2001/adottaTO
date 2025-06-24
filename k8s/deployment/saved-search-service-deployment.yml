@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saved-search-service
+  namespace: adottato
+  labels:
+    app: saved-search-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saved-search-service
+  template:
+    metadata:
+      labels:
+        app: saved-search-service
+    spec:
+      containers:
+        - name: saved-search-service
+          image: adottato/saved-search-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: shared-config
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: rabbitmq-secret
+          env:
+            - name: RABBITMQ_SAVED_SEARCH_QUEUE
+              value: "savedsearch.queue"
+            - name: RABBITMQ_NEW_POST_ROUTING_KEY
+              value: "post.new"
+            - name:  RABBITMQ_SAVEDSEARCH_MATCH
+              value: "savedsearch.match"

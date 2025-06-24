@@ -3,19 +3,26 @@ package org.example.adoptionpostservice.config;
 
 import org.example.adoptionpostservice.model.AdoptionPost;
 import org.example.adoptionpostservice.repository.AdoptionPostRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Base64;
+
 /**
  * If Repository is empty initialize with 3 entries
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private AdoptionPostRepository adoptionPostRepository;
+    private final AdoptionPostRepository adoptionPostRepository;
+
+    DataInitializer(AdoptionPostRepository adoptionPostRepository) {
+        this.adoptionPostRepository = adoptionPostRepository;
+    }
 
     @Override
     public void run(String... args) {
@@ -34,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
                             .ownerId(1L)
                             .active(true)
                             .adopterId(null)
+                            .imageBase64(encodeImage("zuko.jpg"))
                             .build()
             );
 
@@ -42,7 +50,7 @@ public class DataInitializer implements CommandLineRunner {
                             .name("Capitan Polpetta")
                             .description("Cane tranquillo, adatto anche in appartamento.")
                             .species("Cane")
-                            .breed("Labrador")
+                            .breed("Bassotto")
                             .gender("M")
                             .age(3)
                             .color("Marrone")
@@ -91,4 +99,18 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println(">>> DB initialized");
         }
     }
+
+
+
+private String encodeImage(String fileName) {
+    try {
+        ClassPathResource imgFile = new ClassPathResource("images/" + fileName);
+        byte[] bytes = StreamUtils.copyToByteArray(imgFile.getInputStream());
+        return Base64.getEncoder().encodeToString(bytes);
+    } catch (IOException e) {
+        e.printStackTrace();
+        return null;
+    }
+}
+
 }

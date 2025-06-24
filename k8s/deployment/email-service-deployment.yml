@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+  namespace: adottato
+  labels:
+    app: email-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-service
+  template:
+    metadata:
+      labels:
+        app: email-service
+    spec:
+      containers:
+        - name: email-service
+          image: adottato/email-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8085
+          envFrom:
+            - configMapRef:
+                name: shared-config
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: rabbitmq-secret
+          env:
+            - name: RABBITMQ_EMAIL_QUEUE_CHAT
+              value: "email.queue.chat"
+            - name: RABBITMQ_EMAIL_QUEUE_SAVED_SEARCH
+              value: "email.queue.savedsearch"
+            - name: RABBITMQ_CHAT_NOTIFICATION_ROUTING_KEY
+              value: "chat.notification"
+            - name: RABBITMQ_SAVED_SEARCH_ROUTING_KEY
+              value: "savedsearch.match"
+            - name: USER_SERVICE_URL
+              value: "http://user-service:8083"
+

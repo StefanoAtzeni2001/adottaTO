@@ -2,7 +2,6 @@ package org.example.savedsearchservice.config;
 
 import org.example.savedsearchservice.model.SavedSearch;
 import org.example.savedsearchservice.repository.SavedSearchRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -11,8 +10,11 @@ import java.util.List;
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private SavedSearchRepository savedSearchRepository;
+    private final SavedSearchRepository savedSearchRepository;
+
+    public DataInitializer(SavedSearchRepository savedSearchRepository) {
+        this.savedSearchRepository = savedSearchRepository;
+    }
 
     @Override
     public void run(String... args) {
