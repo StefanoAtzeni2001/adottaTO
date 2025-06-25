@@ -86,20 +86,6 @@ export default function UserPage() {
                 router.push("/login")
             })
 
-        fetch("http://localhost:8090/get-my-owned-posts", {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(res => res.ok ? res.json() : Promise.reject("Errore nella richiesta"))
-            .then(async (summaryPosts) => {
-                const details = await Promise.all(summaryPosts.content.map((post: { id: number }) =>
-                    fetch(`http://localhost:8090/get-by-id/${post.id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }).then(res => res.json())
-                ))
-                setPosts(details)
-            })
-            .catch(err => console.error("Errore caricamento annunci:", err))
-
         if (userId) {
             fetch("http://localhost:8090/get-my-saved-search", {
                 headers: {
@@ -191,6 +177,26 @@ export default function UserPage() {
         }
     }
 
+    const fetchUserPosts = () => {
+        const token = localStorage.getItem("jwt")
+        if (!token) return
+
+        fetch("http://localhost:8090/get-my-owned-posts", {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => res.ok ? res.json() : Promise.reject("Errore nella richiesta"))
+            .then(async (summaryPosts) => {
+                const details = await Promise.all(summaryPosts.content.map((post: { id: number }) =>
+                    fetch(`http://localhost:8090/get-by-id/${post.id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }).then(res => res.json())
+                ))
+                setPosts(details)
+            })
+            .catch(err => console.error("Errore caricamento annunci:", err))
+    }
+
+
     if (!profile) return <div>Caricamento...</div>
 
     return (
@@ -212,7 +218,7 @@ export default function UserPage() {
                         <Button variant="destructive" onClick={handleLogout}>Logout</Button>
                     </div>
                     <p className="text-lg text-gray-600">{profile.email}</p>
-                    <PostAdoption />
+                    <PostAdoption onPostCreated={fetchUserPosts} />
                     <Button
                         onClick={handleGoChat}
                         className="bg-red-600 text-white">

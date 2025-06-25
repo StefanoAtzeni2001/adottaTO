@@ -16,6 +16,11 @@ import {
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
+// ✅ Definizione dei props
+type CreateAdoptionPostProps = {
+    onPostCreated?: () => void;
+}
+
 const breedsBySpecies: Record<string, string[]> = {
     Cane: dogBreeds,
     Gatto: catBreeds,
@@ -24,7 +29,7 @@ const breedsBySpecies: Record<string, string[]> = {
     Pesce: fishBreeds
 }
 
-export default function CreateAdoptionPost() {
+export default function CreateAdoptionPost({ onPostCreated }: CreateAdoptionPostProps) {
     const [petName, setPetName] = useState("")
     const [description, setDescription] = useState("")
     const [species, setSpecies] = useState<string | undefined>()
@@ -42,7 +47,7 @@ export default function CreateAdoptionPost() {
         } else {
             setBreeds([])
         }
-        setBreed(undefined) // reset razza quando cambia specie
+        setBreed(undefined)
     }, [species])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -91,6 +96,10 @@ export default function CreateAdoptionPost() {
             setLocation(undefined)
             setAge("")
             setImageFile(null)
+
+            if (onPostCreated) {
+                onPostCreated()
+            }
         } else {
             const err = await res.json()
             alert(`Errore: ${err.message || res.statusText}`)
