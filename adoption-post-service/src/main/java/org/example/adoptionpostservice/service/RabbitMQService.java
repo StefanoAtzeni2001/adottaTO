@@ -55,6 +55,7 @@ public class RabbitMQService {
         System.out.println("Ricevuta richiesta accettata!!");
         if(post != null) {
             post.setAdopterId(message.getAdopterId());
+            post.setActive(false);
             repository.save(post);
         }
     }

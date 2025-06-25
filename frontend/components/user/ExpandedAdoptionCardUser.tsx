@@ -42,7 +42,7 @@ export default function ExpandedAdoptionCard({
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const res = await fetch(`http://localhost:8090/api/profile/${post.ownerId}`)
+                const res = await fetch(`http://localhost:8090/user/get/profile/${post.ownerId}`)
                 if (!res.ok) throw new Error("Errore nella fetch")
                 const data = await res.json()
                 setUserProfile(data)
@@ -64,7 +64,7 @@ export default function ExpandedAdoptionCard({
         }
 
         try {
-            const res = await fetch(`http://localhost:8090/delete-by-id/${post.id}`, {
+            const res = await fetch(`http://localhost:8090/adoption/post/delete/${post.id}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,

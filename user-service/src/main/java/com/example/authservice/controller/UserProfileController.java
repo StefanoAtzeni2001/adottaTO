@@ -1,87 +1,80 @@
 package com.example.authservice.controller;
 
-import org.example.shareddtos.dto.EmailRequestDto;
 import com.example.authservice.dto.UserProfileDTO;
-import com.example.authservice.model.Auth;
-import com.example.authservice.model.UserProfile;
-import com.example.authservice.repository.UserProfileRepository;
-import com.example.authservice.service.AuthService;
-import com.example.authservice.service.JwtService;
 import com.example.authservice.service.ProfileService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.example.shareddtos.dto.EmailResponseDto;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Base64;
-import static com.example.authservice.constants.AuthEndpoints.*;
-
+import java.util.NoSuchElementException;
+import static com.example.authservice.constants.UserEndpoints.*;
 /**
  * Controller responsible for retrieving and updating the authenticated user's profile.
  */
-@Controller
+@RestController
+@RequestMapping("/user")
 public class UserProfileController {
 
-    private final UserProfileRepository userProfileRepository;
-    private final AuthService authService;
     private final ProfileService profileService;
-    private final JwtService jwtService;
 
-    public UserProfileController(JwtService jwtService,
-                                 AuthService authService,
-                                 UserProfileRepository userProfileRepository, ProfileService profileService) {
-        this.jwtService = jwtService;
-        this.authService = authService;
-        this.userProfileRepository = userProfileRepository;
+    /**
+     * Constructs a new UserProfileController with the given ProfileService.
+     *
+     * @param profileService the service used to manage user profiles
+     */
+    public UserProfileController(ProfileService profileService) {
         this.profileService = profileService;
     }
 
     /**
-     * Returns the profile of the currently authenticated user using a JWT in the Authorization header.
+     * Retrieves the profile of the authenticated user.
      *
-     * @param authHeader Bearer token (JWT)
-     * @return user's profile data or appropriate error
+     * @param userId the ID of the authenticated user, passed in the request header
+     * @return the user's profile information, or 404 if not found
      */
-    @GetMapping(PROFILE)
-    public ResponseEntity<?> getUserProfile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body("Token mancante o malformato");
+    @GetMapping(GET_MY_PROFILE)
+    public ResponseEntity<UserProfileDTO> getMyUserProfile(@RequestHeader("User-Id") Long userId) {
+        try {
+            UserProfileDTO dto = profileService.getUserById(userId);
+            return ResponseEntity.ok(dto);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
         }
-
-        String token = authHeader.substring(7);
-        if (!jwtService.isTokenValid(token)) {
-            return ResponseEntity.status(401).body("Token non valido");
-        }
-
-        String userId = jwtService.extractUserId(token);
-        Auth user = authService.findById(Long.parseLong(userId)).orElse(null);
-        if (user == null) return ResponseEntity.status(404).body("User not found");
-
-        UserProfile profile = authService.getUserProfileByEmail(user.getEmail());
-        UserProfileDTO dto = new UserProfileDTO(
-                profile.getId(),
-                profile.getName(),
-                profile.getSurname(),
-                profile.getEmail(),
-                profile.getProfilePicture()
-        );
-        return ResponseEntity.ok(dto);
     }
 
     /**
-     * Updates the user's profile
-     
-     * @param updateRequest data to update (name, surname, profile picture)
-     * @return success or error response
+     * Retrieves the profile of a user by their ID.
+     *
+     * @param id the ID of the user to retrieve
+     * @return the user's profile information, or 404 if not found
      */
-    @PostMapping(value = API_PROFILE_UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @GetMapping(GET_USER_BY_ID)
+    public ResponseEntity<UserProfileDTO> getUserProfileById(@PathVariable Long id) {
+        try {
+            UserProfileDTO dto = profileService.getUserById(id);
+            return ResponseEntity.ok(dto);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Updates the profile of the authenticated user, including optional profile picture upload.
+     *
+     * @param updateRequest the updated profile data
+     * @param imageFile an optional image file representing the new profile picture
+     * @param userId the ID of the authenticated user, passed in the request header
+     * @return a success message if the update is successful, or an error message otherwise
+     */
+    @PostMapping(value = UPDATE_PROFILE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
-    public ResponseEntity<?> updateUserProfileViaApi(
+    public ResponseEntity<?> updateUserProfile(
             @RequestPart("request") @Valid UserProfileDTO updateRequest,
             @RequestPart(value = "images", required = false) MultipartFile imageFile,
             @RequestHeader("User-Id") Long userId) {
@@ -92,7 +85,7 @@ public class UserProfileController {
                 System.out.println(base64Image);
                 updateRequest.setProfilePicture(base64Image);
             }
-            profileService.update(updateRequest,userId);
+            profileService.update(updateRequest, userId);
             return ResponseEntity.ok("Profilo aggiornato con successo");
         } catch (IOException ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Errore durante l'elaborazione dell'immagine");
@@ -100,59 +93,18 @@ public class UserProfileController {
     }
 
     /**
-     * Returns a user profile by user ID.
+     * Retrieves only the email address of a user by their ID.
      *
-     * @param id user ID
-     * @return profile data or 404 if not found
+     * @param id the ID of the user to retrieve the email for
+     * @return the user's email address, or 404 if not found
      */
-    @GetMapping(GET_USER_BY_ID)
-    public ResponseEntity<?> getUserProfileById(@PathVariable Long id) {
-      
-        UserProfile profile = userProfileRepository.findById(id).orElse(null);
-        if (profile == null)
-            return ResponseEntity.status(404).body("User not found");
-        else{
-            UserProfileDTO dto = new UserProfileDTO(
-                    profile.getId(),
-                    profile.getName(),
-                    profile.getSurname(),
-                    profile.getEmail(),
-                    profile.getProfilePicture()
-            );
+    @GetMapping(GET_PROFILE_EMAIL)
+    public ResponseEntity<EmailResponseDto> getEmailProfileById(@PathVariable Long id) {
+        try {
+            EmailResponseDto dto = profileService.getEmailById(id);
             return ResponseEntity.ok(dto);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
         }
     }
-
-    /**
-     * Provides user profile data (name, surname, email) by user ID,
-     * for use by external services like the email service.
-     *
-     * @param request contains the user ID
-     * @return basic profile information, or 404 if not found
-     */
-    @PostMapping(PROFILE_EMAIL)
-    public ResponseEntity<?> getUserProfileNoToken(@RequestBody EmailRequestDto request) {
-
-        UserProfile profile = userProfileRepository.findById(request.getUserId()).orElse(null);
-        //if (profile == null) return ResponseEntity.status(404).body("User not found");
-        EmailResponseDto dto;
-        if (profile == null) {
-            dto = new EmailResponseDto(
-                    "Eva",
-                    "Fiori",
-                    //"evina2.ef@gmail.com"*
-                    "prova@prova.com"
-            );
-        }
-        else{
-            dto = new EmailResponseDto(
-                    profile.getName(),
-                    profile.getSurname(),
-                    profile.getEmail()
-            );
-        }
-        System.out.println(dto.getEmail() + dto.getName() + dto.getSurname());
-        return ResponseEntity.ok(dto);
-    }
-
 }

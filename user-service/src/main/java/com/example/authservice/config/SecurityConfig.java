@@ -4,8 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.example.authservice.constants.AuthEndpoints.*;
+import static com.example.authservice.constants.UserEndpoints.*;
 
 /**
  * Configuration class for Spring Security.
@@ -42,8 +40,7 @@ public class SecurityConfig {
 
     /**
      * Configures the Spring Security filter chain.
-     * - Allows unauthenticated access to specific endpoints
-     * - All other requests require authentication
+     * - Allows unauthenticated access to all requests
      * - Configures OAuth2 login
      * - Disables CSRF protection
      *
@@ -56,8 +53,6 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth.requestMatchers(
                         HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(API_LOGIN, API_REGISTER, API_OAUTH_JWT).permitAll()
-//                        .requestMatchers("api/profile/**").authenticated()
                         .anyRequest().permitAll()
                 );
 
@@ -78,11 +73,11 @@ public class SecurityConfig {
      */
     private void configureOAuth2Login(HttpSecurity http) throws Exception {
         http.oauth2Login(oauth2 -> oauth2
-                .loginPage(API_LOGIN)
+                .loginPage(LOGIN)
                 .authorizationEndpoint(endpoint -> endpoint
                         .authorizationRequestResolver(customAuthorizationRequestResolver())
                 )
-                .defaultSuccessUrl(GOOGLE_REGISTRATION, true)
+                .defaultSuccessUrl("/auth/google-registration", true)
         );
     }
 
@@ -133,17 +128,5 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    /**
-     * Provides the authentication manager bean required by Spring Security.
-     *
-     * @param config the authentication configuration provided by Spring
-     * @return the AuthenticationManager instance
-     * @throws Exception if manager cannot be created
-     */
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 }

@@ -76,7 +76,7 @@ export default function CreateAdoptionPost({ onPostCreated }: CreateAdoptionPost
             formData.append("image", imageFile)
         }
 
-        const res = await fetch("http://localhost:8090/create-adoption-post", {
+        const res = await fetch("http://localhost:8090/adoption/post/create", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`

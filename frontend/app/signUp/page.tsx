@@ -32,7 +32,7 @@ export default function Page() {
                 formData.append("image", imageFile)
             }
 
-            const res = await fetch("http://localhost:8090/api/register", {
+            const res = await fetch("http://localhost:8090/auth/register", {
                 method: "POST",
                 body: formData
             })

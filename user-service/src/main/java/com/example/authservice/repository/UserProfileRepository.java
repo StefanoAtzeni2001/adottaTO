@@ -12,6 +12,4 @@ import java.util.Optional;
  * and a method to find a UserProfile by email.
  */
 public interface UserProfileRepository extends JpaRepository<UserProfile, Long> {
-
-    Optional<UserProfile> findById(Long id);
 }

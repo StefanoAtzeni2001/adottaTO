@@ -56,6 +56,7 @@ interface Filters {
     location?: string[]
     minAge?: string
     maxAge?: string
+    activeOnly?: boolean
 }
 
 export default function HomePage() {
@@ -84,8 +85,8 @@ export default function HomePage() {
 
             params.append("page", page.toString())
             params.append("size", pageSize.toString())
-
-            const res = await fetch(`http://localhost:8090/get-list-filtered?${params.toString()}`)
+            params.append("activeOnly", "True")
+            const res = await fetch(`http://localhost:8090/adoption/get/list?${params.toString()}`)
             if (!res.ok) throw new Error("Errore nella richiesta")
             const data = await res.json()
             setResults(data.content)
@@ -121,7 +122,7 @@ export default function HomePage() {
         }
 
         try {
-            const res = await fetch("http://localhost:8090/save-search", {
+            const res = await fetch("http://localhost:8090/search/save", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -140,7 +141,7 @@ export default function HomePage() {
 
     const handleCardClick = async (postId: number) => {
         try {
-            const res = await fetch(`http://localhost:8090/get-by-id/${postId}`)
+            const res = await fetch(`http://localhost:8090/adoption/get/post/${postId}`)
             if (!res.ok) throw new Error("Errore nel recupero dettagli")
             const detail = await res.json()
             setSelectedPost(detail)

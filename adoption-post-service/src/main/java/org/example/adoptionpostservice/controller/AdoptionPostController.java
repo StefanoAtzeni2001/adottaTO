@@ -31,7 +31,7 @@ import java.util.NoSuchElementException;
  * - Deleting adoption posts with user authorization
  */
 @RestController
-@RequestMapping()
+@RequestMapping("/adoption")
 public class AdoptionPostController {
 
     private final AdoptionPostService adoptionPostService;
@@ -45,7 +45,6 @@ public class AdoptionPostController {
         this.adoptionPostService = service;
     }
 
-
     /**
      * Retrieves adoption posts filtered by specified criteria with pagination.
      *
@@ -54,7 +53,9 @@ public class AdoptionPostController {
      * @return a page of adoption post summaries matching the filter criteria
      */
     @GetMapping(GET_FILTERED_ADOPTION_POSTS)
-    public Page<AdoptionPostSummaryDto> getAdoptionPostsFilteredBy(@Valid AdoptionPostSearchDto filterDto, Pageable pageable) {
+    public Page<AdoptionPostSummaryDto> getAdoptionPostsFilteredBy(
+            @Valid AdoptionPostSearchDto filterDto,
+            Pageable pageable) {
         return adoptionPostService.getFilteredPosts(filterDto, pageable);
     }
 
@@ -78,8 +79,10 @@ public class AdoptionPostController {
      * Creates a new adoption post for the specified user.
      *
      * @param postDto the adoption post data to create
+     * @param imageFile optional image to attach to the post (multipart part)
      * @param userId [from header] the ID of the user creating the post
-     * @return ResponseEntity containing the created adoption post with HTTP 201 status
+     * @return ResponseEntity containing the created adoption post with HTTP 201 status,
+     *         or HTTP 500 if image processing fails
      */
     @PostMapping(value = CREATE_ADOPTION_POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AdoptionPostDetailDto> createAdoptionPost(
@@ -102,12 +105,15 @@ public class AdoptionPostController {
     /**
      * Deletes an adoption post by its ID with user authorization check.
      *
-     * @param postId [from path] the ID of the adoption post to delete
+     * @param postId [from path]the ID of the adoption post to delete
      * @param userId [from header] the ID of the user requesting the deletion
-     * @return ResponseEntity with HTTP 204 (No Content) on success or HTTP 403 (Forbidden) if unauthorized
+     * @return ResponseEntity with HTTP 204 (No Content) on success,
+     *         HTTP 403 (Forbidden) if unauthorized, or HTTP 404 if not found
      */
     @DeleteMapping(DELETE_ADOPTION_POST_BY_ID)
-    public ResponseEntity<Void> deleteAdoptionPost(@PathVariable Long postId, @RequestHeader("User-Id") Long userId) {
+    public ResponseEntity<Void> deleteAdoptionPost(
+            @PathVariable Long postId,
+            @RequestHeader("User-Id") Long userId) {
         try {
             adoptionPostService.deletePost(postId, userId);
             return ResponseEntity.noContent().build();
@@ -119,12 +125,13 @@ public class AdoptionPostController {
     }
 
     /**
-     * Updates an existing adoption post with new information and user authorization check.
+     * Updates an existing adoption post with new data after verifying user authorization.
      *
      * @param postDto the updated adoption post data
      * @param postId [from path] the ID of the adoption post to update
      * @param userId [from header] the ID of the user requesting the update
-     * @return ResponseEntity containing the updated adoption post or HTTP 403 (Forbidden) if unauthorized
+     * @return ResponseEntity containing the updated adoption post,
+     *         HTTP 403 if unauthorized, or other appropriate status codes
      */
     @PutMapping(value = UPDATE_ADOPTION_POST_BY_ID, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AdoptionPostDetailDto> updateAdoptionPost(
@@ -149,26 +156,30 @@ public class AdoptionPostController {
 
 
     /**
-     * Retrieves adoption posts owned by the user.
+     * Retrieves adoption posts created by the specified user.
      *
      * @param userId [from header] the ID of the user requesting his own created posts
      * @param pageable pagination information for the results
-     * @return a page of adoption post summaries created by user
+     * @return a page of adoption post summaries created by the user
      */
     @GetMapping(GET_ADOPTION_POSTS_BY_OWNER)
-    public Page<AdoptionPostSummaryDto> getAdoptionPostsByOwner(@RequestHeader("User-Id") Long userId,Pageable pageable) {
-        return adoptionPostService.getPostsByOwnerId(userId,pageable);
+    public Page<AdoptionPostSummaryDto> getAdoptionPostsByOwner(
+            @RequestHeader("User-Id") Long userId,
+            Pageable pageable) {
+        return adoptionPostService.getPostsByOwnerId(userId, pageable);
     }
 
     /**
-     * Retrieves adoption posts adopted by the user.
+     * Retrieves adoption posts adopted by the specified user.
      *
      * @param userId [from header] the ID of the user requesting his own adopted posts
      * @param pageable pagination information for the results
-     * @return a page of adoption post summaries adopted by user
+     * @return a page of adoption post summaries adopted by the user
      */
     @GetMapping(GET_ADOPTION_POSTS_BY_ADOPTER)
-    public Page<AdoptionPostSummaryDto> getAdoptionPostsByAdopter(@RequestHeader("User-Id") Long userId,Pageable pageable) {
-        return adoptionPostService.getPostsByAdopterId(userId,pageable);
+    public Page<AdoptionPostSummaryDto> getAdoptionPostsByAdopter(
+            @RequestHeader("User-Id") Long userId,
+            Pageable pageable) {
+        return adoptionPostService.getPostsByAdopterId(userId, pageable);
     }
 }
