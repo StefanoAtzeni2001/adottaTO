@@ -73,7 +73,7 @@ export default function UserPage() {
             return
         }
 
-        fetch("http://localhost:8090/profile", {
+        fetch(`http://localhost:8090/user/my-profile`, {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(async res => {
@@ -86,13 +86,13 @@ export default function UserPage() {
                 router.push("/login")
             })
 
-        fetch("http://localhost:8090/get-my-owned-posts", {
+        fetch("http://localhost:8090/adoption/my/owned", {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(res => res.ok ? res.json() : Promise.reject("Errore nella richiesta"))
             .then(async (summaryPosts) => {
                 const details = await Promise.all(summaryPosts.content.map((post: { id: number }) =>
-                    fetch(`http://localhost:8090/get-by-id/${post.id}`, {
+                    fetch(`http://localhost:8090/adoption/get/post/${post.id}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     }).then(res => res.json())
                 ))
@@ -101,7 +101,7 @@ export default function UserPage() {
             .catch(err => console.error("Errore caricamento annunci:", err))
 
         if (userId) {
-            fetch("http://localhost:8090/get-my-saved-search", {
+            fetch("http://localhost:8090/search/my/saved", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "User-Id": userId
@@ -120,7 +120,7 @@ export default function UserPage() {
         if (imageFile) {
             formData.append("image", imageFile)
         }
-        const res = await fetch("http://localhost:8090/api/profile-update", {
+        const res = await fetch("http://localhost:8090/user/my-profile/update", {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`
@@ -131,7 +131,7 @@ export default function UserPage() {
         if (res.ok) {
             alert("Profilo aggiornato con successo")
             // Re-fetch the updated profile from backend
-            const updatedProfile = await fetch("http://localhost:8090/profile", {
+            const updatedProfile = await fetch("http://localhost:8090/user/my-profile", {
                 headers: { Authorization: `Bearer ${token}` }
             }).then(res => res.json())
 
@@ -154,7 +154,7 @@ export default function UserPage() {
     const handleCardClick = async (postId: number) => {
         const token = localStorage.getItem("jwt")
         try {
-            const res = await fetch(`http://localhost:8090/get-by-id/${postId}`, {
+            const res = await fetch(`http://localhost:8090/adoption/get/post/${postId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
             if (!res.ok) throw new Error("Errore nel recupero dettagli")
@@ -174,7 +174,7 @@ export default function UserPage() {
         if (!confirmed) return
 
         try {
-            const res = await fetch(`http://localhost:8090/delete-saved-search/${searchId}`, {
+            const res = await fetch(`http://localhost:8090/search/delete/${searchId}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,

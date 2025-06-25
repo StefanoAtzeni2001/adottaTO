@@ -19,7 +19,7 @@ export default function Page() {
         e.preventDefault()
 
         try {
-            const res = await fetch("http://localhost:8090/api/login", {
+            const res = await fetch("http://localhost:8090/auth/login", {
                 method: "POST",
                 credentials: "include", // Necessario per i cookie HttpOnly
                 headers: {

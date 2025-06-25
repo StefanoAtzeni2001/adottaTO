@@ -17,16 +17,16 @@ public class ChatEndPoints {
     public static final String GET_UNREAD_MESSAGES = "/unread";
 
     /** URL to send an adoption request related to a specific chat for a specific adoption post */
-    public static final String SEND_ADOPTION_REQUEST = "/sendRequest";
+    public static final String SEND_ADOPTION_REQUEST = "/send-request";
 
     /** URL to cancel an existing adoption request */
-    public static final String DELETE_ADOPTION_REQUEST = "/cancelRequest";
+    public static final String DELETE_ADOPTION_REQUEST = "/cancel-request";
 
     /** URL to accept an adoption request */
-    public static final String ACCEPT_ADOPTION_REQUEST = "/acceptRequest";
+    public static final String ACCEPT_ADOPTION_REQUEST = "/accept-request";
 
     /** URL to reject an adoption request */
-    public static final String REJECT_ADOPTION_REQUEST = "/rejectRequest";
+    public static final String REJECT_ADOPTION_REQUEST = "/reject-request";
 
     private ChatEndPoints() {
     }

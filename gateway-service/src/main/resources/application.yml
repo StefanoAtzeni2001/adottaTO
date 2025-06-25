@@ -14,13 +14,13 @@ spring:
         - id: adoptionpost_route_public
           uri: http://adoption-post-service:8081
           predicates:
-            - Path=/get-list,/get-list-filtered**,/get-by-id/**,/api/get-list-filtered**
+            - Path=/adoption/get/**
 
         # ADOPTION POST SERVICE: private
         - id: adoptionpost_route_auth
           uri: http://adoption-post-service:8081
           predicates:
-            - Path=/create-adoption-post,/delete-by-id/**,/update-by-id/**,/get-my-owned-posts,/get-my-adopted-posts
+            - Path=/adoption/post/**,/adoption/my/**
           filters:
             - JwtUserIdHeaderFilter
 
@@ -28,7 +28,16 @@ spring:
         - id: savedsearch_route_auth
           uri: http://saved-search-service:8084
           predicates:
-            - Path=/get-my-saved-search,/delete-saved-search/**,/save-search
+            - Path=/search/**
+          filters:
+            - JwtUserIdHeaderFilter
+
+
+        # USER SERVICE: private
+        - id: user_route_auth
+          uri: http://user-service:8083
+          predicates:
+            - Path=/user/my-profile/**
           filters:
             - JwtUserIdHeaderFilter
 
@@ -36,15 +45,7 @@ spring:
         - id: user_route_public
           uri: http://user-service:8083
           predicates:
-            - Path=/login/oauth2/**,/api/login,/google-registration,/api/register,/api/oauth-jwt,/oauth2/authorization/**,/api/profile/**
-
-        # USER SERVICE: private
-        - id: user_route_auth
-          uri: http://user-service:8083
-          predicates:
-            - Path=/profile,/api/profile-update
-          filters:
-            - JwtUserIdHeaderFilter
+            - Path=/auth/**,/user/get/**,/oauth2/**,/login/oauth2/**
 
         # CHAT SERVICE: private
         - id: chat_route_auth

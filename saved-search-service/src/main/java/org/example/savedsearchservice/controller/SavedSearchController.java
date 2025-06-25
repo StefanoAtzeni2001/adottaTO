@@ -20,7 +20,7 @@ import static org.example.savedsearchservice.constants.SavedSearchEndPoints.*;
  * - Retrieve all saved searches of a user
  */
 @RestController
-@RequestMapping()
+@RequestMapping("/search")
 public class SavedSearchController {
 
     private final SavedSearchService savedSearchService;

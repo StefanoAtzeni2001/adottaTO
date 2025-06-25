@@ -80,7 +80,7 @@ export default function ChatPage() {
 
                 Promise.all(
                     uniqueUserIds.map(async (id) => {
-                        const res = await fetch(`http://localhost:8090/api/profile/${id}`)
+                        const res = await fetch(`http://localhost:8090/user/get/profile/${id}`)
                         if (!res.ok) throw new Error(`Errore fetch profilo userId ${id}`)
                         return res.json()
                     })
@@ -96,7 +96,7 @@ export default function ChatPage() {
 
                 Promise.all(
                     uniquePostIds.map(async (id) => {
-                        const res = await fetch(`http://localhost:8090/get-by-id/${id}`)
+                        const res = await fetch(`http://localhost:8090/user/get/profile/${id}`)
                         if (!res.ok) throw new Error(`Errore fetch postId ${id}`)
                         return res.json()
                     })
@@ -207,7 +207,7 @@ export default function ChatPage() {
         }
 
         try {
-            const res = await fetch("http://localhost:8090/chat/sendRequest", {
+            const res = await fetch("http://localhost:8090/chat/send-request", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -240,7 +240,7 @@ export default function ChatPage() {
 
         try {
             const res = await fetch(
-                accept ? "http://localhost:8090/chat/acceptRequest" : "http://localhost:8090/chat/rejectRequest",
+                accept ? "http://localhost:8090/chat/accept-request" : "http://localhost:8090/chat/reject-request",
                 {
                     method: "POST",
                     headers: {
