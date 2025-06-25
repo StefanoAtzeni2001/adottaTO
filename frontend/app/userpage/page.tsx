@@ -97,6 +97,8 @@ export default function UserPage() {
                 .then(setSavedSearches)
                 .catch(err => console.error("Errore nel caricamento delle ricerche salvate:", err))
         }
+
+        fetchUserPosts()
     }, [router])
 
     const handleProfileUpdate = async (name: string, surname: string,imageFile?: File) => {

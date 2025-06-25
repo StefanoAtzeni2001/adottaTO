@@ -74,7 +74,7 @@ public class DataInitializer implements CommandLineRunner {
                             .color("Bianco")
                             .location("Roma")
                             .publicationDate(LocalDateTime.now().minusDays(5))
-                            .ownerId(1L)
+                            .ownerId(2L)
                             .active(true)
                             .adopterId(null)
                             .imageBase64(encodeImage("Micia.jpg"))

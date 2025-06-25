@@ -59,6 +59,11 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
             return
         }
 
+        if (Number(userId) === post.ownerId) {
+            alert("Non puoi contattare te stesso")
+            return
+        }
+
         try {
             const res = await fetch("http://localhost:8090/chat/send", {
                 method: "POST",

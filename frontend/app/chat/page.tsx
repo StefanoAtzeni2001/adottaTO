@@ -125,7 +125,7 @@ export default function ChatPage() {
         const interval = setInterval(() => {
             fetchChatMessages(selectedChatId);
             fetchChatsAndDetails(); // Refetch anche per le richieste
-        }, 30000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [selectedChatId]);
@@ -156,7 +156,7 @@ export default function ChatPage() {
 
         const interval = setInterval(() => {
             fetchChatMessages(selectedChatId);
-        }, 30000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [selectedChatId]);

@@ -40,7 +40,7 @@ public class DataInitializer implements CommandLineRunner {
             MessageSendRequest msg3 = new MessageSendRequest();
             msg3.setSenderId(1L);
             msg3.setReceiverId(3L);
-            msg3.setAdoptionPostId(1L);
+            msg3.setAdoptionPostId(9L);
             msg3.setMessage("Buongiorno! Mi piacerebbe adottare il tuo animale.");
             chatService.sendMessage(msg3, 1L);
 
