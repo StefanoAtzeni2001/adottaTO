@@ -125,7 +125,7 @@ export default function EditAdoptionPost({ post, onClose, onUpdated }: Props) {
                 formDataToSend.append("image", blob, "image.png")
             }
 
-            const res = await fetch(`http://localhost:8090/update-by-id/${post.id}`, {
+            const res = await fetch(`http://localhost:8090/adoption/post/update/${post.id}`, {
                 method: "PUT",
                 headers: {
                     Authorization: `Bearer ${token}`,

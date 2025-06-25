@@ -21,7 +21,7 @@ export default function NavbarClient() {
         const token = localStorage.getItem("jwt");
         if (!token) return;
 
-        fetch("http://localhost:8090/profile", {
+        fetch("http://localhost:8090/user/my-profile", {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then((res) => res.ok ? res.json() : Promise.reject("Errore"))

@@ -75,7 +75,7 @@ export default function ChatPage() {
 
             const profiles = await Promise.all(
                 uniqueUserIds.map(async (id) => {
-                    const res = await fetch(`http://localhost:8090/api/profile/${id}`)
+                    const res = await fetch(`http://localhost:8090/auth/get/profile/${id}`)
                     if (!res.ok) throw new Error(`Errore fetch profilo userId ${id}`)
                     return res.json()
                 })
@@ -89,7 +89,7 @@ export default function ChatPage() {
 
             const posts = await Promise.all(
                 uniquePostIds.map(async (id) => {
-                    const res = await fetch(`http://localhost:8090/get-by-id/${id}`)
+                    const res = await fetch(`http://localhost:8090/adoption/get/post/${id}`)
                     if (!res.ok) throw new Error(`Errore fetch postId ${id}`)
                     return res.json()
                 })
@@ -129,62 +129,6 @@ export default function ChatPage() {
 
         return () => clearInterval(interval);
     }, [selectedChatId]);
-
-        fetch("http://localhost:8090/chat/chats", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then(async (res) => {
-                if (!res.ok) throw new Error("Errore nel recupero delle chat")
-                return res.json()
-            })
-            .then((data: Chat[]) => {
-                setChats(data)
-                setLoading(false)
-
-                const uniqueUserIds = Array.from(new Set(data.flatMap(chat => [chat.ownerId, chat.adopterId])))
-                const uniquePostIds = Array.from(new Set(data.map(chat => chat.adoptionPostId)))
-
-                Promise.all(
-                    uniqueUserIds.map(async (id) => {
-                        const res = await fetch(`http://localhost:8090/user/get/profile/${id}`)
-                        if (!res.ok) throw new Error(`Errore fetch profilo userId ${id}`)
-                        return res.json()
-                    })
-                ).then((profiles: UserProfile[]) => {
-                    const map: Record<number, UserProfile> = {}
-                    uniqueUserIds.forEach((id, idx) => {
-                        map[id] = profiles[idx]
-                    })
-                    setProfilesMap(map)
-                }).catch((err) => {
-                    console.error("Errore caricamento profili:", err)
-                })
-
-                Promise.all(
-                    uniquePostIds.map(async (id) => {
-                        const res = await fetch(`http://localhost:8090/user/get/profile/${id}`)
-                        if (!res.ok) throw new Error(`Errore fetch postId ${id}`)
-                        return res.json()
-                    })
-                ).then((posts: AdoptionPostDetailDto[]) => {
-                    const map: Record<number, AdoptionPostDetailDto> = {}
-                    uniquePostIds.forEach((id, idx) => {
-                        map[id] = posts[idx]
-                    })
-                    setAdoptionPostsMap(map)
-                }).catch((err) => {
-                    console.error("Errore caricamento adozioni:", err)
-                })
-            })
-            .catch((err) => {
-                console.error("Errore durante la richiesta:", err)
-                setError("Errore durante il caricamento delle chat")
-                setLoading(false)
-            })
-    }, [router])
 
     const fetchChatMessages = async (chatId: number) => {
         const token = localStorage.getItem("jwt")
