@@ -75,7 +75,7 @@ export default function ChatPage() {
 
             const profiles = await Promise.all(
                 uniqueUserIds.map(async (id) => {
-                    const res = await fetch(`http://localhost:8090/auth/get/profile/${id}`)
+                    const res = await fetch(`http://localhost:8090/user/get/profile/${id}`)
                     if (!res.ok) throw new Error(`Errore fetch profilo userId ${id}`)
                     return res.json()
                 })

@@ -182,7 +182,7 @@ adottaTO/
 /auth/login
 /auth/register
 /auth/oauth-jwt
-/auth/get/profile/{id}
+/user/get/profile/{id}
 /user/get/email/{id}
 /user/my-profile/update
 /user/my-profile
