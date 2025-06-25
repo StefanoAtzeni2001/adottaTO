@@ -169,6 +169,8 @@ export default function UserPage() {
             })
             if (res.ok) {
                 setSavedSearches(prev => prev.filter(s => s.id !== searchId))
+                fetchUserPosts()
+                setSelectedPost(null)
             } else {
                 alert("Errore durante l'eliminazione della ricerca")
             }
@@ -274,7 +276,7 @@ export default function UserPage() {
                     </div>
 
                     {selectedPost && (
-                        <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
+                        <ExpandedAdoptionCard onPostCreated={fetchUserPosts} post={selectedPost} onClose={() => setSelectedPost(null)} />
                     )}
                 </TabsContent>
 

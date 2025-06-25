@@ -21,6 +21,7 @@ interface ExpandedAdoptionCardProps {
         imageBase64: string
     }
     onClose: () => void
+    onPostCreated?: () => void
 }
 
 interface UserProfile {
@@ -30,7 +31,11 @@ interface UserProfile {
     profilePicture?: string | null
 }
 
-export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoptionCardProps) {
+export default function ExpandedAdoptionCard({
+                                                 post,
+                                                 onClose,
+                                                 onPostCreated
+                                             }: ExpandedAdoptionCardProps) {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
     const [isEditOpen, setIsEditOpen] = useState(false)
 
@@ -69,6 +74,11 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
             if (!res.ok) throw new Error("Errore durante l'eliminazione dell'annuncio")
             alert("Annuncio eliminato con successo.")
             onClose()
+
+            if (onPostCreated) {
+                onPostCreated()
+            }
+
         } catch (err) {
             console.error("Errore:", err)
             alert("Si è verificato un errore durante l'eliminazione.")
@@ -165,7 +175,11 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
                 <EditAdoptionPost
                     post={post}
                     onClose={() => setIsEditOpen(false)}
-                    onUpdated={onClose} // richiude la card dopo update
+                    onUpdated={() => {
+                        setIsEditOpen(false);
+                        if (onPostCreated) onPostCreated();
+                        onClose();
+                    }}
                 />
             )}
         </>

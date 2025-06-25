@@ -16,7 +16,6 @@ import {
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-// ✅ Definizione dei props
 type CreateAdoptionPostProps = {
     onPostCreated?: () => void;
 }
