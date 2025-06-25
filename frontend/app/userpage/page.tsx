@@ -86,20 +86,6 @@ export default function UserPage() {
                 router.push("/login")
             })
 
-        fetch("http://localhost:8090/adoption/my/owned", {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-            .then(res => res.ok ? res.json() : Promise.reject("Errore nella richiesta"))
-            .then(async (summaryPosts) => {
-                const details = await Promise.all(summaryPosts.content.map((post: { id: number }) =>
-                    fetch(`http://localhost:8090/adoption/get/post/${post.id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }).then(res => res.json())
-                ))
-                setPosts(details)
-            })
-            .catch(err => console.error("Errore caricamento annunci:", err))
-
         if (userId) {
             fetch("http://localhost:8090/search/my/saved", {
                 headers: {
@@ -111,6 +97,8 @@ export default function UserPage() {
                 .then(setSavedSearches)
                 .catch(err => console.error("Errore nel caricamento delle ricerche salvate:", err))
         }
+
+        fetchUserPosts()
     }, [router])
 
     const handleProfileUpdate = async (name: string, surname: string,imageFile?: File) => {
@@ -183,6 +171,8 @@ export default function UserPage() {
             })
             if (res.ok) {
                 setSavedSearches(prev => prev.filter(s => s.id !== searchId))
+                fetchUserPosts()
+                setSelectedPost(null)
             } else {
                 alert("Errore durante l'eliminazione della ricerca")
             }
@@ -190,6 +180,26 @@ export default function UserPage() {
             console.error("Errore nella cancellazione:", err)
         }
     }
+
+    const fetchUserPosts = () => {
+        const token = localStorage.getItem("jwt")
+        if (!token) return
+
+        fetch("http://localhost:8090/adoption/my/owned", {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => res.ok ? res.json() : Promise.reject("Errore nella richiesta"))
+            .then(async (summaryPosts) => {
+                const details = await Promise.all(summaryPosts.content.map((post: { id: number }) =>
+                    fetch(`http://localhost:8090/adoption/get/post/${post.id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }).then(res => res.json())
+                ))
+                setPosts(details)
+            })
+            .catch(err => console.error("Errore caricamento annunci:", err))
+    }
+
 
     if (!profile) return <div>Caricamento...</div>
 
@@ -212,7 +222,7 @@ export default function UserPage() {
                         <Button variant="destructive" onClick={handleLogout}>Logout</Button>
                     </div>
                     <p className="text-lg text-gray-600">{profile.email}</p>
-                    <PostAdoption />
+                    <PostAdoption onPostCreated={fetchUserPosts} />
                     <Button
                         onClick={handleGoChat}
                         className="bg-red-600 text-white">
@@ -234,12 +244,20 @@ export default function UserPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
                         {posts.map(post => (
-                            <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
+                            <Card
+                                key={post.id}
+                                className={`cursor-pointer transition-opacity ${!post.active ? "opacity-50 grayscale" : ""}`}
+                                onClick={() => handleCardClick(post.id)}
+                            >
                                 <CardHeader>
                                     <CardTitle>{post.name}</CardTitle>
-                                    <CardDescription>{post.species} - {post.breed}</CardDescription>
+                                    <CardDescription>
+                                        {post.species} - {post.breed}
+                                        {!post.active && <span className="text-red-500 ml-2">(Adottato)</span>}
+                                    </CardDescription>
                                 </CardHeader>
-                                <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+
+                                <div className="relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
                                     <Image
                                         src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
                                         alt={`Immagine di ${post.name}`}
@@ -248,6 +266,7 @@ export default function UserPage() {
                                         unoptimized
                                     />
                                 </div>
+
                                 <CardContent>
                                     <p><strong>Provincia:</strong> {post.location}</p>
                                     <p><strong>Età:</strong> {post.age} mesi</p>
@@ -257,10 +276,12 @@ export default function UserPage() {
                             </Card>
                         ))}
                     </div>
+
                     {selectedPost && (
-                        <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
+                        <ExpandedAdoptionCard onPostCreated={fetchUserPosts} post={selectedPost} onClose={() => setSelectedPost(null)} />
                     )}
                 </TabsContent>
+
 
                 <TabsContent value="RicercaSalvata">
                     <h1 className="text-4xl font-bold mb-4">Le mie ricerche salvate:</h1>

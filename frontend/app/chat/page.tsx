@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface Chat {
     id: number
@@ -35,7 +36,7 @@ interface Message {
     message: string
     timeStamp: string
     seen: boolean
-    type?: "text" | "request"  // messaggio normale o richiesta adozione
+    type?: "text" | "request"
     accepted?: boolean
 }
 
@@ -52,6 +53,61 @@ export default function ChatPage() {
 
     const router = useRouter()
 
+    const fetchChatsAndDetails = async () => {
+        const token = localStorage.getItem("jwt")
+        const userIdStr = localStorage.getItem("userId")
+        if (!token || !userIdStr) return
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/chats", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!res.ok) throw new Error("Errore nel recupero delle chat")
+            const data: Chat[] = await res.json()
+            setChats(data)
+
+            const uniqueUserIds = Array.from(new Set(data.flatMap(chat => [chat.ownerId, chat.adopterId])))
+            const uniquePostIds = Array.from(new Set(data.map(chat => chat.adoptionPostId)))
+
+            const profiles = await Promise.all(
+                uniqueUserIds.map(async (id) => {
+                    const res = await fetch(`http://localhost:8090/api/profile/${id}`)
+                    if (!res.ok) throw new Error(`Errore fetch profilo userId ${id}`)
+                    return res.json()
+                })
+            )
+
+            const profilesMap: Record<number, UserProfile> = {}
+            uniqueUserIds.forEach((id, idx) => {
+                profilesMap[id] = profiles[idx]
+            })
+            setProfilesMap(profilesMap)
+
+            const posts = await Promise.all(
+                uniquePostIds.map(async (id) => {
+                    const res = await fetch(`http://localhost:8090/get-by-id/${id}`)
+                    if (!res.ok) throw new Error(`Errore fetch postId ${id}`)
+                    return res.json()
+                })
+            )
+
+            const postsMap: Record<number, AdoptionPostDetailDto> = {}
+            uniquePostIds.forEach((id, idx) => {
+                postsMap[id] = posts[idx]
+            })
+            setAdoptionPostsMap(postsMap)
+        } catch (err) {
+            console.error("Errore durante il caricamento delle chat e dettagli:", err)
+            setError("Errore durante il caricamento delle chat")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     useEffect(() => {
         const token = localStorage.getItem("jwt")
         const userIdStr = localStorage.getItem("userId")
@@ -60,6 +116,19 @@ export default function ChatPage() {
             return
         }
         setUserId(Number(userIdStr))
+        fetchChatsAndDetails()
+    }, [router])
+
+    useEffect(() => {
+        if (!selectedChatId) return;
+
+        const interval = setInterval(() => {
+            fetchChatMessages(selectedChatId);
+            fetchChatsAndDetails(); // Refetch anche per le richieste
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [selectedChatId]);
 
         fetch("http://localhost:8090/chat/chats", {
             method: "POST",
@@ -138,6 +207,81 @@ export default function ChatPage() {
         }
     }
 
+    useEffect(() => {
+        if (!selectedChatId) return;
+
+        const interval = setInterval(() => {
+            fetchChatMessages(selectedChatId);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [selectedChatId]);
+
+    const handleSendRequest = async (chat: Chat) => {
+        const token = localStorage.getItem("jwt")
+        if (!token || !userId) {
+            alert("Utente non autenticato")
+            return
+        }
+
+        if (userId === chat.ownerId) {
+            alert("Non puoi inviare una richiesta su un tuo annuncio")
+            return
+        }
+
+        try {
+            const res = await fetch("http://localhost:8090/chat/send-request", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    chatId: chat.id,
+                    adopterId: userId,
+                }),
+            })
+
+            if (!res.ok) throw new Error("Errore nell'invio della richiesta")
+
+            fetchChatsAndDetails()
+
+            alert("Richiesta inviata con successo!")
+        } catch (err) {
+            console.error("Errore invio richiesta:", err)
+            alert("Errore durante l'invio della richiesta")
+        }
+    }
+
+    const handleRespondRequest = async (chatId: number, accept: boolean) => {
+        const token = localStorage.getItem("jwt")
+        if (!token || !userId) return
+
+        try {
+            const res = await fetch(
+                accept ? "http://localhost:8090/chat/accept-request" : "http://localhost:8090/chat/reject-request",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ chatId }),
+                }
+            )
+
+            if (!res.ok) throw new Error("Errore durante la risposta alla richiesta")
+
+            fetchChatsAndDetails()
+            fetchChatMessages(chatId)
+
+            alert(`Richiesta ${accept ? "accettata" : "rifiutata"}!`)
+        } catch (err) {
+            console.error(err)
+            alert("Errore durante la risposta alla richiesta")
+        }
+    }
+
     const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
@@ -194,79 +338,6 @@ export default function ChatPage() {
         }
     }
 
-    const handleSendRequest = async (chat: Chat) => {
-        const token = localStorage.getItem("jwt")
-        if (!token || !userId) {
-            alert("Utente non autenticato")
-            return
-        }
-
-        if (userId === chat.ownerId) {
-            alert("Non puoi inviare una richiesta su un tuo annuncio")
-            return
-        }
-
-        try {
-            const res = await fetch("http://localhost:8090/chat/send-request", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    chatId: chat.id,
-                    adopterId: userId,
-                }),
-            })
-
-            if (!res.ok) throw new Error("Errore nell'invio della richiesta")
-
-            setChats((prev) =>
-                prev.map((c) =>
-                    c.id === chat.id ? { ...c, requestFlag: false } : c
-                )
-            )
-
-            alert("Richiesta inviata con successo!")
-        } catch (err) {
-            console.error("Errore invio richiesta:", err)
-            alert("Errore durante l'invio della richiesta")
-        }
-    }
-
-    const handleRespondRequest = async (chatId: number, accept: boolean) => {
-        const token = localStorage.getItem("jwt")
-        if (!token || !userId) return
-
-        try {
-            const res = await fetch(
-                accept ? "http://localhost:8090/chat/accept-request" : "http://localhost:8090/chat/reject-request",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ chatId }),
-                }
-            )
-
-
-            if (!res.ok) throw new Error("Errore durante la risposta alla richiesta")
-
-            setChats((prev) =>
-                prev.map((c) =>
-                    c.id === chatId ? { ...c, requestFlag: accept } : c
-                )
-            )
-
-            alert(`Richiesta ${accept ? "accettata" : "rifiutata"}!`)
-        } catch (err) {
-            console.error(err)
-            alert("Errore durante la risposta alla richiesta")
-        }
-    }
-
     if (loading) return <div>Caricamento chat...</div>
     if (error) return <div>{error}</div>
 
@@ -288,12 +359,6 @@ export default function ChatPage() {
                                 const profile = profilesMap[otherUserId]
                                 const adoptionPost = adoptionPostsMap[chat.adoptionPostId]
 
-                                const profileImg = profile?.profilePicture?.trim()
-                                    ? profile.profilePicture.startsWith("http")
-                                        ? profile.profilePicture
-                                        : `/${profile.profilePicture.replace(/^\/+/, "")}`
-                                    : "/default-avatar.svg"
-
                                 return (
                                     <Card
                                         key={chat.id}
@@ -303,11 +368,21 @@ export default function ChatPage() {
                                         }`}
                                     >
                                         <CardHeader className="flex items-center space-x-4">
-                                            <img
-                                                src={profileImg}
-                                                alt={`${profile?.name ?? ""} ${profile?.surname ?? ""}`}
-                                                className="w-10 h-10 rounded-full object-cover"
-                                            />
+                                            <Avatar className="w-12 h-12">
+                                                <AvatarImage
+                                                    src={
+                                                        profile?.profilePicture
+                                                            ? `data:image/jpeg;base64,${profile.profilePicture}`
+                                                            : "/default-avatar.svg"
+                                                    }
+                                                    alt={`${profile?.name ?? ""} ${profile?.surname ?? ""}`}
+                                                />
+                                                <AvatarFallback>
+                                                    {profile?.name?.[0] ?? "U"}
+                                                    {profile?.surname?.[0] ?? ""}
+                                                </AvatarFallback>
+                                            </Avatar>
+
                                             <div>
                                                 <CardTitle className="text-base">
                                                     {profile ? `${profile.name} ${profile.surname}` : "Utente sconosciuto"}
@@ -334,7 +409,7 @@ export default function ChatPage() {
                                         )}
 
                                         {/* Se l'utente è owner, mostra il pulsante "Accetta/Rifiuta richiesta"*/}
-                                        {isOwner && chat.requestFlag === true && (
+                                        {isOwner && chat.requestFlag === true && chat.acceptedFlag === false && (
                                             <div>
                                                 <button
                                                     onClick={(e) => {

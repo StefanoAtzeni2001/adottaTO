@@ -144,6 +144,7 @@ public class AdoptionPostService {
         if (dto.getAge() != null) post.setAge(dto.getAge());
         if (dto.getColor() != null) post.setColor(dto.getColor());
         if (dto.getLocation() != null) post.setLocation(dto.getLocation());
+        if (dto.getImageBase64() != null) post.setImageBase64(dto.getImageBase64());
 
         AdoptionPost updated = repository.save(post);
         return toDetailDto(updated);

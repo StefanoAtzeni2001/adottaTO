@@ -1,10 +1,24 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {useState } from "react"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 import ExpandedAdoptionCard from "@/components/adoption/ExpandedAdoptionCard"
 import SearchFilters from "@/components/adoption/SearchFilters"
 import Image from "next/image"
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface AdoptionPost {
     id: number
@@ -37,7 +51,7 @@ interface AdoptionPostDetail {
 interface Filters {
     species?: string[]
     breed?: string[]
-    gender?: string     // gender è stringa singola
+    gender?: string
     color?: string[]
     location?: string[]
     minAge?: string
@@ -49,31 +63,42 @@ export default function HomePage() {
     const [results, setResults] = useState<AdoptionPost[]>([])
     const [selectedPost, setSelectedPost] = useState<AdoptionPostDetail | null>(null)
     const [lastFilters, setLastFilters] = useState<Filters | null>(null)
+    const [currentPage, setCurrentPage] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+    const pageSize = 10
 
-    const handleSearch = async (filters: Filters) => {
+    const handleSearch = async (filters: Filters, page: number = 0) => {
         setLastFilters(filters)
+        setCurrentPage(page)
 
         try {
             const params = new URLSearchParams()
 
             Object.entries(filters).forEach(([key, value]) => {
                 if (!value) return
-                // Se il valore è un array (species, breed, etc.), aggiungo tutti i valori
                 if (Array.isArray(value)) {
-                    value.forEach(v => params.append(key, v))
+                    value.forEach((v) => params.append(key, v))
                 } else {
-                    // Altrimenti aggiungo il valore singolo (gender e minAge, maxAge)
                     params.append(key, value)
                 }
             })
+
+            params.append("page", page.toString())
+            params.append("size", pageSize.toString())
             params.append("activeOnly", "True")
             const res = await fetch(`http://localhost:8090/adoption/get/list?${params.toString()}`)
             if (!res.ok) throw new Error("Errore nella richiesta")
             const data = await res.json()
             setResults(data.content)
-            console.log(results)
+            setTotalPages(data.totalPages)
         } catch (err) {
             console.error("Errore durante la ricerca:", err)
+        }
+    }
+
+    const handlePageChange = (page: number) => {
+        if (lastFilters) {
+            handleSearch(lastFilters, page)
         }
     }
 
@@ -88,12 +113,12 @@ export default function HomePage() {
         const dto = {
             species: lastFilters.species || [],
             breed: lastFilters.breed || [],
-            gender: lastFilters.gender || "",  // stringa singola qui
+            gender: lastFilters.gender || "",
             color: lastFilters.color || [],
             location: lastFilters.location || [],
             minAge: lastFilters.minAge ? parseInt(lastFilters.minAge) : null,
             maxAge: lastFilters.maxAge ? parseInt(lastFilters.maxAge) : null,
-            activeOnly: true
+            activeOnly: true,
         }
 
         try {
@@ -103,7 +128,7 @@ export default function HomePage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(dto)
+                body: JSON.stringify(dto),
             })
 
             if (!res.ok) throw new Error("Errore nel salvataggio della ricerca")
@@ -120,7 +145,6 @@ export default function HomePage() {
             if (!res.ok) throw new Error("Errore nel recupero dettagli")
             const detail = await res.json()
             setSelectedPost(detail)
-            console.log(selectedPost)
         } catch (err) {
             console.error("Errore nel caricamento dettagli:", err)
         }
@@ -129,19 +153,21 @@ export default function HomePage() {
     return (
         <div className="flex flex-col items-center gap-6 p-6">
             <SearchFilters
-                onSearchAction={handleSearch}
+                onSearchAction={(filters) => handleSearch(filters, 0)}
                 onSaveSearch={handleSaveSearch}
                 canSaveSearch={!!lastFilters}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-6">
-                {results.map(post => (
+                {results.map((post) => (
                     <Card key={post.id} className="cursor-pointer" onClick={() => handleCardClick(post.id)}>
                         <CardHeader>
                             <CardTitle>{post.name}</CardTitle>
-                            <CardDescription>{post.species} - {post.breed}</CardDescription>
+                            <CardDescription>
+                                {post.species} - {post.breed}
+                            </CardDescription>
                         </CardHeader>
-                        <div className=" relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
+                        <div className="relative w-[95%] h-48 overflow-hidden rounded-md mx-auto">
                             <Image
                                 src={post.imageBase64 ? `data:image/jpeg;base64,${post.imageBase64}` : "/no_content.jpg"}
                                 alt={`Immagine di ${post.name}`}
@@ -150,7 +176,7 @@ export default function HomePage() {
                                 unoptimized
                             />
                         </div>
-                        <CardContent >
+                        <CardContent>
                             <p><strong>Provincia:</strong> {post.location}</p>
                             <p><strong>Età:</strong> {post.age} mesi</p>
                             <p><strong>Colore:</strong> {post.color}</p>
@@ -163,7 +189,47 @@ export default function HomePage() {
             {selectedPost && (
                 <ExpandedAdoptionCard post={selectedPost} onClose={() => setSelectedPost(null)} />
             )}
-        </div>
 
+            {totalPages > 1 && (
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    if (currentPage > 0) handlePageChange(currentPage - 1)
+                                }}
+                            />
+                        </PaginationItem>
+
+                        {Array.from({ length: totalPages }, (_, index) => (
+                            <PaginationItem key={index}>
+                                <PaginationLink
+                                    href="#"
+                                    isActive={index === currentPage}
+                                    onClick={(e) => {
+                                        e.preventDefault()
+                                        handlePageChange(index)
+                                    }}
+                                >
+                                    {index + 1}
+                                </PaginationLink>
+                            </PaginationItem>
+                        ))}
+
+                        <PaginationItem>
+                            <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    if (currentPage < totalPages - 1) handlePageChange(currentPage + 1)
+                                }}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
+        </div>
     )
 }
