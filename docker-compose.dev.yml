@@ -1,7 +1,6 @@
 services:
-  postgres-db_adottato:
+  postgres-db-adottato:
     image: postgres:latest
-    container_name: postgres_db_adottato
     restart: always
     environment:
       POSTGRES_DB: postgres_db
@@ -15,12 +14,11 @@ services:
     networks:
       - app_network
 
-  pgadmin_adottato:
+  pgadmin-adottato:
     image: dpage/pgadmin4
-    container_name: pgadmin_adottato
     restart: always
     depends_on:
-      - postgres-db_adottato
+      - postgres-db-adottato
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: password

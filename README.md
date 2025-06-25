@@ -38,6 +38,11 @@ git clone https://github.com/StefanoAtzeni2001/adottaTO.git
 cd adottaTO
 ```
 ---
+
+## Inserire API key
+Inserire le proprie credenziali per l'autenticazione google nel file ``env/.env.secret`` e ``k8s/secrets/app-secrets.yml``
+si veda [Appendice A](#appendice-a)
+---
 ## Deploy Manuale Passo-Passo
 
 ### Passo 1: Avvio di Minikube
@@ -80,7 +85,7 @@ kubectl apply -R -f k8s/
 
 ### Passo 6: Verifica dello Stato del Deploy
 
-Dopo aver applicato tutti i file YAML, aspettare che tutti i Pod siano nello stato **Running**:
+Dopo aver applicato tutti i file YAML, aspettare che tutti i Pod siano nello stato **Running** (potrebbe volerci qualche minuto):
 
 ```bash
 kubectl get pods -w
@@ -198,3 +203,39 @@ adottaTO/
 ### gateway-service:8090
 Tutte le chiamate alle API elencate sopra passano attraverso il gateway, che effettua un semplice forwarding verso i rispettivi microservizi
 
+---
+
+## Appendice A
+
+Per motivi di sicurezza non sono state caricate le API key, risulta quindi necessario inserire i seguenti file:
+
+### env/.env.secret
+```env
+GOOGLE_CLIENT_ID=<la-tua-chiave-qui>
+GOOGLE_CLIENT_SECRET=<la-tua-chiave-segreta-qui>
+JWT_SECRET=<la-tua-chiave-jwt-qui>
+```
+
+### k8s/secrets/app-secrets.yml
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: adottato
+type: Opaque
+stringData:
+  GOOGLE_CLIENT_ID: <la-tua-chiave-qui>
+  GOOGLE_CLIENT_SECRET: <la-tua-chiave-segreta-qui>
+  JWT_SECRET: <la-tua-chiave-jwt-qui>
+```
+
+---
+
+## Contatti
+
+Per informazioni contattare:
+
+- **Eva Fiori**: eva.fiori@edu.unito.it
+- **Salvatore La Rosa**: salvatore.larosa@edu.unito.it
+- **Stefano Atzeni**: stefano.atzeni178@edu.unito.it
