@@ -1,6 +1,6 @@
 spring:
   application:
-    name: saved-search-service
+    name: chat-service
 
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres_db
@@ -13,7 +13,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        default_schema: schema_saved_search
+        default_schema: schema_chat
         dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
 
@@ -26,10 +26,9 @@ spring:
 app:
   rabbitmq:
     exchange: adottato.exchange
-    queue: savedsearch.queue
     routingkey:
-      new-post: post.new
-      savedsearch-match: savedsearch.match
+      chat-notification: chat.notification
+      chat-request-accepted: chat.request.accepted
 
 server:
-  port: 8084
+  port: 8082

@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: email-service
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: adottato.taass@gmail.com
+    password: pzgyrvtzuqyvfbgt
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: user
+    password: password
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+app:
+  webclient:
+    userservice: http://localhost:8083
+  rabbitmq:
+    exchange: adottato.exchange
+    routingkey:
+      chat-notification: chat.notification
+      savedsearch-match: savedsearch.match
+    queue:
+      chat-notification: email.queue.chat
+      savedsearch-match: email.queue.savedsearch
+
+server:
+  port: 8085
