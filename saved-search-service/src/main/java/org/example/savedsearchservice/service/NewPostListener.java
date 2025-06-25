@@ -65,8 +65,9 @@ public class NewPostListener {
         for(Long userId : userIds) {
             postUserId.setUserId(userId);
             rabbitTemplate.convertAndSend(adottatoExchange, savedSearchMatchRoutingKey, postUserId);
+            System.out.println("Inviato messaggio per userId " + userId + ", " + post.getName() + " aspetta di essere adottato");
         }
 
-        System.out.println("Inviato messaggio per notifica email");
+        System.out.println("Inviati tutti i messaggi per notifica email");
     }
 }

@@ -89,7 +89,13 @@ public class ChatService {
         message.setSeen(false);
 
         //send email notification
-        senderRabbitMQService.sendNewMessageEmail(request.getSenderId(), request.getReceiverId(), request.getMessage());
+        senderRabbitMQService.sendNewMessageEmail(request.getReceiverId(), request.getSenderId(), request.getMessage());
+
+        System.out.println("Inviata notifica email:"
+                + "\nSenderId: " + request.getSenderId()
+                + "\nReceiverId: " + request.getReceiverId()
+                + "\nMessage: " + request.getMessage()
+        );
 
         return messageRepository.save(message);
     }
@@ -184,6 +190,12 @@ public class ChatService {
 
         senderRabbitMQService.sendRequestEmail(chat.getOwnerId(), adopterId, "send");
 
+        System.out.println("Inviata notifica email:"
+                + "\nOwner (SenderId): " + chat.getOwnerId()
+                + "\nAdopter (ReceiverId): " + adopterId
+                + "\nMessage: " + "send"
+        );
+
     }
 
     /**
@@ -210,6 +222,12 @@ public class ChatService {
         chatRepository.save(chat);
 
         senderRabbitMQService.sendRequestEmail(chat.getOwnerId(), adopterId, "cancel");
+
+        System.out.println("Inviata notifica email:"
+                + "\nOwner (SenderId): " + chat.getOwnerId()
+                + "\nAdopter (ReceiverId): " + adopterId
+                + "\nMessage: " + "cancel"
+        );
 
     }
 
@@ -238,6 +256,12 @@ public class ChatService {
         senderRabbitMQService.sendRequestAccepted(chat.getAdoptionPostId(), chat.getAdopterId());
         senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "accept");
 
+        System.out.println("Inviata notifica email:"
+                + "\nAdopter (SenderId): " + chat.getAdopterId()
+                + "\nOwner (ReceiverId): " + ownerId
+                + "\nMessage: " + "accept"
+        );
+
     }
 
     /**
@@ -264,6 +288,11 @@ public class ChatService {
 
         senderRabbitMQService.sendAcceptEmail(chat.getAdopterId(), ownerId, "reject");
 
+        System.out.println("Inviata notifica email:"
+                + "\nAdopter (SenderId): " + chat.getAdopterId()
+                + "\nOwner (ReceiverId): " + ownerId
+                + "\nMessage: " + "reject"
+        );
     }
 
 }

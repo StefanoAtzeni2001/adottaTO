@@ -40,7 +40,7 @@ public class EmailService {
     @RabbitListener(queues = "${app.rabbitmq.queue.savedsearch-match}")
     public void receiveMatch(AdoptionPostRabbitMQDto adoptionPostRabbitMQDto) {
 
-        System.out.println("Nuovo post ricevuto: " + adoptionPostRabbitMQDto);
+        System.out.println("Nuovo post di interesse per " + adoptionPostRabbitMQDto.getUserId());
 
         EmailResponseDto receiverUser = userServiceClient.getUser(adoptionPostRabbitMQDto.getUserId());
 
@@ -111,10 +111,22 @@ public class EmailService {
      * @param message DTO containing sender, receiver, and message content
      */
     private void handleNewMessage(EmailMessageRabbitMQDto message) {
-        System.out.println("Nuovo messaggio ricevuto: " + message);
+        System.out.println("Nuovo messaggio ricevuto:"
+                + "\nsenderId: " + message.getSenderId()
+                + "\nreceiverId: " + message.getReceiverId()
+                + "\nmessage: " + message.getMessage());
 
         EmailResponseDto receiverUser = userServiceClient.getUser(message.getReceiverId());
         EmailResponseDto senderUser = userServiceClient.getUser(message.getSenderId());
+
+        System.out.println("Recuperate informazioni utenti:"
+                + "\nEmail receiver: " + receiverUser.getEmail()
+                + "\nNome receiver: " + receiverUser.getName()
+                + "\nCognome receiver: " + receiverUser.getSurname()
+                + "\nEmail sender: " + senderUser.getEmail()
+                + "\nNome sender: " + senderUser.getName()
+                + "\nCognome sender: " + senderUser.getSurname()
+        );
 
         String subject = "Nuovo messaggio da " + senderUser.getName();
         String body = "Ciao " + receiverUser.getName() + "!\n"
@@ -134,10 +146,22 @@ public class EmailService {
      * @param message DTO containing adoption request details and interested users
      */
     private void handleAdoptionRequest(EmailMessageRabbitMQDto message) {
-        System.out.println("Richiesta adozione ricevuta: " + message);
+        System.out.println("Richiesta adozione ricevuta:"
+                + "\nsenderId: " + message.getSenderId()
+                + "\nreceiverId: " + message.getReceiverId()
+                + "\nmessage: " + message.getMessage());
 
         EmailResponseDto receiverUser = userServiceClient.getUser(message.getReceiverId());
         EmailResponseDto senderUser = userServiceClient.getUser(message.getSenderId());
+
+        System.out.println("Recuperate informazioni utenti:"
+                + "\nEmail receiver: " + receiverUser.getEmail()
+                + "\nNome receiver: " + receiverUser.getName()
+                + "\nCognome receiver: " + receiverUser.getSurname()
+                + "\nEmail sender: " + senderUser.getEmail()
+                + "\nNome sender: " + senderUser.getName()
+                + "\nCognome sender: " + senderUser.getSurname()
+        );
 
         String subject = null;
         String body = null;
@@ -165,10 +189,22 @@ public class EmailService {
      * @param message DTO containing acceptance/rejection details and interested user
      */
     private void handleAdoptionAccept(EmailMessageRabbitMQDto message) {
-        System.out.println("Accettazione adozione ricevuta: " + message);
+        System.out.println("Accettazione adozione ricevuta:"
+                + "\nsenderId: " + message.getSenderId()
+                + "\nreceiverId: " + message.getReceiverId()
+                + "\nmessage: " + message.getMessage());
 
         EmailResponseDto receiverUser = userServiceClient.getUser(message.getReceiverId());
         EmailResponseDto senderUser = userServiceClient.getUser(message.getSenderId());
+
+        System.out.println("Recuperate informazioni utenti:"
+                + "\nEmail receiver: " + receiverUser.getEmail()
+                + "\nNome receiver: " + receiverUser.getName()
+                + "\nCognome receiver: " + receiverUser.getSurname()
+                + "\nEmail sender: " + senderUser.getEmail()
+                + "\nNome sender: " + senderUser.getName()
+                + "\nCognome sender: " + senderUser.getSurname()
+        );
 
         String subject = null;
         String body = null;
