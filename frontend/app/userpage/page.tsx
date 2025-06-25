@@ -22,6 +22,7 @@ import {
     TabsTrigger
 } from "@/components/ui/tabs"
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 interface UserProfile {
     name: string
@@ -64,6 +65,8 @@ export default function UserPage() {
     const [selectedPost, setSelectedPost] = useState<AdoptionPostDetailDto | null>(null)
     const [savedSearches, setSavedSearches] = useState<AdoptionPostSavedSearchDto[]>([])
     const router = useRouter()
+
+    const { refetchUser } = useAuth();
 
     useEffect(() => {
         const token = localStorage.getItem("jwt")
@@ -132,6 +135,9 @@ export default function UserPage() {
     const handleLogout = () => {
         localStorage.removeItem("jwt")
         localStorage.removeItem("userId")
+
+        refetchUser();
+
         router.push("/login")
     }
 

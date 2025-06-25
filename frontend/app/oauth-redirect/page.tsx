@@ -2,9 +2,11 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import {useAuth} from "@/context/AuthContext";
 
 export default function OAuthRedirectPage() {
     const router = useRouter()
+    const { refetchUser } = useAuth();
 
     useEffect(() => {
         const fetchJwt = async () => {
@@ -26,6 +28,9 @@ export default function OAuthRedirectPage() {
 
                 localStorage.setItem("jwt", data.token)
                 localStorage.setItem("userId", data.userId.toString());
+
+                refetchUser();
+
                 router.push("/userpage")
             } catch (err) {
                 console.error("Errore connessione:", err)
