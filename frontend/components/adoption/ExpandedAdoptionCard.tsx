@@ -83,6 +83,7 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
             if (!res.ok) throw new Error("Errore durante l'invio della proposta")
 
             alert("Proposta inviata con successo!")
+            router.push("/chat")
         } catch (err) {
             console.error("Errore invio proposta:", err)
             alert("Errore durante l'invio della proposta.")
