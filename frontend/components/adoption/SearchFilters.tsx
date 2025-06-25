@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Select from "react-select"
+import dynamic from "next/dynamic"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,6 +14,8 @@ import {
     turtleBreeds,
     fishBreeds
 } from "@/data/constants"
+
+const Select = dynamic(() => import("react-select"), { ssr: false })
 
 interface Option {
     label: string
