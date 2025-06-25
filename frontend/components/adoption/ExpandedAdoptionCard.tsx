@@ -2,6 +2,7 @@ import { X } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { useRouter } from "next/navigation"
 
 interface ExpandedAdoptionCardProps {
     post: {
@@ -31,6 +32,7 @@ interface UserProfile {
 
 export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoptionCardProps) {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+    const router = useRouter()
 
     useEffect(() => {
         const fetchUserProfile = async () => {
@@ -50,6 +52,12 @@ export default function ExpandedAdoptionCard({ post, onClose }: ExpandedAdoption
 
         const token = localStorage.getItem("jwt")
         const userId = localStorage.getItem("userId")
+
+        if (!token || !userId) {
+            alert("Devi essere loggato per mandare una proposta. Verrai reindirizzato alla pagina di login.")
+            router.push("/login")
+            return
+        }
 
         try {
             const res = await fetch("http://localhost:8090/chat/send", {
